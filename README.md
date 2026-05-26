@@ -153,6 +153,13 @@ cmake -S . -B build -DRUBIK_INSTALL_CLI=OFF
 
 ## CLI
 
+Show command usage:
+
+```sh
+./build/rubik-solve --help
+./build/rubik-bench --help
+```
+
 Solve one cube from a 54-sticker string:
 
 ```sh
@@ -165,11 +172,21 @@ Useful options:
 ./build/rubik-solve <54-stickers> --mode optimal --timeout-ms 30000 --max-depth 20 --profile default
 ```
 
+Use the high-memory local optimal profile explicitly in benchmark tooling:
+
+```sh
+./build/rubik-bench --mode optimal --profile large-local --threads 4 --max-memory-mb 2048 --report-policy
+```
+
 Run the experimental fast mode:
 
 ```sh
 ./build/rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --mode fast
 ```
+
+CLI options are parsed strictly. Unknown enum values, missing option values,
+and invalid numeric values return a non-zero exit code with a specific error
+message.
 
 ## Benchmarks
 
@@ -178,6 +195,12 @@ run:
 
 ```sh
 ./build/rubik-bench --max-depth 7 --timeout-ms 30000
+```
+
+Inspect the active optimal profile policy without running benchmark cases:
+
+```sh
+./build/rubik-bench --mode optimal --profile large-local --report-policy
 ```
 
 Release-candidate benchmark gates:

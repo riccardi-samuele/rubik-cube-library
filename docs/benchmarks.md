@@ -263,12 +263,13 @@ Profile selection:
 
 - `--profile embedded|default|performance|large-local`: run a normal suite under one solver
   profile.
-- `--suite profile-smoke`: run a short fast and optimal smoke benchmark for all
-  three public profiles and write `warm_profile_smoke_summary.csv` or
-  `cold_profile_smoke_summary.csv`. Use this after table-profile or heuristic
-  changes.
-- `--suite profile-realistic`: run a larger local comparison for all profiles:
-  fast random depth-20, optimal random depth-12, and optimal random depth-13.
+- `--suite profile-smoke`: run a short fast and optimal smoke benchmark for
+  `embedded`, `default`, and `performance`, then write
+  `warm_profile_smoke_summary.csv` or `cold_profile_smoke_summary.csv`. Use
+  this after table-profile or heuristic changes.
+- `--suite profile-realistic`: run a larger local comparison for `embedded`,
+  `default`, and `performance`: fast random depth-20, optimal random depth-12,
+  and optimal random depth-13.
   It writes `*_profile_realistic_summary.csv` with average, percentile, max,
   warm-up, and wall-clock timing columns.
   The CMake target pins calibrated counts to fast `100`, optimal depth-12 `20`,
