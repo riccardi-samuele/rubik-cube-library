@@ -30,12 +30,12 @@ release_check,status,passed
 
 | Gate | Result |
 | --- | --- |
-| `release` configure/build/test | Passed, 44/44 tests |
-| `release-native-lto` configure/build/test | Passed, 44/44 tests |
-| `asan-ubsan` configure/build/test | Passed, 44/44 tests |
+| `release` configure/build/test | Passed, 45/45 tests |
+| `release-native-lto` configure/build/test | Passed, 45/45 tests |
+| `asan-ubsan` configure/build/test | Passed, 45/45 tests |
 | Install/export consumer smoke test | Passed |
 | Source archive validation | Passed |
-| Source archive clean-tree build/test | Passed, 44/44 tests |
+| Source archive clean-tree build/test | Passed, 45/45 tests |
 | `profile-realistic` benchmark gates | Passed |
 | `embedded-multiseed` benchmark gates | Passed |
 | `optimal-stress` benchmark gates | Passed |
@@ -49,12 +49,12 @@ dist/rubik_cube_library-1.0.0.tar.gz
 Archive audit:
 
 - Size: 120 KiB.
-- Manifest entries: 105.
+- Manifest entries: 106.
 - Includes the release-candidate validation document.
 - Excludes generated build trees, benchmark CSV output directories, package
   output directories, runtime caches, IDE files, and compile databases.
 - A fresh extraction configured, built, and passed the complete local test suite:
-  44/44 tests.
+  45/45 tests.
 
 ## Profile Realistic Summary
 

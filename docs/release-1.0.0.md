@@ -36,7 +36,7 @@ Non-goals for this release:
 | Fast mode | Experimental | Valid solutions, not quality/stability guaranteed. |
 | Large local optimal profile | Experimental but strong | 24 sampled depth-15 seeds under 30s with 4 threads; six known tails under 18s with 8 threads. |
 | Embedded/Raspberry | Not release-claimed | Needs physical Raspberry Pi benchmark. |
-| Packaging | Ready for release | CMake install/export, package version metadata, standalone consumer smoke target, and source archive validation exist. |
+| Packaging | Ready for release | CMake install/export, package version metadata, standalone consumer smoke target, source archive validation, and fresh archive build/test exist. |
 | Documentation | Ready for release | API notes, README release positioning, changelog, versioning policy, runtime thread-safety, cache policy, and release-candidate validation exist. |
 | CI/release automation | Ready for release | Local release script and GitHub Actions CI workflow exist. |
 | License | Ready | Apache License 2.0 with repository NOTICE. |
@@ -48,7 +48,7 @@ Latest release-candidate validation:
 - Command: `scripts/release_check.sh --profile full --with-benchmarks`
 - Result: `release_check,status,passed`
 - Archive audit: source tarball regenerated, checked for generated artifacts,
-  and rebuilt from a fresh extraction with 44/44 tests passing.
+  and rebuilt from a fresh extraction with 45/45 tests passing.
 
 ## Required Before Tag
 
@@ -76,6 +76,9 @@ Minimum local validation before tagging:
 ```sh
 scripts/release_check.sh --profile standard
 ```
+
+This command also regenerates the source archive and verifies that a fresh
+extraction configures, builds, and passes the local test suite.
 
 Full local validation before a release candidate:
 

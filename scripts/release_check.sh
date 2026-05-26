@@ -61,6 +61,14 @@ fi
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repo_root}"
 
+tmp_dirs=()
+cleanup_tmp_dirs() {
+    if [[ "${#tmp_dirs[@]}" -gt 0 ]]; then
+        rm -rf "${tmp_dirs[@]}"
+    fi
+}
+trap cleanup_tmp_dirs EXIT
+
 run_step() {
     echo
     echo "==> $*"
@@ -72,6 +80,24 @@ run_preset() {
     run_step cmake --preset "${preset}"
     run_step cmake --build --preset "${preset}"
     run_step ctest --preset "${preset}" --output-on-failure
+}
+
+check_source_archive_build() {
+    local archive_path="$1"
+    local archive_root="$2"
+    local work_dir
+    local source_dir
+    local build_dir
+
+    work_dir="$(mktemp -d)"
+    tmp_dirs+=("${work_dir}")
+    source_dir="${work_dir}/${archive_root}"
+    build_dir="${work_dir}/archive-build"
+
+    run_step tar -xzf "${archive_path}" -C "${work_dir}"
+    run_step cmake -S "${source_dir}" -B "${build_dir}" -DCMAKE_BUILD_TYPE=Release
+    run_step cmake --build "${build_dir}"
+    run_step ctest --test-dir "${build_dir}" --output-on-failure
 }
 
 echo "release_check,profile,${profile}"
@@ -101,6 +127,9 @@ fi
 
 run_step cmake --build "${install_build_dir}" --target rubik-check-install-consumer
 run_step "${repo_root}/scripts/check_release_archive.sh" --version 1.0.0 --output-dir "${repo_root}/dist"
+check_source_archive_build \
+    "${repo_root}/dist/rubik_cube_library-1.0.0.tar.gz" \
+    "rubik_cube_library-1.0.0"
 
 if [[ "${with_benchmarks}" == "1" ]]; then
     run_step cmake --build out/release-native-lto --target rubik-benchmark-profile-realistic

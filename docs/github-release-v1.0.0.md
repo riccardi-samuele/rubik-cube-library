@@ -83,12 +83,12 @@ before any performance claim is made.
 
 The release candidate passed:
 
-- `release` configure/build/test: 44/44 tests.
-- `release-native-lto` configure/build/test: 44/44 tests.
-- `asan-ubsan` configure/build/test: 44/44 tests.
+- `release` configure/build/test: 45/45 tests.
+- `release-native-lto` configure/build/test: 45/45 tests.
+- `asan-ubsan` configure/build/test: 45/45 tests.
 - Install/export consumer smoke test.
 - Source archive validation.
-- Fresh source-archive extraction build/test: 44/44 tests.
+- Fresh source-archive extraction build/test: 45/45 tests.
 - `profile-realistic` benchmark gates.
 - `embedded-multiseed` benchmark gates.
 - `optimal-stress` benchmark gates.

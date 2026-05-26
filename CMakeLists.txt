@@ -626,6 +626,10 @@ add_test(
 set_tests_properties(extract_slowest_cases PROPERTIES
     PASS_REGULAR_EXPRESSION "elapsed_ms,source_file,benchmark,mode,profile,slowest_rank,case_name,case_depth,scramble,status,move_count,nodes_expanded,solution.*900,.*sample_b.csv,fixture_tail,optimal,embedded,1,random_42_2,13,R U R',Optimal,13,9000,R U"
 )
+add_test(
+    NAME release_check_archive_build
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/release_check_archive_build.sh
+)
 
 if (RUBIK_BUILD_EXAMPLES)
     add_executable(example-validate-input

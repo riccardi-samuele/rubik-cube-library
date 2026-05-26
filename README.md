@@ -101,6 +101,9 @@ Run the local release validation script:
 scripts/release_check.sh --profile standard
 ```
 
+This validates the configured build presets, standalone install consumption,
+source archive contents, and a fresh build/test from the generated archive.
+
 For a release candidate with desktop benchmark gates:
 
 ```sh
@@ -110,7 +113,7 @@ scripts/release_check.sh --profile full --with-benchmarks
 The GitHub Actions workflow in `.github/workflows/ci.yml` runs the standard
 release validation and sanitizer tests on a clean Ubuntu runner.
 
-Create and validate the source release archive:
+Create and validate only the source release archive contents:
 
 ```sh
 scripts/check_release_archive.sh --version 1.0.0
