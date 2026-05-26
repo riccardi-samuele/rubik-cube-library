@@ -448,47 +448,47 @@ set_tests_properties(cli_bench_large_local_memory_report PROPERTIES
 )
 add_test(
     NAME cli_bench_rejects_invalid_profile
-    COMMAND bash -c "output=\"$($1 --profile typo --report-policy 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid profile'" _ $<TARGET_FILE:rubik-bench>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid profile" $<TARGET_FILE:rubik-bench> --profile typo --report-policy
 )
 add_test(
     NAME cli_solve_rejects_invalid_profile
-    COMMAND bash -c "output=\"$($1 UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --profile typo 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid profile'" _ $<TARGET_FILE:rubik-solve>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid profile" $<TARGET_FILE:rubik-solve> UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --profile typo
 )
 add_test(
     NAME cli_bench_rejects_invalid_mode
-    COMMAND bash -c "output=\"$($1 --mode typo --report-policy 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid mode'" _ $<TARGET_FILE:rubik-bench>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid mode" $<TARGET_FILE:rubik-bench> --mode typo --report-policy
 )
 add_test(
     NAME cli_solve_rejects_invalid_mode
-    COMMAND bash -c "output=\"$($1 UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --mode typo 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid mode'" _ $<TARGET_FILE:rubik-solve>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid mode" $<TARGET_FILE:rubik-solve> UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --mode typo
 )
 add_test(
     NAME cli_bench_rejects_invalid_case_set
-    COMMAND bash -c "output=\"$($1 --case-set typo --report-policy 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid case set'" _ $<TARGET_FILE:rubik-bench>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid case set" $<TARGET_FILE:rubik-bench> --case-set typo --report-policy
 )
 add_test(
     NAME cli_solve_rejects_invalid_max_depth
-    COMMAND bash -c "output=\"$($1 UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --max-depth abc 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid max-depth'" _ $<TARGET_FILE:rubik-solve>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid max-depth" $<TARGET_FILE:rubik-solve> UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --max-depth abc
 )
 add_test(
     NAME cli_bench_rejects_invalid_threads
-    COMMAND bash -c "output=\"$($1 --threads abc --report-policy 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid threads'" _ $<TARGET_FILE:rubik-bench>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid threads" $<TARGET_FILE:rubik-bench> --threads abc --report-policy
 )
 add_test(
     NAME cli_bench_rejects_invalid_random_count
-    COMMAND bash -c "output=\"$($1 --random-count abc --report-policy 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid random-count'" _ $<TARGET_FILE:rubik-bench>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid random-count" $<TARGET_FILE:rubik-bench> --random-count abc --report-policy
 )
 add_test(
     NAME cli_solve_rejects_missing_profile_value
-    COMMAND bash -c "output=\"$($1 UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --profile 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Missing value for --profile'" _ $<TARGET_FILE:rubik-solve>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Missing value for --profile" $<TARGET_FILE:rubik-solve> UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --profile
 )
 add_test(
     NAME cli_bench_rejects_missing_threads_value
-    COMMAND bash -c "output=\"$($1 --threads 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Missing value for --threads'" _ $<TARGET_FILE:rubik-bench>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Missing value for --threads" $<TARGET_FILE:rubik-bench> --threads
 )
 add_test(
     NAME cli_bench_rejects_missing_random_count_value
-    COMMAND bash -c "output=\"$($1 --random-count 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Missing value for --random-count'" _ $<TARGET_FILE:rubik-bench>
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Missing value for --random-count" $<TARGET_FILE:rubik-bench> --random-count
 )
 add_test(
     NAME cli_bench_percentile_summary
