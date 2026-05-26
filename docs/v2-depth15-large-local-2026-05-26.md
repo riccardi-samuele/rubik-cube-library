@@ -70,9 +70,33 @@ Slowest cases:
 | 888 | 20,469 | 18,616,696 |
 | 42 | 20,175 | 18,559,027 |
 
+## 8-Thread Tail Replay
+
+Command:
+
+```sh
+cmake --build out/release-native-lto --target rubik-benchmark-optimal-large-local-tail-8threads
+cmake --build out/release-native-lto --target rubik-benchmark-optimal-large-local-tail-8threads-gates
+```
+
+The 8-thread tail target replays the six slowest known depth-15 large-local
+seeds with an 18 second gate.
+
+| Seed | 4-thread ms | 8-thread ms | 8-thread nodes |
+| --- | ---: | ---: | ---: |
+| 987654321 | 27,572 | 15,475 | 28,001,618 |
+| 424242 | 26,325 | 13,712 | 23,848,206 |
+| 666 | 23,801 | 9,984 | 17,642,628 |
+| 555 | 23,509 | 12,288 | 21,692,898 |
+| 99 | 22,612 | 10,311 | 17,957,140 |
+| 888 | 20,469 | 8,716 | 14,917,903 |
+
+The gate passed for all six cases. Worst 8-thread elapsed time was `15,475 ms`.
+
 ## Decision
 
 Depth-15 is controlled by the large-local profile on the development desktop
 for the current 24-seed gate, but not by the default embedded/default/performance
-profiles. This profile remains suitable for desktop/Orin-class local compute,
-not for the embedded default policy.
+profiles. The 8-thread tail replay gives the large-local profile additional
+latency margin on the slowest known seeds. This profile remains suitable for
+desktop/Orin-class local compute, not for the embedded default policy.
