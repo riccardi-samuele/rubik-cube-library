@@ -73,7 +73,7 @@ Latest release-candidate validation:
 - [x] Run large-local validation if the release highlights `LargeLocal`.
 - [x] Confirm public docs contain no unverified hardware performance claims.
 - [x] Confirm generated artifacts and local process notes are not committed.
-- [ ] Create the release tag.
+- [x] Create the local release tag.
 - [ ] Upload archive and checksum to the GitHub Release.
 
 ## Validation Gates
