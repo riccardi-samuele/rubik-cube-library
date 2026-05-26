@@ -48,7 +48,7 @@ Latest release-candidate validation:
 - Command: `scripts/release_check.sh --profile full --with-benchmarks`
 - Result: `release_check,status,passed`
 - Archive audit: source tarball regenerated, checked for generated artifacts,
-  and rebuilt from a fresh extraction with 46/46 tests passing.
+  and rebuilt from a fresh extraction with 47/47 tests passing.
 
 ## Required Before Tag
 
