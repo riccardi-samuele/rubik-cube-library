@@ -296,6 +296,37 @@ bool cornerStateBoundsEnabled()
     return cornerStateBoundsPolicy() != "disabled_by_env";
 }
 
+bool largeLocalOptimalProfile(const rubik::SolveOptions& options)
+{
+    return options.mode == rubik::SolveMode::Optimal && options.profile == rubik::SolveProfile::LargeLocal;
+}
+
+std::string cornerUpEdgeBoundsPolicy(const rubik::SolveOptions& options)
+{
+    if (largeLocalOptimalProfile(options)) {
+        return "profile_enabled";
+    }
+    return environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS") ? "enabled" : "disabled";
+}
+
+std::string cornerDownEdgeBoundsPolicy(const rubik::SolveOptions& options)
+{
+    if (largeLocalOptimalProfile(options)) {
+        return "profile_enabled";
+    }
+    return environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS") ? "enabled" : "disabled";
+}
+
+bool cornerUpEdgeBoundsEnabled(const rubik::SolveOptions& options)
+{
+    return cornerUpEdgeBoundsPolicy(options) != "disabled";
+}
+
+bool cornerDownEdgeBoundsEnabled(const rubik::SolveOptions& options)
+{
+    return cornerDownEdgeBoundsPolicy(options) != "disabled";
+}
+
 void printBenchmarkPolicyRows(const rubik::SolveOptions& options, bool lowerBoundOnly)
 {
     const ThreePhase1Policy policy = lowerBoundOnly
@@ -317,14 +348,10 @@ void printBenchmarkPolicyRows(const rubik::SolveOptions& options, bool lowerBoun
     std::cout << "benchmark,corner_state_bounds,"
               << cornerStateBoundsPolicy() << "\n";
     std::cout << "benchmark,corner_up_edge_bounds,"
-              << (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS")
-                      ? "enabled"
-                      : "disabled")
+              << cornerUpEdgeBoundsPolicy(options)
               << "\n";
     std::cout << "benchmark,corner_down_edge_bounds,"
-              << (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS")
-                      ? "enabled"
-                      : "disabled")
+              << cornerDownEdgeBoundsPolicy(options)
               << "\n";
     const char* goalTableDepth = std::getenv("RUBIK_EXPERIMENTAL_OPTIMAL_GOAL_TABLE_DEPTH");
     std::cout << "benchmark,optimal_goal_table_depth,"
@@ -343,7 +370,7 @@ void printUsage(const char* program)
         << " [--case-set deterministic|random|both] [--random-count N]"
         << " [--random-depth N] [--random-seed N] [--random-start-index N]"
         << " [--slowest-count N] [--diagnose-fast] [--diagnose-optimal]"
-        << " [--report-symmetry] [--report-cache] [--report-memory]"
+        << " [--report-symmetry] [--report-cache] [--report-memory] [--report-policy]"
         << " [--benchmark-lower-bound] [--lower-bound-iterations N]\n";
 }
 
@@ -906,13 +933,12 @@ void printCacheReport()
 
 std::uint64_t printMemoryTableRow(const std::string& profile, const rubik::detail::TableProfileEntry& entry)
 {
-    const rubik::pruning_tables::PruningTable& table = entry.table();
-    const std::uint64_t bytes = bytesFor(table);
+    const std::uint64_t bytes = entry.entries;
     std::cout
         << "memory_table,"
         << profile << ','
         << entry.name << ','
-        << table.size() << ','
+        << entry.entries << ','
         << bytes
         << "\n";
     return bytes;
@@ -921,7 +947,9 @@ std::uint64_t printMemoryTableRow(const std::string& profile, const rubik::detai
 void printMemoryProfileRows(
     const std::string& profile,
     std::span<const rubik::detail::TableProfileEntry> entries,
-    bool includeCornerState = false)
+    bool includeCornerState = false,
+    bool includeCornerUpEdge = false,
+    bool includeCornerDownEdge = false)
 {
     std::uint64_t totalBytes = 0;
     std::uint64_t tableCount = 0;
@@ -943,6 +971,32 @@ void printMemoryProfileRows(
         totalBytes += entriesCount;
         ++tableCount;
     }
+    if (includeCornerUpEdge) {
+        const auto entriesCount = static_cast<std::uint64_t>(rubik::coordinates::corner_permutation_count) *
+            static_cast<std::uint64_t>(rubik::coordinates::edge_group_permutation_count);
+        std::cout
+            << "memory_table,"
+            << profile
+            << ",corner_permutation_up_edge_permutation,"
+            << entriesCount << ','
+            << entriesCount
+            << "\n";
+        totalBytes += entriesCount;
+        ++tableCount;
+    }
+    if (includeCornerDownEdge) {
+        const auto entriesCount = static_cast<std::uint64_t>(rubik::coordinates::corner_permutation_count) *
+            static_cast<std::uint64_t>(rubik::coordinates::edge_group_permutation_count);
+        std::cout
+            << "memory_table,"
+            << profile
+            << ",corner_permutation_down_edge_permutation,"
+            << entriesCount << ','
+            << entriesCount
+            << "\n";
+        totalBytes += entriesCount;
+        ++tableCount;
+    }
 
     std::cout << "memory_summary," << profile << ",tables," << tableCount << "\n";
     std::cout << "memory_summary," << profile << ",total_bytes," << totalBytes << "\n";
@@ -958,6 +1012,12 @@ void printMemoryReport()
     printMemoryProfileRows("embedded_optimal", rubik::detail::optimalTableProfile(rubik::SolveProfile::Embedded), includeCornerState);
     printMemoryProfileRows("default_optimal", rubik::detail::optimalTableProfile(rubik::SolveProfile::Default), includeCornerState);
     printMemoryProfileRows("performance_optimal", rubik::detail::optimalTableProfile(rubik::SolveProfile::Performance), includeCornerState);
+    printMemoryProfileRows(
+        "large_local_optimal",
+        rubik::detail::optimalTableProfile(rubik::SolveProfile::LargeLocal),
+        includeCornerState,
+        true,
+        true);
 
     std::vector<rubik::detail::TableProfileEntry> fastTwoPhase;
     const auto phase1 = rubik::detail::phase1BaseTableProfile();
@@ -977,10 +1037,10 @@ std::chrono::milliseconds warmUpTables(const rubik::SolveOptions& options)
     if (cornerStateBoundsEnabled()) {
         (void)rubik::pruning_tables::cornerOrientationPermutation();
     }
-    if (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS")) {
+    if (cornerUpEdgeBoundsEnabled(options)) {
         (void)rubik::pruning_tables::cornerPermutationUpEdgePermutation();
     }
-    if (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS")) {
+    if (cornerDownEdgeBoundsEnabled(options)) {
         (void)rubik::pruning_tables::cornerPermutationDownEdgePermutation();
     }
     if (options.mode == rubik::SolveMode::Optimal &&
@@ -1006,11 +1066,11 @@ std::size_t warmUpTablePayloadBytes(const rubik::SolveOptions& options)
         bytes += static_cast<std::size_t>(rubik::coordinates::corner_orientation_count) *
             static_cast<std::size_t>(rubik::coordinates::corner_permutation_count);
     }
-    if (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS")) {
+    if (cornerUpEdgeBoundsEnabled(options)) {
         bytes += static_cast<std::size_t>(rubik::coordinates::corner_permutation_count) *
             static_cast<std::size_t>(rubik::coordinates::edge_group_permutation_count);
     }
-    if (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS")) {
+    if (cornerDownEdgeBoundsEnabled(options)) {
         bytes += static_cast<std::size_t>(rubik::coordinates::corner_permutation_count) *
             static_cast<std::size_t>(rubik::coordinates::edge_group_permutation_count);
     }
@@ -1105,6 +1165,7 @@ int main(int argc, char** argv)
     bool reportSymmetry = false;
     bool reportCache = false;
     bool reportMemory = false;
+    bool reportPolicy = false;
     bool benchmarkLowerBound = false;
 
     for (int i = 1; i < argc; ++i) {
@@ -1151,6 +1212,8 @@ int main(int argc, char** argv)
             reportCache = true;
         } else if (arg == "--report-memory") {
             reportMemory = true;
+        } else if (arg == "--report-policy") {
+            reportPolicy = true;
         } else if (arg == "--benchmark-lower-bound") {
             benchmarkLowerBound = true;
         } else {
@@ -1174,6 +1237,10 @@ int main(int argc, char** argv)
     }
     if (reportMemory) {
         printMemoryReport();
+        return 0;
+    }
+    if (reportPolicy) {
+        printBenchmarkPolicyRows(options, benchmarkLowerBound);
         return 0;
     }
 

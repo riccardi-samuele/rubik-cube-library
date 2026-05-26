@@ -30,7 +30,7 @@ Options:
   --cache-dir DIR          pruning table cache directory
   --cache-mode MODE        warm|cold, default: warm
   --output-dir DIR         benchmark output directory, default: benchmark-results
-  --profile NAME           embedded|default|performance, default: default
+  --profile NAME           embedded|default|performance|large-local, default: default
   --seed N                 random benchmark seed, default: 12345
   --seeds LIST             comma-separated seeds for embedded-multiseed, default: 12345,20260525,42
   --fast-timeout-ms N      fast-mode per-case timeout, default: 5000
@@ -663,19 +663,19 @@ run_optimal_deep_probe() {
 run_optimal_large_local() {
     local previous_profile="${profile}"
     local summary_file="${output_dir}/${cache_mode}_optimal_large_local_summary.csv"
-    profile="performance"
+    profile="large-local"
 
     {
         echo "profile,mode,benchmark,total_cases,solved,failed,total_elapsed_ms,total_nodes_expanded,p50_elapsed_ms,p90_elapsed_ms,p95_elapsed_ms,p99_elapsed_ms,max_elapsed_ms,warmup_elapsed_ms,wall_elapsed_ms,output_file"
     } > "${summary_file}"
 
     for current_seed in "${seed_list[@]}"; do
-        local opt15_name="optimal_large_local_performance_random_${deep_optimal_depth15_count}_depth_15_seed_${current_seed}"
+        local opt15_name="optimal_large_local_large_local_random_${deep_optimal_depth15_count}_depth_15_seed_${current_seed}"
         local opt15_output="${output_dir}/${cache_mode}_${opt15_name}.csv"
 
         run_benchmark "${opt15_name}" \
             --mode optimal \
-            --profile performance \
+            --profile large-local \
             --threads "${benchmark_threads}" \
             --max-memory-mb "${benchmark_max_memory_mb}" \
             --timeout-ms "${optimal_timeout_ms}" \
@@ -686,7 +686,7 @@ run_optimal_large_local() {
             --random-seed "${current_seed}" \
             --slowest-count "${deep_optimal_depth15_count}" \
             --diagnose-optimal || true
-        append_profile_summary_row "${summary_file}" "performance" "optimal" "random_seed_${current_seed}_depth_15_count_${deep_optimal_depth15_count}" "${opt15_output}"
+        append_profile_summary_row "${summary_file}" "large-local" "optimal" "random_seed_${current_seed}_depth_15_count_${deep_optimal_depth15_count}" "${opt15_output}"
     done
 
     profile="${previous_profile}"

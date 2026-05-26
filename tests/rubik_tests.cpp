@@ -799,12 +799,15 @@ void testTableProfileManifest()
         rubik::detail::optimalTableProfile(rubik::SolveProfile::Default));
     assertTableProfileMatchesLoadedTables(
         rubik::detail::optimalTableProfile(rubik::SolveProfile::Performance));
+    assertTableProfileMatchesLoadedTables(
+        rubik::detail::optimalTableProfile(rubik::SolveProfile::LargeLocal));
     assertTableProfileMatchesLoadedTables(rubik::detail::phase1BaseTableProfile());
     assertTableProfileMatchesLoadedTables(rubik::detail::phase2TableProfile());
 
     assert(rubik::detail::optimalTablePayloadBytes(rubik::SolveProfile::Embedded) == 22123535);
     assert(rubik::detail::optimalTablePayloadBytes(rubik::SolveProfile::Default) == 205322495);
     assert(rubik::detail::optimalTablePayloadBytes(rubik::SolveProfile::Performance) == 346456895);
+    assert(rubik::detail::optimalTablePayloadBytes(rubik::SolveProfile::LargeLocal) == 346456895);
     assert(rubik::detail::fastTwoPhaseTablePayloadBytes() == 3638975);
 }
 

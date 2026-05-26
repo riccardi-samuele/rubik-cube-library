@@ -255,11 +255,7 @@ add_custom_target(rubik-benchmark-optimal-deep-probe
     COMMENT "Running optimal deep probe benchmark suite"
 )
 add_custom_target(rubik-benchmark-optimal-large-local
-    COMMAND ${CMAKE_COMMAND} -E env
-        RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS=1
-        RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1
-        RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS=1
-        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
         --suite optimal-large-local
         --cache-mode warm
         --build-dir ${CMAKE_CURRENT_BINARY_DIR}
@@ -276,39 +272,35 @@ add_custom_target(rubik-benchmark-optimal-large-local
 add_custom_target(rubik-benchmark-optimal-large-local-gates
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_benchmark_gates.sh
         --summary-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-large-local/warm_optimal_large_local_summary.csv
-        --gate performance,optimal,random_seed_12345_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_20260525_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_42_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_314159_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_271828_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_987654321_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_7_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_99_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_123456789_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_424242_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_8675309_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_20240525_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_111_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_222_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_333_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_444_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_555_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_666_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_777_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_888_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_999_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_13579_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_24680_depth_15_count_1,1,30000,30000,30000
-        --gate performance,optimal,random_seed_112358_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_12345_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_20260525_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_42_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_314159_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_271828_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_987654321_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_7_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_99_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_123456789_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_424242_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_8675309_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_20240525_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_111_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_222_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_333_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_444_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_555_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_666_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_777_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_888_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_999_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_13579_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_24680_depth_15_count_1,1,30000,30000,30000
+        --gate large-local,optimal,random_seed_112358_depth_15_count_1,1,30000,30000,30000
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking large local optimal depth-15 gates"
 )
 add_custom_target(rubik-benchmark-optimal-large-local-tail-8threads
-    COMMAND ${CMAKE_COMMAND} -E env
-        RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS=1
-        RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1
-        RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS=1
-        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
         --suite optimal-large-local
         --cache-mode warm
         --build-dir ${CMAKE_CURRENT_BINARY_DIR}
@@ -325,12 +317,12 @@ add_custom_target(rubik-benchmark-optimal-large-local-tail-8threads
 add_custom_target(rubik-benchmark-optimal-large-local-tail-8threads-gates
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_benchmark_gates.sh
         --summary-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-large-local-tail-8threads/warm_optimal_large_local_summary.csv
-        --gate performance,optimal,random_seed_987654321_depth_15_count_1,1,18000,18000,18000
-        --gate performance,optimal,random_seed_424242_depth_15_count_1,1,18000,18000,18000
-        --gate performance,optimal,random_seed_666_depth_15_count_1,1,18000,18000,18000
-        --gate performance,optimal,random_seed_555_depth_15_count_1,1,18000,18000,18000
-        --gate performance,optimal,random_seed_99_depth_15_count_1,1,18000,18000,18000
-        --gate performance,optimal,random_seed_888_depth_15_count_1,1,18000,18000,18000
+        --gate large-local,optimal,random_seed_987654321_depth_15_count_1,1,18000,18000,18000
+        --gate large-local,optimal,random_seed_424242_depth_15_count_1,1,18000,18000,18000
+        --gate large-local,optimal,random_seed_666_depth_15_count_1,1,18000,18000,18000
+        --gate large-local,optimal,random_seed_555_depth_15_count_1,1,18000,18000,18000
+        --gate large-local,optimal,random_seed_99_depth_15_count_1,1,18000,18000,18000
+        --gate large-local,optimal,random_seed_888_depth_15_count_1,1,18000,18000,18000
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking large local optimal 8-thread tail gates"
 )
@@ -428,10 +420,17 @@ set_tests_properties(cli_bench_random_smoke PROPERTIES
 )
 add_test(
     NAME cli_bench_large_local_profile
-    COMMAND rubik-bench --mode optimal --profile large-local --timeout-ms 1000 --max-depth 1 --max-case-depth 1
+    COMMAND rubik-bench --mode optimal --profile large-local --report-policy
 )
 set_tests_properties(cli_bench_large_local_profile PROPERTIES
     PASS_REGULAR_EXPRESSION "benchmark,profile,large-local"
+)
+add_test(
+    NAME cli_bench_large_local_policy
+    COMMAND rubik-bench --mode optimal --profile large-local --report-policy
+)
+set_tests_properties(cli_bench_large_local_policy PROPERTIES
+    PASS_REGULAR_EXPRESSION "benchmark,corner_up_edge_bounds,profile_enabled"
 )
 add_test(
     NAME cli_solve_large_local_profile
@@ -439,6 +438,13 @@ add_test(
 )
 set_tests_properties(cli_solve_large_local_profile PROPERTIES
     PASS_REGULAR_EXPRESSION "status: Solved"
+)
+add_test(
+    NAME cli_bench_large_local_memory_report
+    COMMAND rubik-bench --report-memory
+)
+set_tests_properties(cli_bench_large_local_memory_report PROPERTIES
+    PASS_REGULAR_EXPRESSION "memory_summary,large_local_optimal,total_bytes"
 )
 add_test(
     NAME cli_bench_percentile_summary

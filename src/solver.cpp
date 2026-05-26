@@ -454,6 +454,21 @@ bool experimentalCornerDownEdgeBoundsEnabled()
     return environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS");
 }
 
+bool largeLocalOptimalProfile(SolveMode mode, SolveProfile profile)
+{
+    return mode == SolveMode::Optimal && profile == SolveProfile::LargeLocal;
+}
+
+bool cornerUpEdgeBoundsEnabled(SolveMode mode, SolveProfile profile)
+{
+    return largeLocalOptimalProfile(mode, profile) || experimentalCornerUpEdgeBoundsEnabled();
+}
+
+bool cornerDownEdgeBoundsEnabled(SolveMode mode, SolveProfile profile)
+{
+    return largeLocalOptimalProfile(mode, profile) || experimentalCornerDownEdgeBoundsEnabled();
+}
+
 std::size_t experimentalCornerStatePayloadBytes()
 {
     return static_cast<std::size_t>(coordinates::corner_orientation_count) *
@@ -567,7 +582,7 @@ int nodeLowerBoundWithoutThreePhase1(
 
     int bound = nodeBaseLowerBound(node);
 
-    if (profile == SolveProfile::Performance) {
+    if (profile == SolveProfile::Performance || profile == SolveProfile::LargeLocal) {
         bound = std::max(
             bound,
             static_cast<int>(pruning_tables::upDownEdgePermutation()[upDownEdgeIndex]));
@@ -1438,8 +1453,8 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
     std::size_t estimatedTableBytes =
         detail::estimatedSolverTablePayloadBytes(options.mode, options.profile);
     const bool includeExperimentalCornerStateBounds = experimentalCornerStateBoundsEnabled();
-    const bool includeExperimentalCornerUpEdgeBounds = experimentalCornerUpEdgeBoundsEnabled();
-    const bool includeExperimentalCornerDownEdgeBounds = experimentalCornerDownEdgeBoundsEnabled();
+    const bool includeExperimentalCornerUpEdgeBounds = cornerUpEdgeBoundsEnabled(options.mode, options.profile);
+    const bool includeExperimentalCornerDownEdgeBounds = cornerDownEdgeBoundsEnabled(options.mode, options.profile);
     if (includeExperimentalCornerStateBounds) {
         estimatedTableBytes += experimentalCornerStatePayloadBytes();
     }
@@ -1783,8 +1798,8 @@ int Solver::lowerBound(const Cube& cube, Metric metric, SolveProfile profile) co
 
     const bool includeExperimentalSymmetryBounds = experimentalSymmetryBoundsEnabled();
     const bool includeExperimentalCornerStateBounds = experimentalCornerStateBoundsEnabled();
-    const bool includeExperimentalCornerUpEdgeBounds = experimentalCornerUpEdgeBoundsEnabled();
-    const bool includeExperimentalCornerDownEdgeBounds = experimentalCornerDownEdgeBoundsEnabled();
+    const bool includeExperimentalCornerUpEdgeBounds = cornerUpEdgeBoundsEnabled(SolveMode::Optimal, profile);
+    const bool includeExperimentalCornerDownEdgeBounds = cornerDownEdgeBoundsEnabled(SolveMode::Optimal, profile);
     const bool includeThreePhase1Bounds = threePhase1LowerBoundEnabled(profile);
     return nodeLowerBound(
         makeSearchNode(parsed.cube, includeThreePhase1Bounds),
