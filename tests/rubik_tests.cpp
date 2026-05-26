@@ -10,6 +10,7 @@
 #include "rubik/phase1.hpp"
 #include "rubik/phase2.hpp"
 #include "rubik/pruning_tables.hpp"
+#include "rubik/cache.hpp"
 #include "rubik/solver.hpp"
 #include "rubik/version.hpp"
 
@@ -125,6 +126,23 @@ void testAutoFastSolveIsUnsupported()
     const rubik::SolveResult result = solver.solve(rubik::Cube::solved(), options);
     expect(result.status == rubik::SolveStatus::UnsupportedOptions);
     expect(result.plan.requestedProfile == rubik::SolveProfile::Auto);
+}
+
+void testPrepareCacheDryRun()
+{
+    rubik::CacheSetupOptions options;
+    options.profile = rubik::SolveProfile::Auto;
+    options.cachePolicy = rubik::CachePolicy::AllowBuild;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+    options.dryRun = true;
+
+    const rubik::CacheSetupResult result = rubik::prepareCache(options);
+    expect(result.ready);
+    expect(result.plan.requestedProfile == rubik::SolveProfile::Auto);
+    expect(result.plan.effectiveProfile == rubik::SolveProfile::LargeLocal);
+    expect(result.bytesPrepared == 0);
+    expect(!result.message.empty());
 }
 
 std::vector<std::uint8_t> buildCornerEdgeOrientationPruningForTest()
@@ -1116,6 +1134,7 @@ int main()
     testAutoPlannerDesktopDefaults();
     testAutoSolveReportsPlan();
     testAutoFastSolveIsUnsupported();
+    testPrepareCacheDryRun();
     testSolvedCube();
     testStructuredStickerInput();
     testPhysicalValidation();
