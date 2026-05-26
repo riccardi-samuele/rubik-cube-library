@@ -69,6 +69,7 @@ add_executable(rubik-solve
     apps/rubik_solve.cpp
 )
 target_link_libraries(rubik-solve PRIVATE rubik)
+target_compile_definitions(rubik-solve PRIVATE RUBIK_VERSION="${PROJECT_VERSION}")
 add_test(
     NAME cli_solve_solved
     COMMAND rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --timeout-ms 1000
@@ -88,6 +89,7 @@ add_executable(rubik-bench
     apps/rubik_bench.cpp
 )
 target_link_libraries(rubik-bench PRIVATE rubik)
+target_compile_definitions(rubik-bench PRIVATE RUBIK_VERSION="${PROJECT_VERSION}")
 add_custom_target(rubik-benchmark-smoke
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
         --suite smoke
@@ -467,6 +469,14 @@ add_test(
 add_test(
     NAME cli_bench_help
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success.sh "Usage:" $<TARGET_FILE:rubik-bench> --help
+)
+add_test(
+    NAME cli_solve_version
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success.sh "${PROJECT_VERSION}" $<TARGET_FILE:rubik-solve> --version
+)
+add_test(
+    NAME cli_bench_version
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success.sh "${PROJECT_VERSION}" $<TARGET_FILE:rubik-bench> --version
 )
 add_test(
     NAME cli_bench_rejects_invalid_profile

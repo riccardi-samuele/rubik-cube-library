@@ -9,6 +9,10 @@
 #include <optional>
 #include <string>
 
+#ifndef RUBIK_VERSION
+#define RUBIK_VERSION "unknown"
+#endif
+
 namespace {
 
 std::string statusName(rubik::SolveStatus status)
@@ -108,6 +112,10 @@ int main(int argc, char** argv)
         const std::string firstArg = argv[1];
         if (firstArg == "--help" || firstArg == "-h") {
             printUsage(argv[0]);
+            return 0;
+        }
+        if (firstArg == "--version" || firstArg == "-V") {
+            std::cout << "rubik-solve " << RUBIK_VERSION << "\n";
             return 0;
         }
     }

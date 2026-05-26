@@ -24,6 +24,10 @@
 #include <string>
 #include <vector>
 
+#ifndef RUBIK_VERSION
+#define RUBIK_VERSION "unknown"
+#endif
+
 namespace {
 
 struct Case {
@@ -1224,6 +1228,9 @@ int main(int argc, char** argv)
         const std::string arg = argv[i];
         if (arg == "--help" || arg == "-h") {
             printUsage(argv[0]);
+            return 0;
+        } else if (arg == "--version" || arg == "-V") {
+            std::cout << "rubik-bench " << RUBIK_VERSION << "\n";
             return 0;
         } else if (arg == "--timeout-ms") {
             const auto value = requireValue(arg, i);

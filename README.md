@@ -160,6 +160,13 @@ Show command usage:
 ./build/rubik-bench --help
 ```
 
+Show CLI versions:
+
+```sh
+./build/rubik-solve --version
+./build/rubik-bench --version
+```
+
 Solve one cube from a 54-sticker string:
 
 ```sh
