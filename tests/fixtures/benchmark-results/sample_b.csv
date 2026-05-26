@@ -1,0 +1,4 @@
+benchmark,name,fixture_tail
+benchmark,mode,optimal
+benchmark,profile,embedded
+slowest,1,random_42_2,13,"R U R'",Optimal,13,900,9000,"R U"

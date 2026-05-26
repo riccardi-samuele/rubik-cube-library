@@ -65,6 +65,7 @@ scripts/run_benchmark_suite.sh --suite smoke --cache-mode cold
 scripts/run_benchmark_suite.sh --suite optimal-depth --profile performance
 scripts/run_benchmark_suite.sh --suite profile-realistic --realistic-fast-count 20 --realistic-opt12-count 10 --realistic-opt13-count 5
 scripts/run_optimal_ab.sh --case-set random --random-count 8 --random-depth 12 --max-depth 12 --timeout-ms 5000 --repetitions 3
+scripts/extract_slowest_cases.sh --input-dir benchmark-results --output benchmark-results/slowest-cases.csv --limit 25
 ```
 
 `--fast-max-depth` defaults to `24`. The release-candidate
@@ -96,6 +97,20 @@ scripts/run_optimal_ab.sh --case-set random --random-count 8 --random-depth 12 -
 The A/B runner alternates `RUBIK_DISABLE_THREE_PHASE1_BOUNDS=1` baseline runs
 and three-phase runs, writes per-run CSV files, and writes `summary.csv` plus
 `aggregate.csv` for average elapsed time and expanded nodes.
+
+Slowest-case extraction:
+
+```sh
+scripts/extract_slowest_cases.sh \
+  --input-dir out/release-native-lto/benchmark-results/optimal-stress \
+  --output out/release-native-lto/benchmark-results/optimal-stress/slowest-cases.csv \
+  --limit 25
+```
+
+The extractor scans `slowest` rows from `rubik-bench` CSV output and writes a
+single descending list by elapsed time. Use it after stress, tail, or deep-probe
+runs to capture replay candidates before changing optimal-mode pruning or
+search policy.
 
 Three-direction phase-1 bounds are now enabled by default for
 `SolveMode::Optimal` with all public profiles, including `Embedded`. Use

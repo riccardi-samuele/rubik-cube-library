@@ -465,6 +465,15 @@ add_test(
 set_tests_properties(benchmark_gates_fail PROPERTIES
     WILL_FAIL TRUE
 )
+add_test(
+    NAME extract_slowest_cases
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_slowest_cases.sh
+        --input-dir ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results
+        --limit 2
+)
+set_tests_properties(extract_slowest_cases PROPERTIES
+    PASS_REGULAR_EXPRESSION "elapsed_ms,source_file,benchmark,mode,profile,slowest_rank,case_name,case_depth,scramble,status,move_count,nodes_expanded,solution.*900,.*sample_b.csv,fixture_tail,optimal,embedded,1,random_42_2,13,R U R',Optimal,13,9000,R U"
+)
 
 if (RUBIK_BUILD_EXAMPLES)
     add_executable(example-validate-input

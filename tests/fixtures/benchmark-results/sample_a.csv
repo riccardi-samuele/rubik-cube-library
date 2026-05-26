@@ -1,0 +1,5 @@
+benchmark,name,fixture_stress
+benchmark,mode,optimal
+benchmark,profile,default
+slowest,1,random_12345_1,13,"R U",Optimal,13,120,1200,"U' R'"
+slowest,2,random_12345_2,13,"F R",Optimal,12,75,900,"R' F'"
