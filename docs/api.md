@@ -206,9 +206,9 @@ They are built by default when `RUBIK_BUILD_EXAMPLES` is enabled.
 
 The examples are also registered as CTest smoke tests. The CLI applications have
 CTest coverage for solved input, invalid input, `--help`, strict option parsing,
-deterministic benchmark output, random benchmark generation, symmetry reports,
-lower-bound benchmark reports, cache/memory reports, and optimal-mode bound
-diagnostics.
+solver thread and memory options, deterministic benchmark output, random
+benchmark generation, symmetry reports, lower-bound benchmark reports,
+cache/memory reports, and optimal-mode bound diagnostics.
 
 ## CMake Package
 

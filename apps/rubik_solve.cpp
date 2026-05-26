@@ -39,7 +39,8 @@ std::string statusName(rubik::SolveStatus status)
 void printUsage(const char* program)
 {
     std::cerr
-        << "Usage: " << program << " <54-stickers> [--mode optimal|fast] [--timeout-ms N] [--max-depth N] [--profile default|embedded|performance|large-local]\n"
+        << "Usage: " << program << " <54-stickers> [--mode optimal|fast] [--timeout-ms N] [--max-depth N]"
+        << " [--max-memory-mb N] [--threads N] [--profile default|embedded|performance|large-local]\n"
         << "Input order: U R F D L B, each face left-to-right top-to-bottom.\n";
 }
 
@@ -83,6 +84,20 @@ std::optional<long long> parseInteger(const std::string& value, long long minVal
         return std::nullopt;
     }
     return parsed;
+}
+
+std::optional<std::uint64_t> parseUnsignedInteger(const std::string& value)
+{
+    if (value.empty() || value[0] == '-') {
+        return std::nullopt;
+    }
+    char* end = nullptr;
+    errno = 0;
+    const unsigned long long parsed = std::strtoull(value.c_str(), &end, 10);
+    if (errno != 0 || end == value.c_str() || *end != '\0') {
+        return std::nullopt;
+    }
+    return static_cast<std::uint64_t>(parsed);
 }
 
 } // namespace
@@ -147,6 +162,30 @@ int main(int argc, char** argv)
                 return 2;
             }
             options.maxDepth = static_cast<int>(*parsed);
+        } else if (arg == "--max-memory-mb") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseUnsignedInteger(*value);
+            if (!parsed || *parsed > std::numeric_limits<std::size_t>::max() / (1024ull * 1024ull)) {
+                std::cerr << "Invalid max-memory-mb: " << *value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.maxMemoryBytes = static_cast<std::size_t>(*parsed) * 1024ull * 1024ull;
+        } else if (arg == "--threads") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 1, std::numeric_limits<unsigned int>::max());
+            if (!parsed) {
+                std::cerr << "Invalid threads: " << *value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.threads = static_cast<unsigned int>(*parsed);
         } else if (arg == "--profile") {
             const auto value = requireValue(arg, i);
             if (!value) {

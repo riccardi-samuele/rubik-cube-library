@@ -172,10 +172,10 @@ Useful options:
 ./build/rubik-solve <54-stickers> --mode optimal --timeout-ms 30000 --max-depth 20 --profile default
 ```
 
-Use the high-memory local optimal profile explicitly in benchmark tooling:
+Use the high-memory local optimal profile explicitly:
 
 ```sh
-./build/rubik-bench --mode optimal --profile large-local --threads 4 --max-memory-mb 2048 --report-policy
+./build/rubik-solve <54-stickers> --mode optimal --profile large-local --threads 4 --max-memory-mb 2048
 ```
 
 Run the experimental fast mode:

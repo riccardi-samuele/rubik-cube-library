@@ -440,6 +440,20 @@ set_tests_properties(cli_solve_large_local_profile PROPERTIES
     PASS_REGULAR_EXPRESSION "status: Solved"
 )
 add_test(
+    NAME cli_solve_accepts_threads
+    COMMAND rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --threads 2 --timeout-ms 1000 --max-depth 1
+)
+set_tests_properties(cli_solve_accepts_threads PROPERTIES
+    PASS_REGULAR_EXPRESSION "status: Solved"
+)
+add_test(
+    NAME cli_solve_accepts_max_memory
+    COMMAND rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --max-memory-mb 2048 --timeout-ms 1000 --max-depth 1
+)
+set_tests_properties(cli_solve_accepts_max_memory PROPERTIES
+    PASS_REGULAR_EXPRESSION "status: Solved"
+)
+add_test(
     NAME cli_bench_large_local_memory_report
     COMMAND rubik-bench --report-memory
 )
@@ -477,6 +491,14 @@ add_test(
 add_test(
     NAME cli_solve_rejects_invalid_max_depth
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid max-depth" $<TARGET_FILE:rubik-solve> UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --max-depth abc
+)
+add_test(
+    NAME cli_solve_rejects_invalid_threads
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid threads" $<TARGET_FILE:rubik-solve> UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --threads abc
+)
+add_test(
+    NAME cli_solve_rejects_invalid_max_memory
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid max-memory-mb" $<TARGET_FILE:rubik-solve> UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --max-memory-mb abc
 )
 add_test(
     NAME cli_bench_rejects_invalid_threads
