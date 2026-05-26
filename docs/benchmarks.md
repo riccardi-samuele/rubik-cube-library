@@ -14,6 +14,8 @@ cmake --build build --target rubik-benchmark-smoke-cold
 cmake --build build --target rubik-benchmark-profile-smoke
 cmake --build build --target rubik-benchmark-profile-realistic
 cmake --build build --target rubik-benchmark-profile-realistic-gates
+cmake --build build --target rubik-benchmark-auto-profile
+cmake --build build --target rubik-benchmark-auto-profile-gates
 cmake --build build --target rubik-benchmark-optimal-stress
 cmake --build build --target rubik-benchmark-optimal-stress-gates
 cmake --build build --target rubik-benchmark-optimal-tail-cases

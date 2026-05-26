@@ -195,6 +195,30 @@ add_custom_target(rubik-benchmark-profile-realistic-gates
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking profile-realistic benchmark gates"
 )
+add_custom_target(rubik-benchmark-auto-profile
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
+        --suite profile-realistic
+        --cache-mode warm
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cache-dir /tmp/rubik_cube_library_auto_profile_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/auto-profile
+        --realistic-fast-count 0
+        --realistic-opt12-count 10
+        --realistic-opt13-count 10
+        --profile auto
+        --threads 0
+        --max-memory-mb 2048
+    DEPENDS rubik-bench
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running Auto optimal profile benchmark suite"
+)
+add_custom_target(rubik-benchmark-auto-profile-gates
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_benchmark_gates.sh
+        --summary-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/auto-profile/warm_profile_realistic_summary.csv
+        --gate auto,optimal,random_depth_13_count_10,10,2500,2500,2500
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Checking Auto optimal profile benchmark gates"
+)
 add_custom_target(rubik-benchmark-embedded-multiseed
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
         --suite embedded-multiseed

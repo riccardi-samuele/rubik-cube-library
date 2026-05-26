@@ -30,7 +30,7 @@ Options:
   --cache-dir DIR          pruning table cache directory
   --cache-mode MODE        warm|cold, default: warm
   --output-dir DIR         benchmark output directory, default: benchmark-results
-  --profile NAME           embedded|default|performance|large-local, default: default
+  --profile NAME           embedded|default|performance|large-local|auto, default: default
   --seed N                 random benchmark seed, default: 12345
   --seeds LIST             comma-separated seeds for embedded-multiseed, default: 12345,20260525,42
   --fast-timeout-ms N      fast-mode per-case timeout, default: 5000
@@ -137,17 +137,17 @@ if [[ "${cache_mode}" != "warm" && "${cache_mode}" != "cold" ]]; then
     exit 2
 fi
 
-if [[ "${profile}" != "embedded" && "${profile}" != "default" && "${profile}" != "performance" ]]; then
+if [[ "${profile}" != "embedded" && "${profile}" != "default" && "${profile}" != "performance" && "${profile}" != "large-local" && "${profile}" != "auto" ]]; then
     usage >&2
     exit 2
 fi
 
-if (( realistic_fast_count < 1 || realistic_optimal_depth12_count < 1 || realistic_optimal_depth13_count < 1 || deep_optimal_depth14_count < 1 || deep_optimal_depth15_count < 1 )); then
+if (( realistic_fast_count < 0 || realistic_optimal_depth12_count < 1 || realistic_optimal_depth13_count < 1 || deep_optimal_depth14_count < 1 || deep_optimal_depth15_count < 1 )); then
     usage >&2
     exit 2
 fi
 
-if (( fast_max_depth < 1 || benchmark_threads < 1 || benchmark_max_memory_mb < 1 )); then
+if (( fast_max_depth < 1 || benchmark_threads < 0 || benchmark_max_memory_mb < 1 )); then
     usage >&2
     exit 2
 fi
@@ -424,7 +424,12 @@ run_profile_realistic() {
         echo "profile,mode,benchmark,total_cases,solved,failed,total_elapsed_ms,total_nodes_expanded,p50_elapsed_ms,p90_elapsed_ms,p95_elapsed_ms,p99_elapsed_ms,max_elapsed_ms,warmup_elapsed_ms,wall_elapsed_ms,output_file"
     } > "${summary_file}"
 
-    for profile_name in embedded default performance; do
+    local profile_names=(embedded default performance)
+    if [[ "${previous_profile}" == "auto" ]]; then
+        profile_names=(auto)
+    fi
+
+    for profile_name in "${profile_names[@]}"; do
         profile="${profile_name}"
 
         local fast_name="profile_${profile_name}_fast_random_${realistic_fast_count}_depth_20_seed_${seed}"
@@ -434,21 +439,27 @@ run_profile_realistic() {
         local opt12_output="${output_dir}/${cache_mode}_${opt12_name}.csv"
         local opt13_output="${output_dir}/${cache_mode}_${opt13_name}.csv"
 
-        run_benchmark "${fast_name}" \
-            --mode fast \
-            --profile "${profile}" \
-            --timeout-ms "${fast_timeout_ms}" \
-            --max-depth "${fast_max_depth}" \
-            --case-set random \
-            --random-count "${realistic_fast_count}" \
-            --random-depth 20 \
-            --random-seed "${seed}" \
-            --slowest-count 10 || suite_status=1
-        append_profile_summary_row "${summary_file}" "${profile_name}" "fast" "random_depth_20_count_${realistic_fast_count}" "${fast_output}"
+        if (( realistic_fast_count > 0 )); then
+            run_benchmark "${fast_name}" \
+                --mode fast \
+                --profile "${profile}" \
+                --threads "${benchmark_threads}" \
+                --max-memory-mb "${benchmark_max_memory_mb}" \
+                --timeout-ms "${fast_timeout_ms}" \
+                --max-depth "${fast_max_depth}" \
+                --case-set random \
+                --random-count "${realistic_fast_count}" \
+                --random-depth 20 \
+                --random-seed "${seed}" \
+                --slowest-count 10 || suite_status=1
+            append_profile_summary_row "${summary_file}" "${profile_name}" "fast" "random_depth_20_count_${realistic_fast_count}" "${fast_output}"
+        fi
 
         run_benchmark "${opt12_name}" \
             --mode optimal \
             --profile "${profile}" \
+            --threads "${benchmark_threads}" \
+            --max-memory-mb "${benchmark_max_memory_mb}" \
             --timeout-ms "${optimal_timeout_ms}" \
             --max-depth 12 \
             --case-set random \
@@ -461,6 +472,8 @@ run_profile_realistic() {
         run_benchmark "${opt13_name}" \
             --mode optimal \
             --profile "${profile}" \
+            --threads "${benchmark_threads}" \
+            --max-memory-mb "${benchmark_max_memory_mb}" \
             --timeout-ms "${optimal_timeout_ms}" \
             --max-depth 13 \
             --case-set random \
