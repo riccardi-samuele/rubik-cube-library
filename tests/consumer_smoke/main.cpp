@@ -1,3 +1,4 @@
+#include <rubik/cache.hpp>
 #include <rubik/cube.hpp>
 #include <rubik/move.hpp>
 #include <rubik/solver.hpp>
@@ -11,6 +12,15 @@ int main()
     static_assert(rubik::version_major == 2);
     static_assert(rubik::version_minor == 0);
     static_assert(rubik::version_patch == 0);
+
+    rubik::CacheSetupOptions cacheOptions;
+    cacheOptions.profile = rubik::SolveProfile::Auto;
+    cacheOptions.dryRun = true;
+    const rubik::CacheSetupResult cacheResult = rubik::prepareCache(cacheOptions);
+    if (!cacheResult.ready) {
+        std::cerr << "installed package cache setup API failed\n";
+        return 2;
+    }
 
     auto parsed = rubik::Cube::fromStickers(
         "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB");
