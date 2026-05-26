@@ -47,19 +47,32 @@ Non-goals for this release:
 | CI/release automation | Ready for release candidate | Local release script and GitHub Actions CI workflow exist. |
 | License | Ready | Apache License 2.0 with repository NOTICE. |
 
-Latest release-candidate validation will be recorded after the final full gate.
+Latest release-candidate validation:
+
+- Command: `scripts/release_check.sh --profile standard`
+- Result: `release_check,status,passed`
+- Command: `scripts/release_check.sh --profile full --with-benchmarks`
+- Result: `release_check,status,passed`
+- Command: `scripts/release_check.sh --profile full --with-large-local`
+- Result: `release_check,status,passed`
+- Archive audit: source tarball regenerated, checked for generated artifacts,
+  wrote a SHA-256 checksum, and rebuilt from a fresh extraction with the full
+  test suite passing.
+- Archive contents: `116` paths.
+- Archive checksum:
+  `f9f8884269c2c7e4e72d56e9fed94639459f1ff31b5f88fdf8440f0496a65bfd  rubik_cube_library-2.0.0.tar.gz`
 
 ## Required Before Tag
 
 - [x] Document the `2.0.0` API stability contract.
 - [x] Add changelog entry for `2.0.0`.
 - [x] Draft GitHub Release text and asset checklist for `v2.0.0`.
-- [ ] Set project version to `2.0.0` in CMake package metadata.
-- [ ] Regenerate and validate the `2.0.0` source archive.
-- [ ] Run full local release validation with benchmark gates.
-- [ ] Run large-local validation if the release highlights `LargeLocal`.
-- [ ] Confirm public docs contain no unverified hardware performance claims.
-- [ ] Confirm generated artifacts and local process notes are not committed.
+- [x] Set project version to `2.0.0` in CMake package metadata.
+- [x] Regenerate and validate the `2.0.0` source archive.
+- [x] Run full local release validation with benchmark gates.
+- [x] Run large-local validation if the release highlights `LargeLocal`.
+- [x] Confirm public docs contain no unverified hardware performance claims.
+- [x] Confirm generated artifacts and local process notes are not committed.
 - [ ] Create the release tag.
 - [ ] Upload archive and checksum to the GitHub Release.
 
@@ -148,7 +161,7 @@ Experimental surface:
 
 Hard blockers:
 
-- Final `2.0.0` version bump and full release validation still need to pass.
+- None for local release readiness.
 
 Soft blockers:
 
