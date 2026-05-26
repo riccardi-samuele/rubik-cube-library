@@ -192,4 +192,4 @@ target_link_libraries(my_solver PRIVATE rubik::rubik)
       time after all release-note edits are complete.
 - [ ] Regenerate `dist/rubik_cube_library-1.0.0.tar.gz`.
 - [ ] Attach `dist/rubik_cube_library-1.0.0.tar.gz` to the GitHub Release.
-- [ ] Confirm the release body does not claim Raspberry Pi or Jetson latency.
+- [x] Confirm the release body does not claim Raspberry Pi or Jetson latency.
