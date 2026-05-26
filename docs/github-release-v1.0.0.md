@@ -31,12 +31,14 @@ may still change.
 - `rubik::Solver` with `SolveMode::Optimal`.
 - `SolveStatus::Optimal` means the returned HTM solution is proven minimal
   under the requested options.
-- `SolveProfile::Embedded`, `Default`, and `Performance`.
+- `SolveProfile::Embedded`, `Default`, `Performance`, and `LargeLocal`.
 - Root-level thread parallelism for optimal search through
   `SolveOptions::threads`.
+- Public C++ version metadata through `rubik/version.hpp`.
 - Experimental `SolveMode::Fast` and two-phase APIs.
 - Pruning-table cache support through `RUBIK_TABLE_CACHE_DIR`.
-- CLI tools: `rubik-solve` and `rubik-bench`.
+- CLI tools: `rubik-solve` and `rubik-bench`, including `--help` and
+  `--version`.
 - CMake install/export package support with `rubik::rubik`.
 - Apache License 2.0 with repository `NOTICE`.
 
@@ -58,8 +60,8 @@ answer was proven inside the configured limits.
 - `SolveMode::Fast` is experimental and does not guarantee optimality.
 - Phase-1 and phase-2 APIs are experimental.
 - Pruning-table internals and coordinate APIs are experimental.
-- Large local optimal table combinations are experimental and controlled by
-  environment flags.
+- Large local optimal table combinations have a high memory footprint and are
+  not the embedded default policy.
 - Benchmark random-case generation and environment-variable tuning flags are
   experimental.
 - QTM is reserved and not implemented.

@@ -69,6 +69,10 @@ These types and functions are treated as stable for `1.x`:
 - `rubik::parseMove`
 - `rubik::parseMoves`
 - `rubik::allMoves`
+- `rubik::version_major`
+- `rubik::version_minor`
+- `rubik::version_patch`
+- `rubik::version_string`
 
 `SolveStatus::Optimal` is part of the semantic contract: when returned from
 `SolveMode::Optimal`, the result is a proven-minimal HTM solution under the

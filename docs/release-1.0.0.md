@@ -12,7 +12,10 @@ Intended release promise:
 - Public 54-sticker input in `U R F D L B` face order.
 - HTM optimal solving through `rubik::Solver`.
 - Experimental fast/two-phase APIs available but not stable.
-- Desktop/Orin-class large-local optimal profile documented as experimental.
+- Desktop/Orin-class large-local optimal profile documented as high-memory
+  local policy, not as an embedded default.
+- Public C++ and CLI version metadata are exposed from the CMake project
+  version.
 - Raspberry Pi behavior documented as unverified until real hardware is tested.
 
 Non-goals for this release:
@@ -52,6 +55,8 @@ Latest release-candidate validation:
 - [x] Add a repository license file.
 - [x] Choose and document semantic versioning policy.
 - [x] Set project version to `1.0.0` in CMake package metadata.
+- [x] Expose public version metadata through `rubik/version.hpp` and CLI
+      `--version`.
 - [x] Update README with release status, supported guarantees, and known limits.
 - [x] Freeze public sticker order and error-code names for the release.
 - [x] Decide whether legacy `rubik/phase1.hpp` and `rubik/phase2.hpp` aliases

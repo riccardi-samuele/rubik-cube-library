@@ -22,6 +22,7 @@ Stable for `1.0.0`:
 - `rubik::SolveResult`
 - `rubik::SolveBoundDiagnostics`
 - `rubik::CubeError`
+- `rubik/version.hpp` version constants
 - CLI sticker input order: `U R F D L B`
 - CMake imported target: `rubik::rubik`
 
