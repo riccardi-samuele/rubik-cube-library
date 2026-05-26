@@ -36,7 +36,7 @@ std::string statusName(rubik::SolveStatus status)
 void printUsage(const char* program)
 {
     std::cerr
-        << "Usage: " << program << " <54-stickers> [--mode optimal|fast] [--timeout-ms N] [--max-depth N] [--profile default|embedded|performance]\n"
+        << "Usage: " << program << " <54-stickers> [--mode optimal|fast] [--timeout-ms N] [--max-depth N] [--profile default|embedded|performance|large-local]\n"
         << "Input order: U R F D L B, each face left-to-right top-to-bottom.\n";
 }
 
@@ -47,6 +47,9 @@ rubik::SolveProfile parseProfile(const std::string& value)
     }
     if (value == "performance") {
         return rubik::SolveProfile::Performance;
+    }
+    if (value == "large-local" || value == "large_local") {
+        return rubik::SolveProfile::LargeLocal;
     }
     return rubik::SolveProfile::Default;
 }

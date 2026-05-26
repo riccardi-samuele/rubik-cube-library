@@ -170,6 +170,7 @@ std::span<const TableProfileEntry> optimalTableProfile(SolveProfile profile)
     case SolveProfile::Embedded:
         return embeddedOptimalTables;
     case SolveProfile::Performance:
+    case SolveProfile::LargeLocal:
         return performanceOptimalTables;
     case SolveProfile::Default:
         return defaultOptimalTables;

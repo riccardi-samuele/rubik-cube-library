@@ -183,6 +183,9 @@ rubik::SolveProfile parseProfile(const std::string& value)
     if (value == "performance") {
         return rubik::SolveProfile::Performance;
     }
+    if (value == "large-local" || value == "large_local") {
+        return rubik::SolveProfile::LargeLocal;
+    }
     return rubik::SolveProfile::Default;
 }
 
@@ -227,6 +230,8 @@ std::string profileName(rubik::SolveProfile profile)
         return "default";
     case rubik::SolveProfile::Performance:
         return "performance";
+    case rubik::SolveProfile::LargeLocal:
+        return "large-local";
     }
     return "unknown";
 }
@@ -334,7 +339,7 @@ void printUsage(const char* program)
         << " [--mode optimal|fast] [--timeout-ms N] [--max-depth N]"
         << " [--max-memory-mb N]"
         << " [--threads N]"
-        << " [--max-case-depth N] [--profile default|embedded|performance]"
+        << " [--max-case-depth N] [--profile default|embedded|performance|large-local]"
         << " [--case-set deterministic|random|both] [--random-count N]"
         << " [--random-depth N] [--random-seed N] [--random-start-index N]"
         << " [--slowest-count N] [--diagnose-fast] [--diagnose-optimal]"
@@ -465,6 +470,7 @@ std::vector<FastAttemptOptions> fastAttemptOptions(const rubik::SolveOptions& op
         case rubik::SolveProfile::Embedded:
             return std::chrono::milliseconds{500};
         case rubik::SolveProfile::Performance:
+        case rubik::SolveProfile::LargeLocal:
             return std::chrono::milliseconds{5000};
         case rubik::SolveProfile::Default:
             return std::chrono::milliseconds{2000};
@@ -477,6 +483,7 @@ std::vector<FastAttemptOptions> fastAttemptOptions(const rubik::SolveOptions& op
         case rubik::SolveProfile::Embedded:
             return 4;
         case rubik::SolveProfile::Performance:
+        case rubik::SolveProfile::LargeLocal:
             return 64;
         case rubik::SolveProfile::Default:
             return 16;
@@ -489,6 +496,7 @@ std::vector<FastAttemptOptions> fastAttemptOptions(const rubik::SolveOptions& op
         case rubik::SolveProfile::Embedded:
             return 4;
         case rubik::SolveProfile::Performance:
+        case rubik::SolveProfile::LargeLocal:
             return 8;
         case rubik::SolveProfile::Default:
             return 4;
@@ -501,6 +509,7 @@ std::vector<FastAttemptOptions> fastAttemptOptions(const rubik::SolveOptions& op
         case rubik::SolveProfile::Embedded:
             return std::chrono::milliseconds{100};
         case rubik::SolveProfile::Performance:
+        case rubik::SolveProfile::LargeLocal:
             return std::chrono::milliseconds{750};
         case rubik::SolveProfile::Default:
             return std::chrono::milliseconds{150};
@@ -509,13 +518,13 @@ std::vector<FastAttemptOptions> fastAttemptOptions(const rubik::SolveOptions& op
     };
 
     const auto quickPhase1Timeout = [&]() {
-        return options.profile == rubik::SolveProfile::Performance
+        return options.profile == rubik::SolveProfile::Performance || options.profile == rubik::SolveProfile::LargeLocal
             ? std::chrono::milliseconds{500}
             : std::chrono::milliseconds{250};
     };
 
     const auto quickPhase2Timeout = [&]() {
-        return options.profile == rubik::SolveProfile::Performance
+        return options.profile == rubik::SolveProfile::Performance || options.profile == rubik::SolveProfile::LargeLocal
             ? std::chrono::milliseconds{150}
             : std::chrono::milliseconds{75};
     };

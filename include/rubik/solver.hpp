@@ -24,7 +24,8 @@ enum class SolveMode {
 enum class SolveProfile {
     Embedded,
     Default,
-    Performance
+    Performance,
+    LargeLocal
 };
 
 enum class SolveStatus {

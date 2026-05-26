@@ -780,6 +780,7 @@ std::size_t beamWidth(SolveProfile profile)
     case SolveProfile::Embedded:
         return 1024;
     case SolveProfile::Performance:
+    case SolveProfile::LargeLocal:
         return 16384;
     case SolveProfile::Default:
         return 4096;
@@ -1503,6 +1504,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                 case SolveProfile::Embedded:
                     return std::chrono::milliseconds{500};
                 case SolveProfile::Performance:
+                case SolveProfile::LargeLocal:
                     return std::chrono::milliseconds{5000};
                 case SolveProfile::Default:
                     return std::chrono::milliseconds{2000};
@@ -1522,6 +1524,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
             case SolveProfile::Embedded:
                 return 4;
             case SolveProfile::Performance:
+            case SolveProfile::LargeLocal:
                 return 64;
             case SolveProfile::Default:
                 return 16;
@@ -1534,6 +1537,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
             case SolveProfile::Embedded:
                 return 4;
             case SolveProfile::Performance:
+            case SolveProfile::LargeLocal:
                 return 8;
             case SolveProfile::Default:
                 return 4;
@@ -1547,6 +1551,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
             case SolveProfile::Embedded:
                     return std::chrono::milliseconds{100};
                 case SolveProfile::Performance:
+                case SolveProfile::LargeLocal:
                     return std::chrono::milliseconds{750};
                 case SolveProfile::Default:
                     return std::chrono::milliseconds{150};
@@ -1563,7 +1568,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
 
         const auto quickPhase1Timeout = [&]() {
             const auto remaining = remainingTimeout();
-            const auto budget = options.profile == SolveProfile::Performance
+            const auto budget = options.profile == SolveProfile::Performance || options.profile == SolveProfile::LargeLocal
                 ? std::chrono::milliseconds{500}
                 : std::chrono::milliseconds{250};
             if (remaining.count() <= 0) {
@@ -1574,7 +1579,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
 
         const auto quickPhase2Timeout = [&]() {
             const auto remaining = remainingTimeout();
-            const auto budget = options.profile == SolveProfile::Performance
+            const auto budget = options.profile == SolveProfile::Performance || options.profile == SolveProfile::LargeLocal
                 ? std::chrono::milliseconds{150}
                 : std::chrono::milliseconds{75};
             if (remaining.count() <= 0) {

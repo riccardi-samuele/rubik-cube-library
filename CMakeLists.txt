@@ -427,6 +427,20 @@ set_tests_properties(cli_bench_random_smoke PROPERTIES
     PASS_REGULAR_EXPRESSION "random_42_1"
 )
 add_test(
+    NAME cli_bench_large_local_profile
+    COMMAND rubik-bench --mode optimal --profile large-local --timeout-ms 1000 --max-depth 1 --max-case-depth 1
+)
+set_tests_properties(cli_bench_large_local_profile PROPERTIES
+    PASS_REGULAR_EXPRESSION "benchmark,profile,large-local"
+)
+add_test(
+    NAME cli_solve_large_local_profile
+    COMMAND rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --mode optimal --profile large-local --max-depth 1 --timeout-ms 1000
+)
+set_tests_properties(cli_solve_large_local_profile PROPERTIES
+    PASS_REGULAR_EXPRESSION "status: Solved"
+)
+add_test(
     NAME cli_bench_percentile_summary
     COMMAND rubik-bench --mode fast --timeout-ms 5000 --max-depth 24 --case-set random --random-count 1 --random-depth 8 --random-seed 42
 )
