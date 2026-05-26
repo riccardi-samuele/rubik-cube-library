@@ -89,3 +89,28 @@ Do not promote these variants yet:
 
 The corner/edge-group variants should remain experimental until larger profile
 benchmarks prove that their memory cost is justified.
+
+## Post-Promotion Validation
+
+After promoting corner-state pruning, commit `ef19067` was benchmarked against
+the old pruning policy by using `RUBIK_DISABLE_CORNER_STATE_BOUNDS=1`.
+
+Command:
+
+```sh
+scripts/run_optimal_tail_experiments.sh \
+  --build-dir out/release-native-lto \
+  --cache-dir /tmp/rubik_cube_library_optimal_tail_promoted_cache \
+  --output-dir out/release-native-lto/benchmark-results/optimal-tail-promoted-ef19067 \
+  --variants baseline,no_corner_state \
+  --timeout-ms 30000 \
+  --max-memory-mb 1024
+```
+
+| Variant | Cases | Solved | Average ms | Max ms | Average nodes | Max nodes | Payload bytes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `baseline` | 5 | 5 | 1,792.40 | 2,776 | 630,429.20 | 1,001,517 | 110,303,375 |
+| `no_corner_state` | 5 | 5 | 9,473.80 | 11,825 | 3,962,414.80 | 4,731,097 | 22,123,535 |
+
+The promoted default keeps the certified optimal result and reduces both node
+expansion and tail latency on the fixed tail-case set.
