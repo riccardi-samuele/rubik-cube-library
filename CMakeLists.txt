@@ -447,6 +447,14 @@ set_tests_properties(cli_bench_large_local_memory_report PROPERTIES
     PASS_REGULAR_EXPRESSION "memory_summary,large_local_optimal,total_bytes"
 )
 add_test(
+    NAME cli_solve_help
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success.sh "Usage:" $<TARGET_FILE:rubik-solve> --help
+)
+add_test(
+    NAME cli_bench_help
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success.sh "Usage:" $<TARGET_FILE:rubik-bench> --help
+)
+add_test(
     NAME cli_bench_rejects_invalid_profile
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid profile" $<TARGET_FILE:rubik-bench> --profile typo --report-policy
 )

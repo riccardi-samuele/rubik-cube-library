@@ -89,6 +89,14 @@ std::optional<long long> parseInteger(const std::string& value, long long minVal
 
 int main(int argc, char** argv)
 {
+    if (argc == 2) {
+        const std::string firstArg = argv[1];
+        if (firstArg == "--help" || firstArg == "-h") {
+            printUsage(argv[0]);
+            return 0;
+        }
+    }
+
     if (argc < 2) {
         printUsage(argv[0]);
         return 2;

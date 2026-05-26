@@ -1222,7 +1222,10 @@ int main(int argc, char** argv)
 
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
-        if (arg == "--timeout-ms") {
+        if (arg == "--help" || arg == "-h") {
+            printUsage(argv[0]);
+            return 0;
+        } else if (arg == "--timeout-ms") {
             const auto value = requireValue(arg, i);
             if (!value) {
                 return 2;
