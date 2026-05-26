@@ -28,7 +28,7 @@ First stable release scope:
 - Add CMake install/export package support with `rubik::rubik`.
 - Add reproducible benchmark suites and benchmark gates.
 - Add benchmark metadata rows, including solver profile and binary version.
-- Document the large local optimal profile for desktop/Orin-class testing.
+- Document the large local optimal profile for high-memory local testing.
 - Document the `1.0.0` public API stability contract.
 - License the project under Apache License 2.0 with a repository `NOTICE` file.
 

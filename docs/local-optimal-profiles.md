@@ -59,7 +59,7 @@ Target devices:
 
 - high-end desktops;
 - mini PCs and compact workstations;
-- Jetson Orin class devices;
+- high-memory local devices after direct validation;
 - workstations where extra memory is acceptable.
 
 Current table payload: about 435 MB for optimal tables.
@@ -73,7 +73,7 @@ high-performance runs.
 Target devices:
 
 - desktops and workstations with enough RAM for large optimal tables;
-- Jetson Orin class local compute;
+- high-memory local compute after direct validation;
 - validation runs where certified optimality is more important than memory
   footprint.
 
@@ -87,7 +87,7 @@ corner/edge-group admissible bounds. It does not require
 
 `LargeLocal` is not the embedded default policy. It is intended for local
 high-memory optimal solving and for repeatable depth-15 validation on
-desktop/Orin-class hardware.
+the directly benchmarked host.
 
 ## Non-Goals For Public Profiles
 

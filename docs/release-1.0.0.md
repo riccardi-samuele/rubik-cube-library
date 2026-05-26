@@ -12,8 +12,8 @@ Intended release promise:
 - Public 54-sticker input in `U R F D L B` face order.
 - HTM optimal solving through `rubik::Solver`.
 - Experimental fast/two-phase APIs available but not stable.
-- Desktop/Orin-class large-local optimal profile documented as high-memory
-  local policy, not as an embedded default.
+- Large-local optimal profile documented as high-memory local policy, not as an
+  embedded default.
 - Public C++ and CLI version metadata are exposed from the CMake project
   version.
 - Raspberry Pi behavior documented as unverified until real hardware is tested.
@@ -48,7 +48,7 @@ Latest release-candidate validation:
 - Command: `scripts/release_check.sh --profile full --with-benchmarks`
 - Result: `release_check,status,passed`
 - Archive audit: source tarball regenerated, checked for generated artifacts,
-  and rebuilt from a fresh extraction with 19/19 tests passing.
+  and rebuilt from a fresh extraction with 44/44 tests passing.
 
 ## Required Before Tag
 
@@ -192,5 +192,4 @@ Soft blockers:
 
 - No Raspberry Pi hardware data.
 - No Jetson hardware data.
-- Large-local optimal profile relies on experimental environment flags.
 - Some 4-thread depth-15 cases are close to the 30s gate.

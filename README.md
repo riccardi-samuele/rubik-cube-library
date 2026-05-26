@@ -14,7 +14,7 @@ Release status:
 - `SolveMode::Fast`, phase-1/phase-2 APIs, large local table combinations, and
   environment-variable tuning flags are experimental.
 - Raspberry Pi and Jetson latency claims are not published yet; those require
-  real hardware validation before release.
+  real hardware validation on the target devices.
 - QTM is reserved and not implemented.
 
 ## What Is Guaranteed

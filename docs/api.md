@@ -102,7 +102,7 @@ HTM solution for every profile.
 `SolveProfile::Default` is the normal desktop/server profile.
 `SolveProfile::Performance` may use larger or more expensive internal search
 helpers when they are available. `SolveProfile::LargeLocal` is an optimal-only
-desktop/Orin-class profile that enables the largest local admissible pruning
+high-memory local profile that enables the largest local admissible pruning
 bounds without environment flags. `SolveProfile::Embedded` keeps the solver
 more conservative for smaller devices.
 
@@ -118,9 +118,9 @@ profile's pruning-table payload estimate plus small solver overhead. It is a
 conservative logical budget, not a full process RSS measurement.
 
 `threads` controls root-level parallelism in `SolveMode::Optimal`. Values above
-1 can reduce wall time on desktop/Orin-class CPUs while preserving the same
-optimality proof. Small embedded targets should usually keep `threads = 1`
-unless benchmarked on the actual hardware.
+1 can reduce wall time on multicore CPUs while preserving the same optimality
+proof. Small embedded targets should usually keep `threads = 1` unless
+benchmarked on the actual hardware.
 
 Runtime thread-safety expectations are documented in
 [Runtime Behavior](runtime.md).

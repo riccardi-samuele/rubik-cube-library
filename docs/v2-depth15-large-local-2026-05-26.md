@@ -100,4 +100,5 @@ Depth-15 is controlled by `SolveProfile::LargeLocal` on the development desktop
 for the current 24-seed gate, but not by the embedded/default/performance
 profiles. The 8-thread tail replay gives the large-local profile additional
 latency margin on the slowest known seeds. This profile remains suitable for
-desktop/Orin-class local compute, not for the embedded default policy.
+high-memory local compute after direct validation, not for the embedded default
+policy.
