@@ -53,11 +53,11 @@ int main()
     rubik::SolveResult result = solver.solve(parsed.cube, {
         .mode = rubik::SolveMode::Optimal,
         .metric = rubik::Metric::HTM,
-        .maxDepth = 20,
+        .profile = rubik::SolveProfile::Auto,
+        .cachePolicy = rubik::CachePolicy::Auto,
+        .threads = 0,
+        .maxMemoryBytes = 0,
         .timeout = std::chrono::seconds(30),
-        .maxMemoryBytes = 1024ull * 1024 * 1024,
-        .threads = 1,
-        .profile = rubik::SolveProfile::Default,
     });
 
     if (result.status == rubik::SolveStatus::Optimal ||
@@ -66,6 +66,10 @@ int main()
     }
 }
 ```
+
+`SolveProfile::Auto` is the recommended profile for adaptive certified HTM
+optimal solving. Explicit profiles remain available when an application needs a
+fixed memory/performance policy.
 
 ## Build
 
@@ -168,6 +172,7 @@ Show command usage:
 ```sh
 ./build/rubik-solve --help
 ./build/rubik-bench --help
+./build/rubik-cache-setup --help
 ```
 
 Show CLI versions:
@@ -175,6 +180,7 @@ Show CLI versions:
 ```sh
 ./build/rubik-solve --version
 ./build/rubik-bench --version
+./build/rubik-cache-setup --version
 ```
 
 Read the library version from C++:
@@ -195,7 +201,13 @@ Solve one cube from a 54-sticker string:
 Useful options:
 
 ```sh
-./build/rubik-solve <54-stickers> --mode optimal --timeout-ms 30000 --max-depth 20 --profile default
+./build/rubik-solve <54-stickers> --mode optimal --timeout-ms 30000 --max-depth 20 --profile auto --threads 0
+```
+
+Prepare pruning-table cache data before latency-sensitive optimal solving:
+
+```sh
+./build/rubik-cache-setup --profile auto
 ```
 
 Use the high-memory local optimal profile explicitly:

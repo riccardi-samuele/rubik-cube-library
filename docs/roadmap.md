@@ -10,6 +10,11 @@ CMake packaging, and release validation. The next major release is focused on
 making the optimal path faster, easier to integrate, and easier to validate
 across local hardware profiles.
 
+`2.0.0` added stronger local optimal profiles, benchmark gates, and release
+validation. The current V3 workstream focuses on an adaptive optimal path that
+selects an effective local profile, reports that selection, and provides cache
+setup workflows for applications that need predictable startup behavior.
+
 ## Current Status
 
 Implemented:
@@ -22,6 +27,9 @@ Implemented:
 - optimal HTM IDA* solver with certified minimal solutions when the result
   status is `SolveStatus::Optimal`;
 - embedded, default, and performance solving profiles;
+- adaptive `Auto` optimal profile planning;
+- public solve-plan diagnostics;
+- cache setup API and `rubik-cache-setup` CLI;
 - experimental two-phase fast solver;
 - root-level thread parallelism for optimal search;
 - CLI solver;
@@ -31,7 +39,7 @@ Implemented:
 - example programs;
 - install/export packaging for downstream CMake projects;
 - optimized CMake presets for release, native, LTO, and sanitizer builds;
-- public API stability documentation for `1.0.0`;
+- public API stability documentation for `1.0.0`, `2.0.0`, and the V3 draft;
 - unit tests and release validation scripts.
 
 Experimental or hardware-dependent:
@@ -44,6 +52,30 @@ Experimental or hardware-dependent:
 
 Hardware-specific performance claims stay unpublished until they are measured
 on the real target devices.
+
+## Road To 3.0
+
+The `3.0` target is an adaptive optimal-engine release. It should make the
+recommended optimal path easier to use without weakening the certified
+minimum-move contract.
+
+Primary goals:
+
+1. Make `SolveProfile::Auto` the recommended optimal profile.
+2. Keep explicit profiles available for fixed memory/performance policies.
+3. Report the effective plan through `SolvePlan`.
+4. Provide `prepareCache()` and `rubik-cache-setup` for cache preparation.
+5. Keep benchmark gates local and reproducible without unmeasured hardware
+   claims.
+
+Out of scope for `3.0`:
+
+- QTM;
+- cloud solving;
+- camera recognition;
+- hardware control;
+- GPU backends;
+- unmeasured hardware performance claims.
 
 ## Road To 2.0
 

@@ -90,3 +90,9 @@ latency measures solving after table files already exist and have been loaded or
 memory-mapped by the operating system cache.
 
 Benchmark reports must state whether they are cold-cache or warm-cache runs.
+
+## Adaptive Cache Policy
+
+`CachePolicy::Auto` uses compatible warm cache data when available. It may avoid
+building heavy cache data during a short solve. Use `rubik-cache-setup` or
+`prepareCache()` to prepare cache before latency-sensitive solving.

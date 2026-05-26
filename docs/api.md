@@ -3,6 +3,8 @@
 The API is intentionally small while the solver internals are still evolving.
 The `2.0.0` compatibility contract is documented in
 [API Stability - 2.0.0](api-stability-2.0.0.md).
+The draft V3 adaptive API contract is documented in
+[API Stability - 3.0.0 Draft](api-stability-3.0.0.md).
 
 ## Version Metadata
 
@@ -63,11 +65,11 @@ rubik::Solver solver;
 rubik::SolveResult result = solver.solve(cube, {
     .mode = rubik::SolveMode::Optimal,
     .metric = rubik::Metric::HTM,
-    .maxDepth = 20,
+    .profile = rubik::SolveProfile::Auto,
+    .cachePolicy = rubik::CachePolicy::Auto,
+    .threads = 0,
+    .maxMemoryBytes = 0,
     .timeout = std::chrono::seconds(30),
-    .maxMemoryBytes = 1024ull * 1024 * 1024,
-    .threads = 1,
-    .profile = rubik::SolveProfile::Default,
 });
 ```
 
@@ -99,6 +101,11 @@ Profiles tune memory use, table selection, and latency. They do not change the
 meaning of `SolveStatus::Optimal`: an optimal result is still a proven-minimal
 HTM solution for every profile.
 
+`SolveProfile::Auto` is the recommended adaptive profile for certified HTM
+optimal solving. It selects an effective local profile, memory budget, thread
+count, and table strategy, then reports that selection through
+`SolveResult::plan`.
+
 `SolveProfile::Default` is the normal desktop/server profile.
 `SolveProfile::Performance` may use larger or more expensive internal search
 helpers when they are available. `SolveProfile::LargeLocal` is an optimal-only
@@ -121,6 +128,25 @@ conservative logical budget, not a full process RSS measurement.
 1 can reduce wall time on multicore CPUs while preserving the same optimality
 proof. Small embedded targets should usually keep `threads = 1` unless
 benchmarked on the actual hardware.
+
+With `SolveProfile::Auto`, `threads = 0` lets the planner choose an effective
+thread count and report it through `SolvePlan::effectiveThreads`.
+
+## Cache Setup
+
+Applications can prepare cache data explicitly:
+
+```cpp
+#include <rubik/cache.hpp>
+
+rubik::CacheSetupOptions cacheOptions;
+cacheOptions.profile = rubik::SolveProfile::Auto;
+cacheOptions.cachePolicy = rubik::CachePolicy::AllowBuild;
+
+rubik::CacheSetupResult cacheResult = rubik::prepareCache(cacheOptions);
+```
+
+`rubik-cache-setup` exposes the same workflow for command-line deployments.
 
 Runtime thread-safety expectations are documented in
 [Runtime Behavior](runtime.md).
@@ -194,10 +220,14 @@ Currently intended stable surface:
 - `rubik::Solver`
 - `rubik::SolveOptions`
 - `rubik::SolveResult`
+- `rubik::SolvePlan`
+- `rubik::CacheSetupOptions`
+- `rubik::CacheSetupResult`
 - `rubik::SolveBoundDiagnostics`
 - `rubik::CubeError`
 - `rubik/version.hpp` version constants
 - CLI input order `U R F D L B`
+- CLI `rubik-cache-setup`
 
 Currently experimental surface:
 

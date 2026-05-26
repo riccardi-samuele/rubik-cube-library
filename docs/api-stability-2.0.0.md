@@ -1,6 +1,9 @@
 # API Stability - 2.0.0
 
 This document defines the stable public compatibility contract for `2.0.0`.
+V3 additions have their own draft contract in
+[API Stability - 3.0.0 Draft](api-stability-3.0.0.md); this document remains
+the `2.x` compatibility reference.
 
 The main solver path is stable:
 
