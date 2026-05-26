@@ -30,7 +30,13 @@ chmod +x "${fake_bin}/cmake" "${fake_bin}/ctest"
 PATH="${fake_bin}:${PATH}" \
     "${repo_root}/scripts/release_check.sh" --profile quick > "${log_file}"
 
-if ! grep -Eq "cmake -S .*rubik_cube_library-1\\.0\\.0 -B .*archive-build" "${log_file}"; then
+project_version="$(
+    sed -nE 's/^[[:space:]]*project\([^)]*VERSION[[:space:]]+([^[:space:])]+).*/\1/p' \
+        "${repo_root}/CMakeLists.txt" | head -n 1
+)"
+escaped_project_version="${project_version//./\\.}"
+
+if ! grep -Eq "cmake -S .*rubik_cube_library-${escaped_project_version} -B .*archive-build" "${log_file}"; then
     echo "release_check archive-build test failed: missing extracted archive configure step" >&2
     cat "${log_file}" >&2
     exit 1

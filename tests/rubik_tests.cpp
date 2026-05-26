@@ -24,10 +24,10 @@ namespace {
 
 void testVersionMetadata()
 {
-    assert(rubik::version_major == 1);
+    assert(rubik::version_major == 2);
     assert(rubik::version_minor == 0);
     assert(rubik::version_patch == 0);
-    assert(std::string(rubik::version_string) == "1.0.0");
+    assert(std::string(rubik::version_string) == "2.0.0");
 }
 
 std::vector<std::uint8_t> buildCornerEdgeOrientationPruningForTest()
