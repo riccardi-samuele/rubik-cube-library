@@ -83,7 +83,7 @@ search:
 Changes to the optimal engine must follow these rules:
 
 - Keep `SolveMode::Optimal` as the only public optimal mode.
-- Do not expose temporary `optimal_v2` naming in the public API.
+- Keep temporary engine names out of the public API and public docs.
 - Keep the existing engine working until the new engine is faster and equally
   tested.
 - Every pruning bound must be admissible.
