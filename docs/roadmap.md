@@ -1,67 +1,171 @@
 # Roadmap
 
 The project goal is a C++20 Rubik's Cube solver library that is readable,
-embeddable, and strong enough to become a serious default choice for applications
-that need 3x3x3 solving.
+embeddable, and strong enough to become a serious default choice for
+applications that need 3x3x3 solving.
+
+The `1.0.0` release established the stable public base: sticker input,
+physical validation, HTM moves, certified optimal solving, benchmark tooling,
+CMake packaging, and release validation. The next major release is focused on
+making the optimal path faster, easier to integrate, and easier to validate
+across local hardware profiles.
 
 ## Current Status
 
 Implemented:
 
-- sticker input and validation;
+- sticker input and validation in `U R F D L B` order;
 - cubie representation;
 - move parsing and formatting;
 - coordinate move tables;
 - disk-cached pruning tables;
-- optimal HTM IDA* solver with default corner/edge orientation combined
-  pruning;
+- optimal HTM IDA* solver with certified minimal solutions when the result
+  status is `SolveStatus::Optimal`;
+- embedded, default, and performance solving profiles;
 - experimental two-phase fast solver;
+- root-level thread parallelism for optimal search;
 - CLI solver;
 - CLI benchmark runner;
-- profile-smoke, profile-realistic, embedded-multiseed, and optimal-stress
-  benchmark suites;
+- profile-smoke, profile-realistic, embedded-multiseed, optimal-stress, and
+  large local benchmark suites;
 - example programs;
 - install/export packaging for downstream CMake projects;
-- three-direction phase-1 optimal lower bound for all optimal profiles,
-  including embedded;
-- experimental full corner-state optimal pruning table with passing depth-13
-  stress gates and improved depth-14 frontier behavior;
-- experimental large local optimal profile using corner/edge-group pruning and
-  root-parallel search to solve twenty-four sampled depth-15 frontier cases
-  under 30s on the development desktop;
-- experimental 8-thread large local tail replay that keeps the six slowest
-  sampled depth-15 cases under 18s on the development desktop;
 - optimized CMake presets for release, native, LTO, and sanitizer builds;
-- local optimal profile contract for embedded, default, and performance targets;
-- unit tests.
+- public API stability documentation for `1.0.0`;
+- unit tests and release validation scripts.
 
-## Near-Term Engineering Steps
+Experimental or hardware-dependent:
 
-Release checklist:
+- `SolveMode::Fast`;
+- phase-1 and phase-2 APIs;
+- large local optimal profile table combinations;
+- environment-variable tuning flags;
+- Raspberry Pi, Jetson Nano, and Jetson Orin latency claims.
 
-- [Release Checklist - 1.0.0](release-1.0.0.md)
+Hardware-specific performance claims stay unpublished until they are measured
+on the real target devices.
 
-1. Continue stabilizing benchmark suites for fast, optimal, cold-cache,
-   warm-cache, and profile-specific runs.
-2. Keep `maxMemoryBytes` enforcement aligned with `rubik-bench --report-memory`
-   as table profiles evolve.
-3. Strengthen optimal-mode admissible pruning and track the maximum solved
-   deterministic depth within the target timeout.
-4. Improve optimal depth-15 tail behavior before promoting the corner-state
-   table into a default profile policy.
-5. Keep the stable public API source-compatible while hardening experimental
-   APIs.
-6. Add large random solve verification and regression tests for known slow
-   cases.
-7. Keep memory, cache size, cache warm-up, and table compatibility reports
-   profile-specific.
-8. Broaden `Embedded/Fast` random depth-20 regression coverage beyond the first
-   two targeted tail cases.
-9. Run Raspberry Pi and Jetson-class benchmarks when hardware is available.
-10. Complete user-facing documentation for input format, API usage, and
-    downstream CMake integration.
-11. Prepare packaging, semantic versioning, and release archives.
-12. Run pre-release validation before publishing `1.0.0`.
+## Road To 2.0
+
+The `2.0` target is a stronger local solver release, not a product expansion.
+The scope should stay centered on the library itself.
+
+Primary goals:
+
+1. Improve optimal-mode throughput and tail latency while preserving the
+   certified minimum-move guarantee.
+2. Make benchmark results easier to reproduce and compare between releases.
+3. Strengthen public API ergonomics without breaking the stable `1.0` core
+   unnecessarily.
+4. Keep embedded and performance profiles explicit, measurable, and local.
+5. Promote only proven experimental pieces into stable API or stable defaults.
+
+Out of scope for `2.0`:
+
+- cloud solving;
+- camera recognition;
+- hardware control;
+- application UI;
+- unmeasured hardware performance claims.
+
+## 2.0 Workstreams
+
+### 1. Optimal Solver
+
+Planned:
+
+- reduce node expansion in hard optimal cases;
+- improve move ordering for deeper frontiers;
+- make root-parallel search behavior deterministic and documented;
+- evaluate which large pruning combinations should become stable profiles;
+- keep all pruning admissible for `SolveMode::Optimal`;
+- add regression cases for known slow optimal tails.
+
+Success criteria:
+
+- `SolveStatus::Optimal` still means proven-minimal HTM solution;
+- no performance improvement may weaken optimality;
+- benchmark gates cover normal, stress, and selected tail cases.
+
+### 2. Benchmark And Regression Framework
+
+Planned:
+
+- keep benchmark suites reproducible by seed and profile;
+- add version-to-version comparison output;
+- keep CSV output stable for automation;
+- separate smoke, release, stress, and long local runs;
+- document cache state, memory profile, thread count, and table profile in
+  benchmark reports;
+- avoid publishing numbers for hardware that has not been tested directly.
+
+Success criteria:
+
+- a release candidate can be validated locally with one documented command;
+- slow cases can be replayed deterministically;
+- benchmark reports are useful without exposing internal planning notes.
+
+### 3. Public API Ergonomics
+
+Planned:
+
+- review `SolveResult` for richer timing, depth, profile, and diagnostic
+  fields that are useful to library users;
+- keep error reporting stable and explicit;
+- document thread-safety expectations;
+- document table-cache compatibility and invalidation rules;
+- decide which experimental aliases remain public;
+- add or refine examples around common integration patterns.
+
+Success criteria:
+
+- the common solve path remains small and readable;
+- advanced options are available without making basic use noisy;
+- source compatibility with `1.0` is preserved unless a major-version break is
+  justified and documented.
+
+### 4. Local Hardware Profiles
+
+Planned:
+
+- maintain `Embedded`, `Default`, and `Performance` profiles;
+- keep memory limits explicit through `SolveOptions::maxMemoryBytes`;
+- make table sizes and cache warm-up behavior visible;
+- tune profile defaults for local execution first;
+- defer Raspberry Pi, Jetson Nano, and Jetson Orin claims until real hardware
+  measurements are available.
+
+Success criteria:
+
+- users can choose a profile based on memory and latency needs;
+- profile behavior is documented and testable;
+- unsupported claims do not appear in public release notes.
+
+### 5. Fast Mode
+
+Planned:
+
+- keep `SolveMode::Fast` experimental until quality and latency are stable;
+- strengthen random-depth regression coverage;
+- expose quality/speed tradeoffs only when they are well defined;
+- ensure fast mode never gets confused with certified optimal mode.
+
+Success criteria:
+
+- fast mode is useful as a practical non-optimal option;
+- documentation clearly separates fast and optimal guarantees.
+
+## Candidate 2.x Follow-Ups
+
+After `2.0`, likely candidates are:
+
+- `2.1`: CPU performance and profile tuning;
+- `2.2`: C API and Python bindings;
+- `2.3`: experimental GPU or accelerator backend if benchmarks justify it;
+- `2.4`: additional metrics such as QTM if there is clear demand.
+
+Bindings and GPU work should not block `2.0` unless they become necessary for
+the core library contract.
 
 ## Active Benchmark Suites
 
@@ -94,78 +198,19 @@ Available suites:
 - `tail-diagnostics`: diagnostic runs for the current slowest random cases;
 - `all`: smoke, profile-smoke, profile-realistic, embedded-multiseed,
   optimal-stress, optimal-tail-cases, optimal-deep-probe,
-  embedded-fast-tail-cases,
-  embedded-fast-failures, fast-100, optimal-depth, and tail-diagnostics.
+  embedded-fast-tail-cases, embedded-fast-failures, fast-100, optimal-depth,
+  and tail-diagnostics.
 
-## API Release Decisions
+## Release Discipline
 
-Before the first stable release:
+Before publishing a new version:
 
-1. Decide whether compatibility aliases for phase APIs stay after the first
-   stable release.
-2. Use benchmark `slowest` and `diagnostic_phase*` reports to target
-   tail-latency optimizations.
-3. Add more compact phase-2-specific coordinates if random benchmarks need
-   stronger pruning.
+1. Run the appropriate release validation profile.
+2. Run benchmark gates relevant to the release scope.
+3. Remove temporary files, local notes, and non-user-facing planning artifacts.
+4. Verify public documentation only describes the library and measured facts.
+5. Update changelog, version references, and release notes.
+6. Create and validate the source archive.
 
-## Phase-2 Pruning Candidates
-
-Implemented candidates:
-
-- corner permutation + slice edge permutation;
-- U-edge permutation + slice edge permutation;
-- D-edge permutation + slice edge permutation;
-
-Remaining candidates:
-
-- compact phase-2-only edge permutation coordinates.
-
-The goal is to reduce phase-2 node expansion enough that trying several phase-1
-candidates is cheap.
-
-## Embedded Work
-
-The Raspberry Pi 4 target has 4 GB of RAM, but the working memory budget for the
-library should stay around 1 GB unless explicitly configured otherwise.
-
-Needed:
-
-- `Embedded` profile benchmark on actual Raspberry Pi hardware;
-- `Performance` profile benchmark on Jetson Orin class hardware when available;
-- table size report and per-profile logical RAM report;
-- cache warm-up report;
-- memory peak measurement;
-- separate default limits for optimal and fast mode.
-
-The current local profile contract is documented in
-[Local Optimal Profiles](local-optimal-profiles.md).
-
-## Public API Hardening
-
-Before treating the library as stable:
-
-- freeze sticker order and error codes;
-- document thread-safety expectations;
-- document table cache compatibility/versioning;
-- decide whether `phase1` and `phase2` compatibility aliases remain public;
-- add semantic versioning rules;
-- add examples and integration tests.
-
-## Long-Term Solver Goals
-
-Optimal mode:
-
-- implement the symmetry foundation described in
-  [Optimal Solver Design](optimal-design.md);
-- strengthen admissible pruning beyond the current triple-direction phase-1
-  bound for depth 14+;
-- better memory-profile selection;
-- eventual parallel search support;
-- QTM support if needed.
-
-Fast mode:
-
-- robust two-phase solver;
-- bounded-latency profile for embedded devices;
-- quality/speed tuning knobs;
-- large random benchmark validation.
+Internal process notes may exist locally, but they should not be pushed unless
+they are part of the user-facing library documentation.
