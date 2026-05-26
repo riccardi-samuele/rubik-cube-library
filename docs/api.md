@@ -1,8 +1,8 @@
 # API Notes
 
 The API is intentionally small while the solver internals are still evolving.
-The `1.0.0` compatibility contract is documented in
-[API Stability - 1.0.0](api-stability-1.0.0.md).
+The `2.0.0` compatibility contract is documented in
+[API Stability - 2.0.0](api-stability-2.0.0.md).
 
 ## Version Metadata
 
@@ -12,7 +12,7 @@ compile time:
 ```cpp
 #include <rubik/version.hpp>
 
-static_assert(rubik::version_major == 1);
+static_assert(rubik::version_major == 2);
 std::cout << rubik::version_string << "\n";
 ```
 
@@ -183,8 +183,8 @@ main `Solver` API.
 
 ## Stability Policy
 
-The detailed `1.0.0` freeze is documented in
-[API Stability - 1.0.0](api-stability-1.0.0.md).
+The detailed `2.0.0` freeze is documented in
+[API Stability - 2.0.0](api-stability-2.0.0.md).
 
 Currently intended stable surface:
 
