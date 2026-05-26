@@ -232,11 +232,11 @@ add_custom_target(rubik-benchmark-optimal-tail-cases
 add_custom_target(rubik-benchmark-optimal-tail-cases-gates
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_benchmark_gates.sh
         --summary-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-tail-cases/warm_optimal_tail_cases_summary.csv
-        --gate embedded,optimal,random_seed_12345_index_4_depth_13,1,12000,12000,12000
-        --gate embedded,optimal,random_seed_42_index_2_depth_13,1,12000,12000,12000
-        --gate embedded,optimal,random_seed_42_index_1_depth_13,1,12000,12000,12000
-        --gate embedded,optimal,random_seed_20260525_index_7_depth_13,1,12000,12000,12000
-        --gate embedded,optimal,random_seed_12345_index_2_depth_13,1,12000,12000,12000
+        --gate embedded,optimal,random_seed_12345_index_4_depth_13,1,4000,4000,4000
+        --gate embedded,optimal,random_seed_42_index_2_depth_13,1,4000,4000,4000
+        --gate embedded,optimal,random_seed_42_index_1_depth_13,1,4000,4000,4000
+        --gate embedded,optimal,random_seed_20260525_index_7_depth_13,1,4000,4000,4000
+        --gate embedded,optimal,random_seed_12345_index_2_depth_13,1,4000,4000,4000
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking embedded optimal tail-case gates"
 )

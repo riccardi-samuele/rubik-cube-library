@@ -44,14 +44,21 @@ Optimal-stress:
 | Default | 30 | 30 | 1223 | 1223 | 1223 | 2500/2500/2500 |
 | Performance | 30 | 30 | 1268 | 1268 | 1268 | 2500/2500/2500 |
 
+Optimal tail cases:
+
+| Profile | Cases | Solved | Worst p95 ms | Worst p99 ms | Worst max ms | Gate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Embedded | 5 | 5 | 2687 | 2687 | 2687 | 4000/4000/4000 |
+
 ## Decision
 
 The promoted corner-state bound passes the profile-realistic, embedded-multiseed,
-and optimal-stress gates with the tighter V2 thresholds. The embedded-multiseed
-gate now checks every seed produced by the CMake target, not only the first
-three seeds.
+optimal-stress, and optimal tail-case gates with the tighter V2 thresholds. The
+embedded-multiseed gate now checks every seed produced by the CMake target, not
+only the first three seeds.
 
 The active optimal latency gates are:
 
 - embedded optimal depth-13: p95/p99/max `4000 ms`;
+- embedded optimal tail cases: p95/p99/max `4000 ms`;
 - default and performance optimal depth-13: p95/p99/max `2500 ms`.

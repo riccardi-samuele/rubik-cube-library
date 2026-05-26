@@ -42,6 +42,11 @@ bytes because the three-direction bound reuses tables already generated for the
 embedded profile. The next optimization should use this replay suite to test
 deeper tails or new admissible bounds.
 
+After promoting corner-state pruning by default on 2026-05-26, the same replay
+suite solved all five cases with a worst elapsed time of `2687 ms` and a worst
+node count of `1,001,517`. The active tail-case gate was tightened from
+`12000 ms` to `4000 ms`.
+
 ## Active Gates
 
 ```sh
@@ -49,4 +54,4 @@ cmake --build out/release-native-lto --target rubik-benchmark-optimal-tail-cases
 ```
 
 - Each replay case must solve.
-- Each replay case must stay below `12000 ms` for p95, p99, and max.
+- Each replay case must stay below `4000 ms` for p95, p99, and max.

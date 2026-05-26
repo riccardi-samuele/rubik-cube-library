@@ -385,17 +385,17 @@ Optimal tail-case gates:
 ```sh
 scripts/check_benchmark_gates.sh \
   --summary-file out/release-native-lto/benchmark-results/optimal-tail-cases/warm_optimal_tail_cases_summary.csv \
-  --gate embedded,optimal,random_seed_12345_index_4_depth_13,1,12000,12000,12000 \
-  --gate embedded,optimal,random_seed_42_index_2_depth_13,1,12000,12000,12000 \
-  --gate embedded,optimal,random_seed_42_index_1_depth_13,1,12000,12000,12000 \
-  --gate embedded,optimal,random_seed_20260525_index_7_depth_13,1,12000,12000,12000 \
-  --gate embedded,optimal,random_seed_12345_index_2_depth_13,1,12000,12000,12000
+  --gate embedded,optimal,random_seed_12345_index_4_depth_13,1,4000,4000,4000 \
+  --gate embedded,optimal,random_seed_42_index_2_depth_13,1,4000,4000,4000 \
+  --gate embedded,optimal,random_seed_42_index_1_depth_13,1,4000,4000,4000 \
+  --gate embedded,optimal,random_seed_20260525_index_7_depth_13,1,4000,4000,4000 \
+  --gate embedded,optimal,random_seed_12345_index_2_depth_13,1,4000,4000,4000
 ```
 
 These gates replay the current slowest embedded optimal cases with diagnostics.
 They are intended for tight inner-loop comparison while changing optimal-mode
-pruning. The current tail-case gate is `12000 ms` after enabling three-phase
-phase-1 lower bounds for `Embedded/Optimal`.
+pruning. The current tail-case gate is `4000 ms` after promoting corner-state
+pruning by default.
 
 Example:
 
