@@ -2,6 +2,7 @@
 
 #include "rubik/coordinates.hpp"
 #include "rubik/cubie_cube.hpp"
+#include "rubik/detail/optimal_plan.hpp"
 #include "rubik/detail/symmetry_coordinates.hpp"
 #include "rubik/detail/symmetry_pruning.hpp"
 #include "rubik/detail/table_profiles.hpp"
@@ -796,6 +797,7 @@ std::size_t beamWidth(SolveProfile profile)
         return 1024;
     case SolveProfile::Performance:
     case SolveProfile::LargeLocal:
+    case SolveProfile::Auto:
         return 16384;
     case SolveProfile::Default:
         return 4096;
@@ -1389,72 +1391,100 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         return std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - startedAt);
     };
+    const detail::OptimalPlan plan = detail::makeOptimalPlan(options);
+    const auto withPlan = [&](SolveResult result) {
+        result.plan = plan.publicPlan;
+        return result;
+    };
+    if (!plan.supported) {
+        return withPlan({
+            .status = plan.status,
+            .moves = {},
+            .moveCount = -1,
+            .isOptimal = false,
+            .metric = options.metric,
+            .elapsed = elapsed(),
+            .nodesExpanded = 0,
+            .memoryUsedBytes = sizeof(Solver),
+            .nodesByDepth = {},
+            .boundDiagnostics = {},
+            .plan = {},
+        });
+    }
+    const SolveOptions effectiveOptions = plan.effectiveOptions;
 
-    if ((options.mode != SolveMode::Optimal && options.mode != SolveMode::Fast) || options.metric != Metric::HTM) {
-        return {
+    if ((effectiveOptions.mode != SolveMode::Optimal && effectiveOptions.mode != SolveMode::Fast) ||
+        effectiveOptions.metric != Metric::HTM) {
+        return withPlan({
             .status = SolveStatus::UnsupportedOptions,
             .moves = {},
             .moveCount = -1,
             .isOptimal = false,
-            .metric = options.metric,
+            .metric = effectiveOptions.metric,
             .elapsed = elapsed(),
             .nodesExpanded = 0,
             .memoryUsedBytes = sizeof(Solver),
             .nodesByDepth = {},
             .boundDiagnostics = {},
-        };
+            .plan = {},
+        });
     }
 
     if (!cube.isValid()) {
-        return {
+        return withPlan({
             .status = SolveStatus::InvalidCube,
             .moves = {},
             .moveCount = -1,
             .isOptimal = false,
-            .metric = options.metric,
+            .metric = effectiveOptions.metric,
             .elapsed = elapsed(),
             .nodesExpanded = 0,
             .memoryUsedBytes = sizeof(Solver),
             .nodesByDepth = {},
             .boundDiagnostics = {},
-        };
+            .plan = {},
+        });
     }
     if (cube.isSolved()) {
-        return {
+        return withPlan({
             .status = SolveStatus::Solved,
             .moves = {},
             .moveCount = 0,
             .isOptimal = true,
-            .metric = options.metric,
+            .metric = effectiveOptions.metric,
             .elapsed = elapsed(),
             .nodesExpanded = 0,
             .memoryUsedBytes = sizeof(Solver),
             .nodesByDepth = {},
             .boundDiagnostics = {},
-        };
+            .plan = {},
+        });
     }
 
     CubieParseResult parsed = CubieCube::fromCube(cube);
     if (!parsed) {
-        return {
+        return withPlan({
             .status = SolveStatus::InvalidCube,
             .moves = {},
             .moveCount = -1,
             .isOptimal = false,
-            .metric = options.metric,
+            .metric = effectiveOptions.metric,
             .elapsed = elapsed(),
             .nodesExpanded = 0,
             .memoryUsedBytes = sizeof(Solver),
             .nodesByDepth = {},
             .boundDiagnostics = {},
-        };
+            .plan = {},
+        });
     }
 
     std::size_t estimatedTableBytes =
-        detail::estimatedSolverTablePayloadBytes(options.mode, options.profile);
+        detail::estimatedSolverTablePayloadBytes(effectiveOptions.mode, effectiveOptions.profile);
     const bool includeExperimentalCornerStateBounds = experimentalCornerStateBoundsEnabled();
-    const bool includeExperimentalCornerUpEdgeBounds = cornerUpEdgeBoundsEnabled(options.mode, options.profile);
-    const bool includeExperimentalCornerDownEdgeBounds = cornerDownEdgeBoundsEnabled(options.mode, options.profile);
+    const bool includeExperimentalCornerUpEdgeBounds =
+        cornerUpEdgeBoundsEnabled(effectiveOptions.mode, effectiveOptions.profile);
+    const bool includeExperimentalCornerDownEdgeBounds =
+        cornerDownEdgeBoundsEnabled(effectiveOptions.mode, effectiveOptions.profile);
     if (includeExperimentalCornerStateBounds) {
         estimatedTableBytes += experimentalCornerStatePayloadBytes();
     }
@@ -1465,61 +1495,64 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         estimatedTableBytes += experimentalCornerEdgeGroupPayloadBytes();
     }
     const bool usePhase2MoveOrdering = phase2OptimalMoveOrderingEnabled() &&
-        options.mode == SolveMode::Optimal;
+        effectiveOptions.mode == SolveMode::Optimal;
     if (usePhase2MoveOrdering) {
         estimatedTableBytes += phase2OrderingPayloadBytes();
     }
-    const int goalTableDepth = options.mode == SolveMode::Optimal
+    const int goalTableDepth = effectiveOptions.mode == SolveMode::Optimal
         ? experimentalGoalTableDepth()
         : 0;
     if (goalTableDepth > 0) {
         estimatedTableBytes += experimentalGoalTablePayloadBytes(goalTableDepth);
     }
     const std::size_t estimatedMemoryBytes = sizeof(Solver) + sizeof(Cube) + estimatedTableBytes;
-    if (options.maxMemoryBytes > 0 && estimatedMemoryBytes > options.maxMemoryBytes) {
-        return {
+    if (effectiveOptions.maxMemoryBytes > 0 && estimatedMemoryBytes > effectiveOptions.maxMemoryBytes) {
+        return withPlan({
             .status = SolveStatus::MemoryLimitExceeded,
             .moves = {},
             .moveCount = -1,
             .isOptimal = false,
-            .metric = options.metric,
+            .metric = effectiveOptions.metric,
             .elapsed = elapsed(),
             .nodesExpanded = 0,
             .memoryUsedBytes = estimatedMemoryBytes,
             .nodesByDepth = {},
             .boundDiagnostics = {},
-        };
+            .plan = {},
+        });
     }
 
-    const Deadline deadline(options.timeout);
+    const Deadline deadline(effectiveOptions.timeout);
     std::vector<std::uint64_t> nodesByDepth;
     const bool includeExperimentalSymmetryBounds = experimentalSymmetryBoundsEnabled();
-    const bool includeThreePhase1Bounds = threePhase1BoundsEnabled(options.mode, options.profile);
+    const bool includeThreePhase1Bounds =
+        threePhase1BoundsEnabled(effectiveOptions.mode, effectiveOptions.profile);
     const bool useStrongMoveOrdering = strongOptimalMoveOrderingEnabled();
     const SearchNode root = makeSearchNode(parsed.cube, includeThreePhase1Bounds);
     const GoalTable* exactGoalTable = goalTableDepth > 0
         ? &goalTable(goalTableDepth)
         : nullptr;
 
-    if (options.mode == SolveMode::Fast) {
+    if (effectiveOptions.mode == SolveMode::Fast) {
         const auto remainingTimeout = [&]() {
-            if (options.timeout.count() <= 0) {
+            if (effectiveOptions.timeout.count() <= 0) {
                 return std::chrono::milliseconds{0};
             }
             const auto used = elapsed();
-            if (used >= options.timeout) {
+            if (used >= effectiveOptions.timeout) {
                 return std::chrono::milliseconds{1};
             }
-            return options.timeout - used;
+            return effectiveOptions.timeout - used;
         };
 
         const auto quickPhaseTimeout = [&]() {
             const std::chrono::milliseconds profileBudget = [&]() {
-                switch (options.profile) {
+                switch (effectiveOptions.profile) {
                 case SolveProfile::Embedded:
                     return std::chrono::milliseconds{500};
                 case SolveProfile::Performance:
                 case SolveProfile::LargeLocal:
+                case SolveProfile::Auto:
                     return std::chrono::milliseconds{5000};
                 case SolveProfile::Default:
                     return std::chrono::milliseconds{2000};
@@ -1535,11 +1568,12 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         };
 
         const auto phase1CandidateLimit = [&]() -> std::size_t {
-            switch (options.profile) {
+            switch (effectiveOptions.profile) {
             case SolveProfile::Embedded:
                 return 4;
             case SolveProfile::Performance:
             case SolveProfile::LargeLocal:
+            case SolveProfile::Auto:
                 return 64;
             case SolveProfile::Default:
                 return 16;
@@ -1548,11 +1582,12 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         };
 
         const auto quickPhase1CandidateLimit = [&]() -> std::size_t {
-            switch (options.profile) {
+            switch (effectiveOptions.profile) {
             case SolveProfile::Embedded:
                 return 4;
             case SolveProfile::Performance:
             case SolveProfile::LargeLocal:
+            case SolveProfile::Auto:
                 return 8;
             case SolveProfile::Default:
                 return 4;
@@ -1562,11 +1597,12 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
 
         const auto phase2CandidateTimeout = [&]() {
             const std::chrono::milliseconds profileBudget = [&]() {
-            switch (options.profile) {
-            case SolveProfile::Embedded:
+                switch (effectiveOptions.profile) {
+                case SolveProfile::Embedded:
                     return std::chrono::milliseconds{100};
                 case SolveProfile::Performance:
                 case SolveProfile::LargeLocal:
+                case SolveProfile::Auto:
                     return std::chrono::milliseconds{750};
                 case SolveProfile::Default:
                     return std::chrono::milliseconds{150};
@@ -1583,7 +1619,9 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
 
         const auto quickPhase1Timeout = [&]() {
             const auto remaining = remainingTimeout();
-            const auto budget = options.profile == SolveProfile::Performance || options.profile == SolveProfile::LargeLocal
+            const auto budget =
+                effectiveOptions.profile == SolveProfile::Performance ||
+                    effectiveOptions.profile == SolveProfile::LargeLocal
                 ? std::chrono::milliseconds{500}
                 : std::chrono::milliseconds{250};
             if (remaining.count() <= 0) {
@@ -1594,7 +1632,9 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
 
         const auto quickPhase2Timeout = [&]() {
             const auto remaining = remainingTimeout();
-            const auto budget = options.profile == SolveProfile::Performance || options.profile == SolveProfile::LargeLocal
+            const auto budget =
+                effectiveOptions.profile == SolveProfile::Performance ||
+                    effectiveOptions.profile == SolveProfile::LargeLocal
                 ? std::chrono::milliseconds{150}
                 : std::chrono::milliseconds{75};
             if (remaining.count() <= 0) {
@@ -1604,7 +1644,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         };
 
         std::vector<TwoPhaseAttemptOptions> attempts;
-        if (options.profile != SolveProfile::Embedded) {
+        if (effectiveOptions.profile != SolveProfile::Embedded) {
             attempts.push_back({
                 .phase1CandidateLimit = quickPhase1CandidateLimit(),
                 .phase1Timeout = quickPhase1Timeout(),
@@ -1612,16 +1652,16 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
             });
         }
         attempts.push_back({
-            .phase1CandidateLimit = options.profile == SolveProfile::Embedded
+            .phase1CandidateLimit = effectiveOptions.profile == SolveProfile::Embedded
                 ? std::size_t{16}
                 : phase1CandidateLimit(),
-            .phase2CandidateLimit = options.profile == SolveProfile::Embedded
+            .phase2CandidateLimit = effectiveOptions.profile == SolveProfile::Embedded
                 ? std::size_t{4}
                 : std::size_t{0},
             .phase1Timeout = quickPhaseTimeout(),
             .phase2Timeout = phase2CandidateTimeout(),
         });
-        if (options.profile == SolveProfile::Embedded) {
+        if (effectiveOptions.profile == SolveProfile::Embedded) {
             attempts.push_back({
                 .phase1CandidateLimit = 16,
                 .phase2CandidateLimit = 0,
@@ -1638,7 +1678,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                 break;
             }
 
-            TwoPhaseAttemptResult twoPhase = twoPhaseAttempt(cube, deadline, options, attempt);
+            TwoPhaseAttemptResult twoPhase = twoPhaseAttempt(cube, deadline, effectiveOptions, attempt);
             twoPhaseNodesExpanded += twoPhase.nodesExpanded;
             twoPhaseNodesByDepth.insert(
                 twoPhaseNodesByDepth.end(),
@@ -1646,69 +1686,71 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                 twoPhase.nodesByDepth.end());
 
             if (twoPhase.status == SolveStatus::Found) {
-                return {
+                return withPlan({
                     .status = SolveStatus::Found,
                     .moves = twoPhase.moves,
                     .moveCount = static_cast<int>(twoPhase.moves.size()),
                     .isOptimal = false,
-                    .metric = options.metric,
+                    .metric = effectiveOptions.metric,
                     .elapsed = elapsed(),
                     .nodesExpanded = twoPhaseNodesExpanded,
                     .memoryUsedBytes = estimatedMemoryBytes + sizeof(Move) * twoPhase.moves.capacity(),
                     .nodesByDepth = twoPhaseNodesByDepth,
                     .boundDiagnostics = {},
-                };
+                    .plan = {},
+                });
             }
         }
 
         FastSearchResult fast = fastBeamSearch(
             root,
             deadline,
-            options,
+            effectiveOptions,
             includeExperimentalSymmetryBounds,
             includeExperimentalCornerStateBounds,
             includeExperimentalCornerUpEdgeBounds,
             includeExperimentalCornerDownEdgeBounds,
             includeThreePhase1Bounds);
-        return {
+        return withPlan({
             .status = fast.status,
             .moves = fast.moves,
             .moveCount = fast.moves.empty() ? -1 : static_cast<int>(fast.moves.size()),
             .isOptimal = false,
-            .metric = options.metric,
+            .metric = effectiveOptions.metric,
             .elapsed = elapsed(),
             .nodesExpanded = fast.nodesExpanded,
             .memoryUsedBytes = estimatedMemoryBytes,
             .nodesByDepth = fast.nodesByDepth,
             .boundDiagnostics = {},
-        };
+            .plan = {},
+        });
     }
 
     std::uint64_t nodesExpanded = 0;
     SolveBoundDiagnostics boundDiagnostics;
-    SolveBoundDiagnostics* boundDiagnosticsPtr = options.collectDiagnostics
+    SolveBoundDiagnostics* boundDiagnosticsPtr = effectiveOptions.collectDiagnostics
         ? &boundDiagnostics
         : nullptr;
     for (int limit = nodeLowerBound(
              root,
-             options.profile,
+             effectiveOptions.profile,
              includeExperimentalSymmetryBounds,
              includeExperimentalCornerStateBounds,
              includeExperimentalCornerUpEdgeBounds,
              includeExperimentalCornerDownEdgeBounds,
              includeThreePhase1Bounds);
-         limit <= options.maxDepth;
+         limit <= effectiveOptions.maxDepth;
          ++limit) {
         std::vector<Move> path;
         std::vector<Move> solution;
         const std::uint64_t nodesBeforeDepth = nodesExpanded;
 
-        const SearchState result = options.threads > 1
+        const SearchState result = effectiveOptions.threads > 1
             ? parallelRootDfs(
                   root,
                   limit,
                   deadline,
-                  options.profile,
+                  effectiveOptions.profile,
                   includeExperimentalSymmetryBounds,
                   includeExperimentalCornerStateBounds,
                   includeExperimentalCornerUpEdgeBounds,
@@ -1717,7 +1759,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                   useStrongMoveOrdering,
                   usePhase2MoveOrdering,
                   exactGoalTable,
-                  options.threads,
+                  effectiveOptions.threads,
                   solution,
                   nodesExpanded,
                   boundDiagnosticsPtr)
@@ -1726,7 +1768,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                   0,
                   limit,
                   deadline,
-                  options.profile,
+                  effectiveOptions.profile,
                   includeExperimentalSymmetryBounds,
                   includeExperimentalCornerStateBounds,
                   includeExperimentalCornerUpEdgeBounds,
@@ -1742,47 +1784,50 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                   boundDiagnosticsPtr);
         nodesByDepth.push_back(nodesExpanded - nodesBeforeDepth);
         if (result == SearchState::Found) {
-            return {
+            return withPlan({
                 .status = SolveStatus::Optimal,
                 .moves = solution,
                 .moveCount = static_cast<int>(solution.size()),
                 .isOptimal = true,
-                .metric = options.metric,
+                .metric = effectiveOptions.metric,
                 .elapsed = elapsed(),
                 .nodesExpanded = nodesExpanded,
                 .memoryUsedBytes = estimatedMemoryBytes + sizeof(Move) * solution.capacity(),
                 .nodesByDepth = nodesByDepth,
                 .boundDiagnostics = boundDiagnostics,
-            };
+                .plan = {},
+            });
         }
         if (result == SearchState::Timeout) {
-            return {
+            return withPlan({
                 .status = SolveStatus::Timeout,
                 .moves = {},
                 .moveCount = -1,
                 .isOptimal = false,
-                .metric = options.metric,
+                .metric = effectiveOptions.metric,
                 .elapsed = elapsed(),
                 .nodesExpanded = nodesExpanded,
                 .memoryUsedBytes = estimatedMemoryBytes,
                 .nodesByDepth = nodesByDepth,
                 .boundDiagnostics = boundDiagnostics,
-            };
+                .plan = {},
+            });
         }
     }
 
-    return {
+    return withPlan({
         .status = SolveStatus::DepthLimitExceeded,
         .moves = {},
         .moveCount = -1,
         .isOptimal = false,
-        .metric = options.metric,
+        .metric = effectiveOptions.metric,
         .elapsed = elapsed(),
         .nodesExpanded = nodesExpanded,
         .memoryUsedBytes = estimatedMemoryBytes,
         .nodesByDepth = nodesByDepth,
         .boundDiagnostics = boundDiagnostics,
-    };
+        .plan = {},
+    });
 }
 
 int Solver::lowerBound(const Cube& cube, Metric metric, SolveProfile profile) const

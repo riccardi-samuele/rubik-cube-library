@@ -23,6 +23,14 @@
 
 namespace {
 
+void expect(bool condition)
+{
+    if (!condition) {
+        std::cerr << "test expectation failed\n";
+        std::abort();
+    }
+}
+
 void testVersionMetadata()
 {
     assert(rubik::version_major == 2);
@@ -34,26 +42,26 @@ void testVersionMetadata()
 void testV3AdaptiveApiDefaults()
 {
     rubik::SolveOptions options;
-    assert(options.profile == rubik::SolveProfile::Default);
-    assert(options.cachePolicy == rubik::CachePolicy::Auto);
+    expect(options.profile == rubik::SolveProfile::Default);
+    expect(options.cachePolicy == rubik::CachePolicy::Auto);
 
     rubik::SolvePlan plan;
-    assert(plan.requestedProfile == rubik::SolveProfile::Default);
-    assert(plan.effectiveProfile == rubik::SolveProfile::Default);
-    assert(plan.cachePolicy == rubik::CachePolicy::Auto);
-    assert(plan.requestedThreads == 1);
-    assert(plan.effectiveThreads == 1);
-    assert(plan.requestedMaxMemoryBytes == 0);
-    assert(plan.effectiveMaxMemoryBytes == 0);
-    assert(plan.estimatedTablePayloadBytes == 0);
-    assert(!plan.diskCacheEnabled);
-    assert(!plan.diskCacheWarm);
-    assert(!plan.builtCacheDuringSolve);
-    assert(plan.strategyName.empty());
-    assert(plan.boundsUsed.empty());
+    expect(plan.requestedProfile == rubik::SolveProfile::Default);
+    expect(plan.effectiveProfile == rubik::SolveProfile::Default);
+    expect(plan.cachePolicy == rubik::CachePolicy::Auto);
+    expect(plan.requestedThreads == 1);
+    expect(plan.effectiveThreads == 1);
+    expect(plan.requestedMaxMemoryBytes == 0);
+    expect(plan.effectiveMaxMemoryBytes == 0);
+    expect(plan.estimatedTablePayloadBytes == 0);
+    expect(!plan.diskCacheEnabled);
+    expect(!plan.diskCacheWarm);
+    expect(!plan.builtCacheDuringSolve);
+    expect(plan.strategyName.empty());
+    expect(plan.boundsUsed.empty());
 
     rubik::SolveResult result;
-    assert(result.plan.cachePolicy == rubik::CachePolicy::Auto);
+    expect(result.plan.cachePolicy == rubik::CachePolicy::Auto);
 }
 
 void testAutoPlannerRejectsFastMode()
@@ -63,8 +71,8 @@ void testAutoPlannerRejectsFastMode()
     options.profile = rubik::SolveProfile::Auto;
 
     const auto plan = rubik::detail::makeOptimalPlan(options);
-    assert(!plan.supported);
-    assert(plan.status == rubik::SolveStatus::UnsupportedOptions);
+    expect(!plan.supported);
+    expect(plan.status == rubik::SolveStatus::UnsupportedOptions);
 }
 
 void testAutoPlannerDesktopDefaults()
@@ -77,14 +85,46 @@ void testAutoPlannerDesktopDefaults()
     options.threads = 0;
 
     const auto plan = rubik::detail::makeOptimalPlan(options);
-    assert(plan.supported);
-    assert(plan.publicPlan.requestedProfile == rubik::SolveProfile::Auto);
-    assert(plan.publicPlan.effectiveProfile == rubik::SolveProfile::LargeLocal);
-    assert(plan.publicPlan.effectiveMaxMemoryBytes == 2ull * 1024ull * 1024ull * 1024ull);
-    assert(plan.publicPlan.effectiveThreads >= 1);
-    assert(plan.publicPlan.effectiveThreads <= 8);
-    assert(plan.publicPlan.strategyName == "auto_desktop_tail");
-    assert(!plan.publicPlan.boundsUsed.empty());
+    expect(plan.supported);
+    expect(plan.publicPlan.requestedProfile == rubik::SolveProfile::Auto);
+    expect(plan.publicPlan.effectiveProfile == rubik::SolveProfile::LargeLocal);
+    expect(plan.publicPlan.effectiveMaxMemoryBytes == 2ull * 1024ull * 1024ull * 1024ull);
+    expect(plan.publicPlan.effectiveThreads >= 1);
+    expect(plan.publicPlan.effectiveThreads <= 8);
+    expect(plan.publicPlan.strategyName == "auto_desktop_tail");
+    expect(!plan.publicPlan.boundsUsed.empty());
+}
+
+void testAutoSolveReportsPlan()
+{
+    rubik::Solver solver;
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 0;
+    options.timeout = std::chrono::milliseconds{1000};
+    options.threads = 0;
+
+    const rubik::SolveResult result = solver.solve(rubik::Cube::solved(), options);
+    expect(result.status == rubik::SolveStatus::Solved);
+    expect(result.plan.requestedProfile == rubik::SolveProfile::Auto);
+    expect(result.plan.effectiveProfile == rubik::SolveProfile::LargeLocal);
+    expect(result.plan.effectiveThreads >= 1);
+    expect(result.plan.effectiveMaxMemoryBytes == 2ull * 1024ull * 1024ull * 1024ull);
+    expect(result.plan.strategyName == "auto_desktop_tail");
+}
+
+void testAutoFastSolveIsUnsupported()
+{
+    rubik::Solver solver;
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Fast;
+    options.profile = rubik::SolveProfile::Auto;
+
+    const rubik::SolveResult result = solver.solve(rubik::Cube::solved(), options);
+    expect(result.status == rubik::SolveStatus::UnsupportedOptions);
+    expect(result.plan.requestedProfile == rubik::SolveProfile::Auto);
 }
 
 std::vector<std::uint8_t> buildCornerEdgeOrientationPruningForTest()
@@ -1074,6 +1114,8 @@ int main()
     testV3AdaptiveApiDefaults();
     testAutoPlannerRejectsFastMode();
     testAutoPlannerDesktopDefaults();
+    testAutoSolveReportsPlan();
+    testAutoFastSolveIsUnsupported();
     testSolvedCube();
     testStructuredStickerInput();
     testPhysicalValidation();
