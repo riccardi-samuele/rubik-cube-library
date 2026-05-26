@@ -235,7 +235,8 @@ Current corner-state promotion status:
   depth-13 cases solved under the active 4000 ms p95/p99/max gate;
 - depth-14 deep probe: all sampled cases solved;
 - depth-15 deep probe: selected seed `12345` and `42` cases still time out at
-  30 seconds, so the worst-tail proof search is not yet publication-ready.
+  30 seconds in the default embedded/default/performance profiles, so depth-15
+  is not controlled by the embedded default policy.
 - DFS node materialization now reuses the already-built candidate node when
   recursing instead of applying the same move a second time. This is a safe
   engine cleanup, but it does not materially change the depth-15 frontier by
@@ -247,6 +248,10 @@ Current corner-state promotion status:
   corner-state, both corner/edge-group tables, the performance profile, and
   four threads, the seed `42` depth-15 frontier case solved in 17.896 seconds.
   This is a large local/desktop configuration, not an embedded default policy.
+- The large-local target now runs the full 24 fixed depth-15 seed gate. On
+  2026-05-26 it solved 24/24 cases with worst elapsed time `27,572 ms` and
+  worst node count `25,589,013`; see
+  [V2 Depth-15 Large-Local Validation - 2026-05-26](v2-depth15-large-local-2026-05-26.md).
 
 Current baseline to beat:
 

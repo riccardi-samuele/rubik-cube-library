@@ -265,7 +265,7 @@ add_custom_target(rubik-benchmark-optimal-large-local
         --build-dir ${CMAKE_CURRENT_BINARY_DIR}
         --cache-dir /tmp/rubik_cube_library_optimal_large_local_cache
         --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-large-local
-        --seeds 12345,20260525,42
+        --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525,111,222,333,444,555,666,777,888,999,13579,24680,112358
         --deep-opt15-count 1
         --threads 4
         --max-memory-mb 2048
