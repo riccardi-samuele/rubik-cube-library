@@ -2,6 +2,7 @@
 #include "rubik/detail/symmetry_coordinates.hpp"
 #include "rubik/detail/symmetry_pruning.hpp"
 #include "rubik/detail/symmetry.hpp"
+#include "rubik/detail/optimal_plan.hpp"
 #include "rubik/detail/table_profiles.hpp"
 #include "rubik/experimental/phase1.hpp"
 #include "rubik/experimental/phase2.hpp"
@@ -53,6 +54,37 @@ void testV3AdaptiveApiDefaults()
 
     rubik::SolveResult result;
     assert(result.plan.cachePolicy == rubik::CachePolicy::Auto);
+}
+
+void testAutoPlannerRejectsFastMode()
+{
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Fast;
+    options.profile = rubik::SolveProfile::Auto;
+
+    const auto plan = rubik::detail::makeOptimalPlan(options);
+    assert(!plan.supported);
+    assert(plan.status == rubik::SolveStatus::UnsupportedOptions);
+}
+
+void testAutoPlannerDesktopDefaults()
+{
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+
+    const auto plan = rubik::detail::makeOptimalPlan(options);
+    assert(plan.supported);
+    assert(plan.publicPlan.requestedProfile == rubik::SolveProfile::Auto);
+    assert(plan.publicPlan.effectiveProfile == rubik::SolveProfile::LargeLocal);
+    assert(plan.publicPlan.effectiveMaxMemoryBytes == 2ull * 1024ull * 1024ull * 1024ull);
+    assert(plan.publicPlan.effectiveThreads >= 1);
+    assert(plan.publicPlan.effectiveThreads <= 8);
+    assert(plan.publicPlan.strategyName == "auto_desktop_tail");
+    assert(!plan.publicPlan.boundsUsed.empty());
 }
 
 std::vector<std::uint8_t> buildCornerEdgeOrientationPruningForTest()
@@ -1040,6 +1072,8 @@ int main()
 {
     testVersionMetadata();
     testV3AdaptiveApiDefaults();
+    testAutoPlannerRejectsFastMode();
+    testAutoPlannerDesktopDefaults();
     testSolvedCube();
     testStructuredStickerInput();
     testPhysicalValidation();
