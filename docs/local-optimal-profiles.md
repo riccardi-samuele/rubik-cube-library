@@ -68,6 +68,27 @@ This profile may use larger admissible tables and more expensive search helpers
 when benchmarks show a real wall-clock win. It is the right place for local
 high-performance runs.
 
+### `SolveProfile::LargeLocal`
+
+Target devices:
+
+- desktops and workstations with enough RAM for large optimal tables;
+- Jetson Orin class local compute;
+- validation runs where certified optimality is more important than memory
+  footprint.
+
+Current optimal table payload: about 1.39 GB.
+
+This profile maps to the performance optimal table set and, in
+`SolveMode::Optimal`, also enables the corner-state bound plus both
+corner/edge-group admissible bounds. It does not require
+`RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS` or
+`RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS`.
+
+`LargeLocal` is not the embedded default policy. It is intended for local
+high-memory optimal solving and for repeatable depth-15 validation on
+desktop/Orin-class hardware.
+
 ## Non-Goals For Public Profiles
 
 Do not add a new public profile until there is a measured reason. Experimental

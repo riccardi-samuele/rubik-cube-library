@@ -198,14 +198,12 @@ U-edge variant solved the seed `12345` depth-15 frontier case in 28.914
 seconds, but seed `42` still timed out at 30 seconds, so this remains
 experimental.
 
-Large local optimal probe:
+Large local optimal profile:
 
 ```sh
-RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1 \
-RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS=1 \
 out/release-native-lto/rubik-bench \
   --mode optimal \
-  --profile performance \
+  --profile large-local \
   --threads 4 \
   --max-memory-mb 2048 \
   --timeout-ms 30000 \
@@ -216,15 +214,14 @@ out/release-native-lto/rubik-bench \
   --random-seed 42
 ```
 
-`--threads` controls root-parallel optimal search. `--max-memory-mb` raises the
-benchmark memory contract for large local experiments; the default remains
-1,024 MB.
+`--profile large-local` enables the largest local optimal admissible bounds
+without environment flags. `--threads` controls root-parallel optimal search.
+`--max-memory-mb` raises the benchmark memory contract for this high-memory
+profile; the default remains 1,024 MB.
 
 The same setup is available as a repeatable suite:
 
 ```sh
-RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1 \
-RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS=1 \
 scripts/run_benchmark_suite.sh \
   --suite optimal-large-local \
   --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525,111,222,333,444,555,666,777,888,999,13579,24680,112358 \
@@ -264,7 +261,7 @@ Cache modes:
 
 Profile selection:
 
-- `--profile embedded|default|performance`: run a normal suite under one solver
+- `--profile embedded|default|performance|large-local`: run a normal suite under one solver
   profile.
 - `--suite profile-smoke`: run a short fast and optimal smoke benchmark for all
   three public profiles and write `warm_profile_smoke_summary.csv` or
@@ -288,9 +285,9 @@ Profile selection:
 - `--suite optimal-deep-probe`: run a small, non-gated optimal depth-14/depth-15
   probe across public profiles with `--diagnose-optimal`. Timeout rows are kept
   in the summary so the suite can map the current search frontier.
-- `--suite optimal-large-local`: run the large local `Performance/Optimal`
+- `--suite optimal-large-local`: run the large local `LargeLocal/Optimal`
   depth-15 probe across fixed seeds. This suite is intended for desktop/Orin
-  class validation and requires explicit large-table environment flags.
+  class validation and uses the public `large-local` profile.
 - `--suite embedded-fast-tail-cases`: replay the current slowest
   `Embedded/Fast` random depth-20 cases from the multiseed sweep with
   `--diagnose-fast`.

@@ -22,8 +22,8 @@ Options:
   --with-large-local      also run large-local optimal benchmark gates
   -h, --help              show this help
 
-Large-local gates require the experimental high-memory optimal tables and can
-take a long time on a cold cache.
+Large-local gates use the public high-memory optimal profile and can take a
+long time on a cold cache.
 USAGE
 }
 

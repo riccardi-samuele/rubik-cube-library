@@ -119,15 +119,12 @@ Promoted V2 pruning:
 
 Promising active experiments:
 
-- Corner permutation + edge-group pruning
-  (`RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1` or
-  `RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS=1`): each table adds
-  479,001,600 entries. Combined with corner-state, the U-edge variant solved the
-  seed `12345` depth-15 frontier case in 28.914 seconds, but seed `42` still
-  timed out at 30 seconds. On the V2 tail set, a single edge-group table reduced
-  the average to about 830 ms, and both tables reduced the average to about
-  650 ms. The memory cost keeps these variants experimental and limited to
-  large local profile work.
+- Corner permutation + edge-group pruning: each table adds 479,001,600 entries.
+  The public `SolveProfile::LargeLocal` enables both tables for
+  `SolveMode::Optimal`. On the V2 depth-15 gate this large local configuration
+  solved all 24 fixed seeds under 30 seconds with four threads. The memory cost
+  keeps these bounds limited to the large local profile, not the embedded
+  default policy.
 
 ## Implementation Phases
 
@@ -244,9 +241,9 @@ Current corner-state promotion status:
 - A single 479 MB corner/edge-group table can bring one sampled depth-15 timeout
   under 30 seconds, but the remaining seed `42` timeout shows that depth 15 is
   still not controlled.
-- Root-parallel optimal search now uses `SolveOptions::threads`. With
-  corner-state, both corner/edge-group tables, the performance profile, and
-  four threads, the seed `42` depth-15 frontier case solved in 17.896 seconds.
+- Root-parallel optimal search now uses `SolveOptions::threads`. With the
+  large local profile and four threads, the seed `42` depth-15 frontier case
+  solved in 17.896 seconds.
   This is a large local/desktop configuration, not an embedded default policy.
 - The large-local target now runs the full 24 fixed depth-15 seed gate. On
   2026-05-26 it solved 24/24 cases with worst elapsed time `27,572 ms` and

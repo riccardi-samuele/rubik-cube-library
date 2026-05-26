@@ -86,8 +86,10 @@ HTM solution for every profile.
 
 `SolveProfile::Default` is the normal desktop/server profile.
 `SolveProfile::Performance` may use larger or more expensive internal search
-helpers when they are available. `SolveProfile::Embedded` keeps the solver more
-conservative for smaller devices.
+helpers when they are available. `SolveProfile::LargeLocal` is an optimal-only
+desktop/Orin-class profile that enables the largest local admissible pruning
+bounds without environment flags. `SolveProfile::Embedded` keeps the solver
+more conservative for smaller devices.
 
 For `SolveMode::Optimal`, all public profiles enable the three-direction
 phase-1 lower bound by default, including `Embedded`. For benchmark A/B work,

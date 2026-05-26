@@ -37,10 +37,11 @@ cmake --build out/release-native-lto --target rubik-benchmark-optimal-large-loca
 
 Configuration:
 
-- profile: `performance`
+- profile: `large-local`
 - threads: `4`
 - max memory option: `2048 MB`
-- extra bounds: corner-state plus both corner/edge-group bounds
+- extra bounds: public large-local policy, including corner-state plus both
+  corner/edge-group bounds
 - table payload reported by the benchmark: `1,392,639,935` bytes
 
 The target now executes all 24 fixed depth-15 seeds required by its gate. The
@@ -95,8 +96,8 @@ The gate passed for all six cases. Worst 8-thread elapsed time was `15,475 ms`.
 
 ## Decision
 
-Depth-15 is controlled by the large-local profile on the development desktop
-for the current 24-seed gate, but not by the default embedded/default/performance
+Depth-15 is controlled by `SolveProfile::LargeLocal` on the development desktop
+for the current 24-seed gate, but not by the embedded/default/performance
 profiles. The 8-thread tail replay gives the large-local profile additional
 latency margin on the slowest known seeds. This profile remains suitable for
 desktop/Orin-class local compute, not for the embedded default policy.

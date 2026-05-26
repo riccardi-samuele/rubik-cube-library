@@ -188,7 +188,7 @@ Available suites:
   cases with lower-bound diagnostics;
 - `optimal-deep-probe`: non-gated optimal depth-14/depth-15 frontier probe with
   lower-bound diagnostics;
-- `optimal-large-local`: performance-profile depth-15 probe for desktop/Orin
+- `optimal-large-local`: public large-local depth-15 probe for desktop/Orin
   class configurations with large pruning tables and root-parallel search;
 - `embedded-fast-tail-cases`: replay the current slowest embedded fast cases
   with phase diagnostics;
