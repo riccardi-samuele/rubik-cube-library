@@ -7,6 +7,7 @@
 #include "rubik/phase1.hpp"
 #include "rubik/phase2.hpp"
 #include "rubik/solver.hpp"
+#include "rubik/version.hpp"
 
 #include <algorithm>
 #include <cerrno>
@@ -23,10 +24,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-#ifndef RUBIK_VERSION
-#define RUBIK_VERSION "unknown"
-#endif
 
 namespace {
 
@@ -380,7 +377,7 @@ void printBenchmarkPolicyRows(const rubik::SolveOptions& options, bool lowerBoun
         ? threePhase1LowerBoundPolicy(options.profile)
         : threePhase1SolvePolicy(options);
 
-    std::cout << "benchmark,version," << RUBIK_VERSION << "\n";
+    std::cout << "benchmark,version," << rubik::version_string << "\n";
     std::cout << "benchmark,mode," << modeName(options.mode) << "\n";
     std::cout << "benchmark,profile," << profileName(options.profile) << "\n";
     std::cout << "benchmark,threads," << options.threads << "\n";
@@ -1231,7 +1228,7 @@ int main(int argc, char** argv)
             printUsage(argv[0]);
             return 0;
         } else if (arg == "--version" || arg == "-V") {
-            std::cout << "rubik-bench " << RUBIK_VERSION << "\n";
+            std::cout << "rubik-bench " << rubik::version_string << "\n";
             return 0;
         } else if (arg == "--timeout-ms") {
             const auto value = requireValue(arg, i);

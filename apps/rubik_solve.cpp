@@ -1,5 +1,6 @@
 #include "rubik/pruning_tables.hpp"
 #include "rubik/solver.hpp"
+#include "rubik/version.hpp"
 
 #include <cerrno>
 #include <chrono>
@@ -8,10 +9,6 @@
 #include <limits>
 #include <optional>
 #include <string>
-
-#ifndef RUBIK_VERSION
-#define RUBIK_VERSION "unknown"
-#endif
 
 namespace {
 
@@ -115,7 +112,7 @@ int main(int argc, char** argv)
             return 0;
         }
         if (firstArg == "--version" || firstArg == "-V") {
-            std::cout << "rubik-solve " << RUBIK_VERSION << "\n";
+            std::cout << "rubik-solve " << rubik::version_string << "\n";
             return 0;
         }
     }
