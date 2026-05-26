@@ -92,6 +92,27 @@ add_test(
 set_tests_properties(cli_solve_invalid PROPERTIES
     WILL_FAIL TRUE
 )
+add_test(
+    NAME cli_solve_accepts_auto_profile
+    COMMAND rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --profile auto --threads 0 --timeout-ms 1000
+)
+set_tests_properties(cli_solve_accepts_auto_profile PROPERTIES
+    PASS_REGULAR_EXPRESSION "status: Solved"
+)
+add_test(
+    NAME cli_solve_rejects_auto_fast
+    COMMAND rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --mode fast --profile auto --timeout-ms 1000
+)
+set_tests_properties(cli_solve_rejects_auto_fast PROPERTIES
+    WILL_FAIL TRUE
+)
+add_test(
+    NAME cli_solve_accepts_cache_policy
+    COMMAND rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --profile auto --cache-policy disabled --timeout-ms 1000
+)
+set_tests_properties(cli_solve_accepts_cache_policy PROPERTIES
+    PASS_REGULAR_EXPRESSION "status: Solved"
+)
 
 add_executable(rubik-bench
     apps/rubik_bench.cpp

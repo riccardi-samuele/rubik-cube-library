@@ -41,12 +41,16 @@ void printUsage(const char* program)
 {
     std::cerr
         << "Usage: " << program << " <54-stickers> [--mode optimal|fast] [--timeout-ms N] [--max-depth N]"
-        << " [--max-memory-mb N] [--threads N] [--profile default|embedded|performance|large-local]\n"
+        << " [--max-memory-mb N] [--threads N] [--profile auto|default|embedded|performance|large-local]"
+        << " [--cache-policy auto|require-warm|allow-build|disabled]\n"
         << "Input order: U R F D L B, each face left-to-right top-to-bottom.\n";
 }
 
 std::optional<rubik::SolveProfile> parseProfile(const std::string& value)
 {
+    if (value == "auto") {
+        return rubik::SolveProfile::Auto;
+    }
     if (value == "embedded") {
         return rubik::SolveProfile::Embedded;
     }
@@ -58,6 +62,23 @@ std::optional<rubik::SolveProfile> parseProfile(const std::string& value)
     }
     if (value == "large-local" || value == "large_local") {
         return rubik::SolveProfile::LargeLocal;
+    }
+    return std::nullopt;
+}
+
+std::optional<rubik::CachePolicy> parseCachePolicy(const std::string& value)
+{
+    if (value == "auto") {
+        return rubik::CachePolicy::Auto;
+    }
+    if (value == "require-warm") {
+        return rubik::CachePolicy::RequireWarm;
+    }
+    if (value == "allow-build") {
+        return rubik::CachePolicy::AllowBuild;
+    }
+    if (value == "disabled") {
+        return rubik::CachePolicy::Disabled;
     }
     return std::nullopt;
 }
@@ -184,7 +205,7 @@ int main(int argc, char** argv)
             if (!value) {
                 return 2;
             }
-            const auto parsed = parseInteger(*value, 1, std::numeric_limits<unsigned int>::max());
+            const auto parsed = parseInteger(*value, 0, std::numeric_limits<unsigned int>::max());
             if (!parsed) {
                 std::cerr << "Invalid threads: " << *value << "\n";
                 printUsage(argv[0]);
@@ -203,6 +224,18 @@ int main(int argc, char** argv)
                 return 2;
             }
             options.profile = *profile;
+        } else if (arg == "--cache-policy") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto cachePolicy = parseCachePolicy(*value);
+            if (!cachePolicy) {
+                std::cerr << "Invalid cache policy: " << *value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.cachePolicy = *cachePolicy;
         } else if (arg == "--mode") {
             const auto value = requireValue(arg, i);
             if (!value) {
@@ -237,6 +270,10 @@ int main(int argc, char** argv)
     std::cout << "elapsed_ms: " << result.elapsed.count() << "\n";
     std::cout << "nodes_expanded: " << result.nodesExpanded << "\n";
     std::cout << "cache_dir: " << rubik::pruning_tables::cacheDirectory() << "\n";
+    std::cout << "effective-profile: " << static_cast<int>(result.plan.effectiveProfile) << "\n";
+    std::cout << "effective-threads: " << result.plan.effectiveThreads << "\n";
+    std::cout << "effective-memory-bytes: " << result.plan.effectiveMaxMemoryBytes << "\n";
+    std::cout << "strategy: " << result.plan.strategyName << "\n";
 
     return result.status == rubik::SolveStatus::Optimal ||
             result.status == rubik::SolveStatus::Found ||

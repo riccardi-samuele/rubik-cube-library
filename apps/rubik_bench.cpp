@@ -1,5 +1,6 @@
 #include "rubik/coordinates.hpp"
 #include "rubik/cubie_cube.hpp"
+#include "rubik/detail/optimal_plan.hpp"
 #include "rubik/detail/symmetry_coordinates.hpp"
 #include "rubik/detail/symmetry_pruning.hpp"
 #include "rubik/detail/table_profiles.hpp"
@@ -181,6 +182,9 @@ std::string statusName(rubik::SolveStatus status)
 
 std::optional<rubik::SolveProfile> parseProfile(const std::string& value)
 {
+    if (value == "auto") {
+        return rubik::SolveProfile::Auto;
+    }
     if (value == "embedded") {
         return rubik::SolveProfile::Embedded;
     }
@@ -192,6 +196,23 @@ std::optional<rubik::SolveProfile> parseProfile(const std::string& value)
     }
     if (value == "large-local" || value == "large_local") {
         return rubik::SolveProfile::LargeLocal;
+    }
+    return std::nullopt;
+}
+
+std::optional<rubik::CachePolicy> parseCachePolicy(const std::string& value)
+{
+    if (value == "auto") {
+        return rubik::CachePolicy::Auto;
+    }
+    if (value == "require-warm") {
+        return rubik::CachePolicy::RequireWarm;
+    }
+    if (value == "allow-build") {
+        return rubik::CachePolicy::AllowBuild;
+    }
+    if (value == "disabled") {
+        return rubik::CachePolicy::Disabled;
     }
     return std::nullopt;
 }
@@ -268,6 +289,8 @@ std::string modeName(rubik::SolveMode mode)
 std::string profileName(rubik::SolveProfile profile)
 {
     switch (profile) {
+    case rubik::SolveProfile::Auto:
+        return "auto";
     case rubik::SolveProfile::Embedded:
         return "embedded";
     case rubik::SolveProfile::Default:
@@ -411,7 +434,8 @@ void printUsage(const char* program)
         << " [--mode optimal|fast] [--timeout-ms N] [--max-depth N]"
         << " [--max-memory-mb N]"
         << " [--threads N]"
-        << " [--max-case-depth N] [--profile default|embedded|performance|large-local]"
+        << " [--max-case-depth N] [--profile auto|default|embedded|performance|large-local]"
+        << " [--cache-policy auto|require-warm|allow-build|disabled]"
         << " [--case-set deterministic|random|both] [--random-count N]"
         << " [--random-depth N] [--random-seed N] [--random-start-index N]"
         << " [--slowest-count N] [--diagnose-fast] [--diagnose-optimal]"
@@ -1271,7 +1295,7 @@ int main(int argc, char** argv)
             if (!value) {
                 return 2;
             }
-            const auto parsed = parseInteger(*value, 1, std::numeric_limits<unsigned int>::max());
+            const auto parsed = parseInteger(*value, 0, std::numeric_limits<unsigned int>::max());
             if (!parsed) {
                 std::cerr << "Invalid threads: " << *value << "\n";
                 printUsage(argv[0]);
@@ -1302,6 +1326,18 @@ int main(int argc, char** argv)
                 return 2;
             }
             options.profile = *parsed;
+        } else if (arg == "--cache-policy") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseCachePolicy(*value);
+            if (!parsed) {
+                std::cerr << "Invalid cache policy: " << *value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.cachePolicy = *parsed;
         } else if (arg == "--mode") {
             const auto value = requireValue(arg, i);
             if (!value) {
@@ -1435,7 +1471,17 @@ int main(int argc, char** argv)
         printMemoryReport();
         return 0;
     }
+
+    const rubik::SolveProfile requestedProfile = options.profile;
+    const rubik::detail::OptimalPlan plan = rubik::detail::makeOptimalPlan(options);
+    if (!plan.supported) {
+        std::cerr << "Unsupported options for adaptive planner\n";
+        return 2;
+    }
+    options = plan.effectiveOptions;
+
     if (reportPolicy) {
+        std::cout << "benchmark,requested_profile," << profileName(requestedProfile) << "\n";
         printBenchmarkPolicyRows(options, benchmarkLowerBound);
         return 0;
     }
@@ -1463,6 +1509,8 @@ int main(int argc, char** argv)
     std::vector<BenchmarkRow> rows;
 
     std::cout << "cache_dir," << rubik::pruning_tables::cacheDirectory() << "\n";
+    std::cout << "benchmark,requested_profile," << profileName(requestedProfile) << "\n";
+    std::cout << "benchmark,adaptive_strategy," << plan.publicPlan.strategyName << "\n";
     printBenchmarkPolicyRows(options, false);
     const std::chrono::milliseconds warmupElapsed = warmUpTables(options);
     std::cout << "benchmark,warmup_table_payload_bytes," << warmUpTablePayloadBytes(options) << "\n";
