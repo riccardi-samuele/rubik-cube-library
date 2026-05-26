@@ -56,14 +56,14 @@ tar \
     --file "${archive_path}" \
     --transform "s#^#${prefix}#" \
     --exclude-vcs \
-    --exclude='build' \
-    --exclude='out' \
-    --exclude='benchmark-results' \
-    --exclude='dist' \
-    --exclude='install' \
-    --exclude='Testing' \
-    --exclude='.cache' \
-    --exclude='cmake-build-*' \
+    --exclude='./build' \
+    --exclude='./out' \
+    --exclude='./benchmark-results' \
+    --exclude='./dist' \
+    --exclude='./install' \
+    --exclude='./Testing' \
+    --exclude='./.cache' \
+    --exclude='./cmake-build-*' \
     --exclude='.idea' \
     --exclude='.vscode' \
     --exclude='compile_commands.json' \
@@ -103,9 +103,9 @@ do
     fi
 done
 
-if grep -Eq "(^|/)(build|out|benchmark-results|dist|install|Testing|\\.cache|cmake-build-[^/]+)/" "${contents_file}"; then
+if grep -Eq "^${prefix}(build|out|benchmark-results|dist|install|Testing|\\.cache|cmake-build-[^/]+)/" "${contents_file}"; then
     echo "release archive check failed: included generated directory" >&2
-    grep -E "(^|/)(build|out|benchmark-results|dist|install|Testing|\\.cache|cmake-build-[^/]+)/" "${contents_file}" >&2
+    grep -E "^${prefix}(build|out|benchmark-results|dist|install|Testing|\\.cache|cmake-build-[^/]+)/" "${contents_file}" >&2
     exit 1
 fi
 
@@ -121,12 +121,15 @@ for required in \
     "${prefix}LICENSE" \
     "${prefix}NOTICE" \
     "${prefix}CHANGELOG.md" \
+    "${prefix}cmake/version.hpp.in" \
     "${prefix}docs/release-1.0.0.md" \
     "${prefix}docs/release-candidate-2026-05-26.md" \
     "${prefix}docs/github-release-v1.0.0.md" \
     "${prefix}docs/benchmarks.md" \
     "${prefix}include/rubik/solver.hpp" \
     "${prefix}src/solver.cpp" \
+    "${prefix}tests/fixtures/benchmark-results/sample_a.csv" \
+    "${prefix}tests/fixtures/benchmark-results/sample_b.csv" \
     "${prefix}tests/consumer_smoke/CMakeLists.txt"
 do
     if ! grep -q "^${required}$" "${contents_file}"; then
