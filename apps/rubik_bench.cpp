@@ -9,12 +9,14 @@
 #include "rubik/solver.hpp"
 
 #include <algorithm>
+#include <cerrno>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <optional>
 #include <random>
 #include <span>
@@ -219,6 +221,34 @@ std::optional<CaseSet> parseCaseSet(const std::string& value)
         return CaseSet::Both;
     }
     return std::nullopt;
+}
+
+std::optional<long long> parseInteger(const std::string& value, long long minValue, long long maxValue)
+{
+    if (value.empty()) {
+        return std::nullopt;
+    }
+    char* end = nullptr;
+    errno = 0;
+    const long long parsed = std::strtoll(value.c_str(), &end, 10);
+    if (errno != 0 || end == value.c_str() || *end != '\0' || parsed < minValue || parsed > maxValue) {
+        return std::nullopt;
+    }
+    return parsed;
+}
+
+std::optional<std::uint64_t> parseUnsignedInteger(const std::string& value)
+{
+    if (value.empty() || value[0] == '-') {
+        return std::nullopt;
+    }
+    char* end = nullptr;
+    errno = 0;
+    const unsigned long long parsed = std::strtoull(value.c_str(), &end, 10);
+    if (errno != 0 || end == value.c_str() || *end != '\0') {
+        return std::nullopt;
+    }
+    return static_cast<std::uint64_t>(parsed);
 }
 
 std::string modeName(rubik::SolveMode mode)
@@ -1184,19 +1214,50 @@ int main(int argc, char** argv)
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
         if (arg == "--timeout-ms" && i + 1 < argc) {
-            options.timeout = std::chrono::milliseconds(std::strtoll(argv[++i], nullptr, 10));
-        } else if (arg == "--max-depth" && i + 1 < argc) {
-            options.maxDepth = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
-        } else if (arg == "--max-memory-mb" && i + 1 < argc) {
-            options.maxMemoryBytes = static_cast<std::size_t>(std::strtoull(argv[++i], nullptr, 10)) *
-                1024ull * 1024ull;
-        } else if (arg == "--threads" && i + 1 < argc) {
-            options.threads = static_cast<unsigned int>(std::strtoul(argv[++i], nullptr, 10));
-            if (options.threads == 0) {
-                options.threads = 1;
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 0, std::numeric_limits<long long>::max());
+            if (!parsed) {
+                std::cerr << "Invalid timeout-ms: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
             }
+            options.timeout = std::chrono::milliseconds(*parsed);
+        } else if (arg == "--max-depth" && i + 1 < argc) {
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 0, 1000);
+            if (!parsed) {
+                std::cerr << "Invalid max-depth: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.maxDepth = static_cast<int>(*parsed);
+        } else if (arg == "--max-memory-mb" && i + 1 < argc) {
+            const std::string value = argv[++i];
+            const auto parsed = parseUnsignedInteger(value);
+            if (!parsed || *parsed > std::numeric_limits<std::size_t>::max() / (1024ull * 1024ull)) {
+                std::cerr << "Invalid max-memory-mb: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.maxMemoryBytes = static_cast<std::size_t>(*parsed) * 1024ull * 1024ull;
+        } else if (arg == "--threads" && i + 1 < argc) {
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 1, std::numeric_limits<unsigned int>::max());
+            if (!parsed) {
+                std::cerr << "Invalid threads: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.threads = static_cast<unsigned int>(*parsed);
         } else if (arg == "--max-case-depth" && i + 1 < argc) {
-            maxCaseDepth = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 0, 1000);
+            if (!parsed) {
+                std::cerr << "Invalid max-case-depth: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            maxCaseDepth = static_cast<int>(*parsed);
         } else if (arg == "--profile" && i + 1 < argc) {
             const std::string value = argv[++i];
             const auto parsed = parseProfile(value);
@@ -1225,17 +1286,59 @@ int main(int argc, char** argv)
             }
             caseSet = *parsed;
         } else if (arg == "--random-count" && i + 1 < argc) {
-            randomCount = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 0, std::numeric_limits<int>::max());
+            if (!parsed) {
+                std::cerr << "Invalid random-count: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            randomCount = static_cast<int>(*parsed);
         } else if (arg == "--random-depth" && i + 1 < argc) {
-            randomDepth = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 0, 1000);
+            if (!parsed) {
+                std::cerr << "Invalid random-depth: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            randomDepth = static_cast<int>(*parsed);
         } else if (arg == "--random-seed" && i + 1 < argc) {
-            randomSeed = static_cast<std::uint64_t>(std::strtoull(argv[++i], nullptr, 10));
+            const std::string value = argv[++i];
+            const auto parsed = parseUnsignedInteger(value);
+            if (!parsed) {
+                std::cerr << "Invalid random-seed: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            randomSeed = *parsed;
         } else if (arg == "--random-start-index" && i + 1 < argc) {
-            randomStartIndex = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 1, std::numeric_limits<int>::max());
+            if (!parsed) {
+                std::cerr << "Invalid random-start-index: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            randomStartIndex = static_cast<int>(*parsed);
         } else if (arg == "--slowest-count" && i + 1 < argc) {
-            slowestCount = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 0, std::numeric_limits<int>::max());
+            if (!parsed) {
+                std::cerr << "Invalid slowest-count: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            slowestCount = static_cast<int>(*parsed);
         } else if (arg == "--lower-bound-iterations" && i + 1 < argc) {
-            lowerBoundIterations = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 1, std::numeric_limits<int>::max());
+            if (!parsed) {
+                std::cerr << "Invalid lower-bound-iterations: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            lowerBoundIterations = static_cast<int>(*parsed);
         } else if (arg == "--diagnose-fast") {
             diagnoseFast = true;
         } else if (arg == "--diagnose-optimal") {

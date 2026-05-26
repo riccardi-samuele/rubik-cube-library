@@ -467,6 +467,18 @@ add_test(
     COMMAND bash -c "output=\"$($1 --case-set typo --report-policy 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid case set'" _ $<TARGET_FILE:rubik-bench>
 )
 add_test(
+    NAME cli_solve_rejects_invalid_max_depth
+    COMMAND bash -c "output=\"$($1 UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --max-depth abc 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid max-depth'" _ $<TARGET_FILE:rubik-solve>
+)
+add_test(
+    NAME cli_bench_rejects_invalid_threads
+    COMMAND bash -c "output=\"$($1 --threads abc --report-policy 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid threads'" _ $<TARGET_FILE:rubik-bench>
+)
+add_test(
+    NAME cli_bench_rejects_invalid_random_count
+    COMMAND bash -c "output=\"$($1 --random-count abc --report-policy 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid random-count'" _ $<TARGET_FILE:rubik-bench>
+)
+add_test(
     NAME cli_bench_percentile_summary
     COMMAND rubik-bench --mode fast --timeout-ms 5000 --max-depth 24 --case-set random --random-count 1 --random-depth 8 --random-seed 42
 )

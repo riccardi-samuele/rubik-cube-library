@@ -1,9 +1,11 @@
 #include "rubik/pruning_tables.hpp"
 #include "rubik/solver.hpp"
 
+#include <cerrno>
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <optional>
 #include <string>
 
@@ -69,6 +71,20 @@ std::optional<rubik::SolveMode> parseMode(const std::string& value)
     return std::nullopt;
 }
 
+std::optional<long long> parseInteger(const std::string& value, long long minValue, long long maxValue)
+{
+    if (value.empty()) {
+        return std::nullopt;
+    }
+    char* end = nullptr;
+    errno = 0;
+    const long long parsed = std::strtoll(value.c_str(), &end, 10);
+    if (errno != 0 || end == value.c_str() || *end != '\0' || parsed < minValue || parsed > maxValue) {
+        return std::nullopt;
+    }
+    return parsed;
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -91,9 +107,23 @@ int main(int argc, char** argv)
     for (int i = 2; i < argc; ++i) {
         const std::string arg = argv[i];
         if (arg == "--timeout-ms" && i + 1 < argc) {
-            options.timeout = std::chrono::milliseconds(std::strtoll(argv[++i], nullptr, 10));
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 0, std::numeric_limits<long long>::max());
+            if (!parsed) {
+                std::cerr << "Invalid timeout-ms: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.timeout = std::chrono::milliseconds(*parsed);
         } else if (arg == "--max-depth" && i + 1 < argc) {
-            options.maxDepth = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
+            const std::string value = argv[++i];
+            const auto parsed = parseInteger(value, 0, 1000);
+            if (!parsed) {
+                std::cerr << "Invalid max-depth: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.maxDepth = static_cast<int>(*parsed);
         } else if (arg == "--profile" && i + 1 < argc) {
             const std::string value = argv[++i];
             const auto profile = parseProfile(value);
