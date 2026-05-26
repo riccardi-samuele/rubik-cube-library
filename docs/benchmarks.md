@@ -67,6 +67,7 @@ scripts/run_benchmark_suite.sh --suite profile-realistic --realistic-fast-count 
 scripts/run_optimal_ab.sh --case-set random --random-count 8 --random-depth 12 --max-depth 12 --timeout-ms 5000 --repetitions 3
 scripts/extract_slowest_cases.sh --input-dir benchmark-results --output benchmark-results/slowest-cases.csv --limit 25
 scripts/run_v2_optimal_baseline.sh --build-dir out/release-native-lto
+scripts/run_optimal_tail_experiments.sh --build-dir out/release-native-lto --variants baseline,corner_state
 ```
 
 `--fast-max-depth` defaults to `24`. The release-candidate
@@ -124,6 +125,20 @@ The V2 baseline runner executes the current optimal stress and optimal tail-case
 suites, writes a manifest with the selected seed/profile configuration, and
 then generates `slowest-cases.csv`. Add `--include-deep-probe` for slower
 depth-14/depth-15 frontier mapping before larger optimal-engine changes.
+
+Optimal tail experiments:
+
+```sh
+scripts/run_optimal_tail_experiments.sh \
+  --build-dir out/release-native-lto \
+  --variants baseline,corner_state,corner_state_up,corner_state_down \
+  --max-memory-mb 2048
+```
+
+The tail experiment runner replays the fixed slow depth-13 tail cases and
+compares experimental optimal-engine variants under the same profile, memory
+budget, timeout, and thread count. It writes `summary.csv` and `aggregate.csv`
+so pruning changes can be promoted or rejected based on the same cases.
 
 Three-direction phase-1 bounds are now enabled by default for
 `SolveMode::Optimal` with all public profiles, including `Embedded`. Use

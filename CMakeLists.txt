@@ -385,6 +385,15 @@ add_custom_target(rubik-benchmark-v2-optimal-baseline
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running V2 optimal baseline benchmark suite"
 )
+add_custom_target(rubik-benchmark-optimal-tail-experiments
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_optimal_tail_experiments.sh
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cache-dir /tmp/rubik_cube_library_optimal_tail_experiments_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-tail-experiments
+    DEPENDS rubik-bench
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running optimal tail-case experiment matrix"
+)
 add_test(
     NAME cli_bench_deterministic_smoke
     COMMAND rubik-bench --mode optimal --timeout-ms 1000 --max-depth 1 --max-case-depth 1
