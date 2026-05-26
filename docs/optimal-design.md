@@ -106,21 +106,28 @@ Recent rejected experiments:
   (`RUBIK_EXPERIMENTAL_OPTIMAL_GOAL_TABLE_DEPTH=6`): preserves correctness, but
   the sampled depth-15 case solved slower than corner-state pruning alone.
 
-Promising active experiments:
+Promotion candidates:
 
 - Full corner-state pruning table
   (`RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS=1`): adds 88,179,840 entries and
   materially improves the current depth-14/depth-15 frontier probes. It passes
   the current depth-13 optimal-stress gates with wide margin and solves all
-  sampled depth-14 deep-probe cases. It is not default yet because selected
-  depth-15 samples still time out at 30 seconds.
+  sampled depth-14 deep-probe cases. The V2 tail experiment reduced the fixed
+  embedded tail-case average from 6,516.20 ms to 1,482.60 ms and max from
+  7,575 ms to 2,346 ms, with the embedded optimal payload rising to about
+  110 MB. This is the first V2 promotion target.
+
+Promising active experiments:
+
 - Corner permutation + edge-group pruning
   (`RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1` or
   `RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS=1`): each table adds
   479,001,600 entries. Combined with corner-state, the U-edge variant solved the
   seed `12345` depth-15 frontier case in 28.914 seconds, but seed `42` still
-  timed out at 30 seconds. This is promising for a large local profile, but not
-  enough for default promotion.
+  timed out at 30 seconds. On the V2 tail set, a single edge-group table reduced
+  the average to about 830 ms, and both tables reduced the average to about
+  650 ms. The memory cost keeps these variants experimental and limited to
+  large local profile work.
 
 ## Implementation Phases
 

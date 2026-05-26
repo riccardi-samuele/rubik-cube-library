@@ -78,6 +78,7 @@ than 24 moves.
 Current profile comparison:
 
 - [V2 Optimal Baseline - 2026-05-26](v2-optimal-baseline-2026-05-26.md)
+- [Optimal Tail Experiments - 2026-05-26](optimal-tail-experiments-2026-05-26.md)
 - [Release Candidate Validation - 2026-05-26](release-candidate-2026-05-26.md)
 - [Optimal Stress Benchmark - 2026-05-25](benchmark-optimal-stress-2026-05-25.md)
 - [Optimal Stress Corner-State Experiment - 2026-05-25](benchmark-optimal-stress-corner-state-2026-05-25.md)
