@@ -1,0 +1,138 @@
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/out/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/out/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "release-native",
+      "displayName": "Release Native",
+      "inherits": "release",
+      "binaryDir": "${sourceDir}/out/release-native",
+      "cacheVariables": {
+        "RUBIK_ENABLE_NATIVE": "ON"
+      }
+    },
+    {
+      "name": "release-lto",
+      "displayName": "Release LTO",
+      "inherits": "release",
+      "binaryDir": "${sourceDir}/out/release-lto",
+      "cacheVariables": {
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+      }
+    },
+    {
+      "name": "release-native-lto",
+      "displayName": "Release Native LTO",
+      "inherits": "release-native",
+      "binaryDir": "${sourceDir}/out/release-native-lto",
+      "cacheVariables": {
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+      }
+    },
+    {
+      "name": "asan-ubsan",
+      "displayName": "Address/UB Sanitizer",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/out/asan-ubsan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "RUBIK_ENABLE_SANITIZERS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release"
+    },
+    {
+      "name": "release-native",
+      "configurePreset": "release-native"
+    },
+    {
+      "name": "release-lto",
+      "configurePreset": "release-lto"
+    },
+    {
+      "name": "release-native-lto",
+      "configurePreset": "release-native-lto"
+    },
+    {
+      "name": "asan-ubsan",
+      "configurePreset": "asan-ubsan"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release-native",
+      "configurePreset": "release-native",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release-lto",
+      "configurePreset": "release-lto",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release-native-lto",
+      "configurePreset": "release-native-lto",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "asan-ubsan",
+      "configurePreset": "asan-ubsan",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

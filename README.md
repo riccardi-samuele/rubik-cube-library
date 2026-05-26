@@ -1,0 +1,338 @@
+# Rubik Cube Library
+
+C++20 Rubik's Cube solver library, currently at `1.0.0`.
+
+The library is designed as an optimal 3x3x3 solver for desktop and embedded
+targets. The public API is centered on certified optimal solving first, with
+room for faster non-optimal modes later.
+
+Release status:
+
+- `SolveMode::Optimal` returns a proven-minimal HTM solution when the result
+  status is `Optimal`.
+- The main `rubik::Solver` API is intended to be stable.
+- `SolveMode::Fast`, phase-1/phase-2 APIs, large local table combinations, and
+  environment-variable tuning flags are experimental.
+- Raspberry Pi and Jetson latency claims are not published yet; those require
+  real hardware validation before release.
+- QTM is reserved and not implemented.
+
+## What Is Guaranteed
+
+- Input: 54 stickers in `U R F D L B` face order, each face read left-to-right
+  and top-to-bottom.
+- Metric: HTM. `R`, `R2`, and `R'` each count as one move.
+- Optimal result: `SolveStatus::Optimal` means the returned solution is proven
+  minimal under the requested options.
+- Validation: sticker format and physical cube constraints are checked before
+  solving.
+
+`SolveStatus::Timeout` and `SolveStatus::DepthLimitExceeded` mean no optimal
+answer was proven inside the configured limits.
+
+## Quick Start
+
+```cpp
+#include <rubik/cube.hpp>
+#include <rubik/move.hpp>
+#include <rubik/solver.hpp>
+
+#include <chrono>
+#include <iostream>
+
+int main()
+{
+    auto parsed = rubik::Cube::fromStickers(
+        "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB");
+    if (!parsed) {
+        std::cerr << parsed.error.message << "\n";
+        return 1;
+    }
+
+    rubik::Solver solver;
+    rubik::SolveResult result = solver.solve(parsed.cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .metric = rubik::Metric::HTM,
+        .maxDepth = 20,
+        .timeout = std::chrono::seconds(30),
+        .maxMemoryBytes = 1024ull * 1024 * 1024,
+        .threads = 1,
+        .profile = rubik::SolveProfile::Default,
+    });
+
+    if (result.status == rubik::SolveStatus::Optimal ||
+        result.status == rubik::SolveStatus::Solved) {
+        std::cout << rubik::formatMoves(result.moves) << "\n";
+    }
+}
+```
+
+## Build
+
+```sh
+cmake -S . -B build
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+The test suite covers the core library, CLI smoke tests, benchmark smoke tests,
+and example programs.
+
+Repeatable build presets are available for benchmark and release work:
+
+```sh
+cmake --preset release
+cmake --build --preset release
+ctest --preset release
+```
+
+Available presets:
+
+- `debug`: normal debug build.
+- `release`: portable optimized build.
+- `release-native`: optimized for the current CPU with `-march=native`.
+- `release-lto`: portable release build with link-time optimization.
+- `release-native-lto`: fastest local benchmark build for the current machine.
+- `asan-ubsan`: AddressSanitizer and UndefinedBehaviorSanitizer validation.
+
+Run the local release validation script:
+
+```sh
+scripts/release_check.sh --profile standard
+```
+
+For a release candidate with desktop benchmark gates:
+
+```sh
+scripts/release_check.sh --profile full --with-benchmarks
+```
+
+The GitHub Actions workflow in `.github/workflows/ci.yml` runs the standard
+release validation and sanitizer tests on a clean Ubuntu runner.
+
+Create and validate the source release archive:
+
+```sh
+scripts/check_release_archive.sh --version 1.0.0
+```
+
+## Install
+
+Install the library, headers, CMake package files, and CLI tools:
+
+```sh
+cmake --install build --prefix /path/to/install
+```
+
+Use it from another CMake project:
+
+```cmake
+find_package(rubik CONFIG REQUIRED)
+
+add_executable(my_solver main.cpp)
+target_link_libraries(my_solver PRIVATE rubik::rubik)
+```
+
+Configure the consumer with:
+
+```sh
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/install
+```
+
+Verify install/export packaging with the standalone consumer smoke test:
+
+```sh
+cmake --build build --target rubik-check-install-consumer
+```
+
+Disable CLI installation with:
+
+```sh
+cmake -S . -B build -DRUBIK_INSTALL_CLI=OFF
+```
+
+## CLI
+
+Solve one cube from a 54-sticker string:
+
+```sh
+./build/rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+```
+
+Useful options:
+
+```sh
+./build/rubik-solve <54-stickers> --mode optimal --timeout-ms 30000 --max-depth 20 --profile default
+```
+
+Run the experimental fast mode:
+
+```sh
+./build/rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --mode fast
+```
+
+## Benchmarks
+
+Benchmark tooling is included for reproducible local validation. A small smoke
+run:
+
+```sh
+./build/rubik-bench --max-depth 7 --timeout-ms 30000
+```
+
+Release-candidate benchmark gates:
+
+```sh
+scripts/release_check.sh --profile full --with-benchmarks
+```
+
+Large local optimal gates are intentionally separate because they need large
+tables and can take a long time on a cold cache:
+
+```sh
+scripts/release_check.sh --profile full --with-large-local
+```
+
+Detailed benchmark suites and output formats are documented in
+[Benchmarks](docs/benchmarks.md).
+
+## Examples
+
+Example programs are built by default:
+
+```sh
+./build/example-validate-input
+./build/example-solve-fast
+./build/example-solve-optimal
+./build/example-cache-setup
+```
+
+Disable them with:
+
+```sh
+cmake -S . -B build -DRUBIK_BUILD_EXAMPLES=OFF
+```
+
+## Documentation
+
+Additional technical notes live in `docs/`:
+
+- [Architecture](docs/architecture.md)
+- [API Notes](docs/api.md)
+- [API Stability - 1.0.0](docs/api-stability-1.0.0.md)
+- [Benchmarks](docs/benchmarks.md)
+- [Runtime Behavior](docs/runtime.md)
+- [Versioning And API Stability](docs/versioning.md)
+- [Release Checklist - 1.0.0](docs/release-1.0.0.md)
+- [Embedded Fast Tail-Case Diagnostics - 2026-05-25](docs/embedded-fast-tail-cases-2026-05-25.md)
+- [Embedded Multiseed Benchmark - 2026-05-25](docs/benchmark-embedded-multiseed-2026-05-25.md)
+- [Benchmark Gate Calibration - 2026-05-25](docs/benchmark-gate-calibration-2026-05-25.md)
+- [Profile Realistic Large Benchmark - 2026-05-25](docs/benchmark-profile-realistic-large-2026-05-25.md)
+- [Profile Realistic Benchmark - 2026-05-25](docs/benchmark-profile-realistic-2026-05-25.md)
+- [Embedded Fast Failure Diagnostics - 2026-05-25](docs/embedded-fast-failures-2026-05-25.md)
+- [Local Optimal Profiles](docs/local-optimal-profiles.md)
+- [Random Fast Benchmark - 2026-05-25](docs/benchmark-random-fast-2026-05-25.md)
+- [Roadmap](docs/roadmap.md)
+
+Release notes are tracked in [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+## Table Cache
+
+Pruning tables are cached as binary files. By default the cache lives under the
+system temporary directory. Set `RUBIK_TABLE_CACHE_DIR` to control the location:
+
+```sh
+RUBIK_TABLE_CACHE_DIR=/path/to/cache ./your_solver
+```
+
+The active cache directory is available at runtime:
+
+```cpp
+std::string path = rubik::pruning_tables::cacheDirectory();
+```
+
+Thread-safety expectations and cache compatibility rules are documented in
+[Runtime Behavior](docs/runtime.md).
+
+## API
+
+```cpp
+#include <rubik/cube.hpp>
+#include <rubik/move.hpp>
+#include <rubik/solver.hpp>
+
+auto cubeResult = rubik::Cube::fromStickers(
+    "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB");
+
+if (!cubeResult) {
+    // cubeResult.error.code and cubeResult.error.message explain the issue.
+    return;
+}
+
+rubik::Solver solver;
+rubik::SolveResult result = solver.solve(cubeResult.cube, {
+    .mode = rubik::SolveMode::Optimal,
+    .metric = rubik::Metric::HTM,
+    .maxDepth = 20,
+    .timeout = std::chrono::seconds(10),
+    .maxMemoryBytes = 1024ull * 1024 * 1024,
+    .threads = 1,
+    .profile = rubik::SolveProfile::Default,
+});
+
+if (result.status == rubik::SolveStatus::Optimal ||
+    result.status == rubik::SolveStatus::Solved) {
+    auto text = rubik::formatMoves(result.moves);
+}
+```
+
+The two-phase building blocks are also exposed for experimentation:
+
+```cpp
+#include <rubik/experimental/phase1.hpp>
+#include <rubik/experimental/phase2.hpp>
+
+rubik::experimental::Phase1Result phase1 = rubik::experimental::solvePhase1(cube);
+cube.apply(phase1.moves);
+
+if (rubik::experimental::isPhase1Solved(cube)) {
+    rubik::experimental::Phase2Result phase2 = rubik::experimental::solvePhase2(cube);
+}
+```
+
+`solvePhase1` moves a cube into the G1 subgroup where corner orientation, edge
+orientation, and slice-edge placement are solved. `solvePhase2` expects a cube
+already in that subgroup and uses only the phase-2 move set.
+
+For fast-mode experimentation, phase 1 can also enumerate several G1 candidates:
+
+```cpp
+rubik::experimental::Phase1CandidatesResult candidates =
+    rubik::experimental::findPhase1Candidates(cube, {
+    .maxDepth = 12,
+    .maxCandidates = 16,
+});
+```
+
+The phase APIs are experimental. The stable high-level entry point is
+`rubik::Solver`.
+
+`SolveStatus::Optimal` and `SolveStatus::Solved` mean the returned solution is
+proven minimal under the requested metric within the configured depth and
+timeout.
+
+The primary sticker input order is `U R F D L B`, with each face read left to
+right and top to bottom. The default metric is HTM, where `R`, `R2`, and `R'`
+each count as one move.
+
+`Cube::fromStickers` validates both the sticker format and the physical cube
+constraints: centers, corner cubies, edge cubies, orientation sums, and
+permutation parity.
+
+Implementation details and solver direction are documented in
+[Architecture](docs/architecture.md), [Optimal Solver Design](docs/optimal-design.md),
+and [Roadmap](docs/roadmap.md).

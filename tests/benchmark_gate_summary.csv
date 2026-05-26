@@ -1,0 +1,3 @@
+profile,mode,benchmark,total_cases,solved,failed,total_elapsed_ms,total_nodes_expanded,p50_elapsed_ms,p90_elapsed_ms,p95_elapsed_ms,p99_elapsed_ms,max_elapsed_ms,warmup_elapsed_ms,wall_elapsed_ms,output_file
+embedded,fast,random_depth_20_count_100,100,100,0,11374,31239189,88,215,300,572,655,2127,13565,out/warm_profile_embedded_fast.csv
+embedded,optimal,random_depth_13_count_10,10,10,0,44984,29848386,1739,9482,14667,14667,14667,10,45006,out/warm_profile_embedded_optimal.csv
