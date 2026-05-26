@@ -167,6 +167,15 @@ Show CLI versions:
 ./build/rubik-bench --version
 ```
 
+Read the library version from C++:
+
+```cpp
+#include <rubik/version.hpp>
+
+static_assert(rubik::version_major == 1);
+std::cout << rubik::version_string << "\n";
+```
+
 Solve one cube from a 54-sticker string:
 
 ```sh

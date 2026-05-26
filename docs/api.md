@@ -4,6 +4,21 @@ The API is intentionally small while the solver internals are still evolving.
 The `1.0.0` compatibility contract is documented in
 [API Stability - 1.0.0](api-stability-1.0.0.md).
 
+## Version Metadata
+
+Include `rubik/version.hpp` when a consumer needs the package version at
+compile time:
+
+```cpp
+#include <rubik/version.hpp>
+
+static_assert(rubik::version_major == 1);
+std::cout << rubik::version_string << "\n";
+```
+
+The version constants are generated from the CMake project version and are
+installed with the public headers.
+
 ## Sticker Input
 
 The primary input format is a 54-character string in face order:
@@ -181,6 +196,7 @@ Currently intended stable surface:
 - `rubik::SolveResult`
 - `rubik::SolveBoundDiagnostics`
 - `rubik::CubeError`
+- `rubik/version.hpp` version constants
 - CLI input order `U R F D L B`
 
 Currently experimental surface:

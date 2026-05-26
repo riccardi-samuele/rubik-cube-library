@@ -1,12 +1,17 @@
 #include <rubik/cube.hpp>
 #include <rubik/move.hpp>
 #include <rubik/solver.hpp>
+#include <rubik/version.hpp>
 
 #include <chrono>
 #include <iostream>
 
 int main()
 {
+    static_assert(rubik::version_major == 1);
+    static_assert(rubik::version_minor == 0);
+    static_assert(rubik::version_patch == 0);
+
     auto parsed = rubik::Cube::fromStickers(
         "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB");
     if (!parsed) {

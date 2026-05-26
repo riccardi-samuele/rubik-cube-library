@@ -10,6 +10,12 @@ option(RUBIK_INSTALL_CLI "Install Rubik Cube Library CLI tools" ON)
 option(RUBIK_ENABLE_NATIVE "Build with host-specific CPU tuning flags" OFF)
 option(RUBIK_ENABLE_SANITIZERS "Build with address and undefined behavior sanitizers" OFF)
 
+configure_file(
+    cmake/version.hpp.in
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/include/rubik/version.hpp
+    @ONLY
+)
+
 if (RUBIK_ENABLE_NATIVE)
     if (MSVC)
         add_compile_options(/arch:AVX2)
@@ -47,6 +53,7 @@ target_compile_features(rubik PUBLIC cxx_std_20)
 target_include_directories(rubik
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -669,6 +676,11 @@ install(
 
 install(
     DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated/include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
