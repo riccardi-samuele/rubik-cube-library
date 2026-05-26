@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
+#include <optional>
 #include <string>
 
 namespace {
@@ -40,10 +41,13 @@ void printUsage(const char* program)
         << "Input order: U R F D L B, each face left-to-right top-to-bottom.\n";
 }
 
-rubik::SolveProfile parseProfile(const std::string& value)
+std::optional<rubik::SolveProfile> parseProfile(const std::string& value)
 {
     if (value == "embedded") {
         return rubik::SolveProfile::Embedded;
+    }
+    if (value == "default") {
+        return rubik::SolveProfile::Default;
     }
     if (value == "performance") {
         return rubik::SolveProfile::Performance;
@@ -51,15 +55,18 @@ rubik::SolveProfile parseProfile(const std::string& value)
     if (value == "large-local" || value == "large_local") {
         return rubik::SolveProfile::LargeLocal;
     }
-    return rubik::SolveProfile::Default;
+    return std::nullopt;
 }
 
-rubik::SolveMode parseMode(const std::string& value)
+std::optional<rubik::SolveMode> parseMode(const std::string& value)
 {
+    if (value == "optimal") {
+        return rubik::SolveMode::Optimal;
+    }
     if (value == "fast") {
         return rubik::SolveMode::Fast;
     }
-    return rubik::SolveMode::Optimal;
+    return std::nullopt;
 }
 
 } // namespace
@@ -88,9 +95,23 @@ int main(int argc, char** argv)
         } else if (arg == "--max-depth" && i + 1 < argc) {
             options.maxDepth = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
         } else if (arg == "--profile" && i + 1 < argc) {
-            options.profile = parseProfile(argv[++i]);
+            const std::string value = argv[++i];
+            const auto profile = parseProfile(value);
+            if (!profile) {
+                std::cerr << "Invalid profile: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.profile = *profile;
         } else if (arg == "--mode" && i + 1 < argc) {
-            options.mode = parseMode(argv[++i]);
+            const std::string value = argv[++i];
+            const auto mode = parseMode(value);
+            if (!mode) {
+                std::cerr << "Invalid mode: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.mode = *mode;
         } else {
             printUsage(argv[0]);
             return 2;

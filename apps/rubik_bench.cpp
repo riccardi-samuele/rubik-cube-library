@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <optional>
 #include <random>
 #include <span>
 #include <sstream>
@@ -175,10 +176,13 @@ std::string statusName(rubik::SolveStatus status)
     return "Unknown";
 }
 
-rubik::SolveProfile parseProfile(const std::string& value)
+std::optional<rubik::SolveProfile> parseProfile(const std::string& value)
 {
     if (value == "embedded") {
         return rubik::SolveProfile::Embedded;
+    }
+    if (value == "default") {
+        return rubik::SolveProfile::Default;
     }
     if (value == "performance") {
         return rubik::SolveProfile::Performance;
@@ -186,26 +190,35 @@ rubik::SolveProfile parseProfile(const std::string& value)
     if (value == "large-local" || value == "large_local") {
         return rubik::SolveProfile::LargeLocal;
     }
-    return rubik::SolveProfile::Default;
+    return std::nullopt;
 }
 
-rubik::SolveMode parseMode(const std::string& value)
+std::optional<rubik::SolveMode> parseMode(const std::string& value)
 {
+    if (value == "optimal") {
+        return rubik::SolveMode::Optimal;
+    }
     if (value == "fast") {
         return rubik::SolveMode::Fast;
     }
-    return rubik::SolveMode::Optimal;
+    if (value == "balanced") {
+        return rubik::SolveMode::Balanced;
+    }
+    return std::nullopt;
 }
 
-CaseSet parseCaseSet(const std::string& value)
+std::optional<CaseSet> parseCaseSet(const std::string& value)
 {
+    if (value == "deterministic") {
+        return CaseSet::Deterministic;
+    }
     if (value == "random") {
         return CaseSet::Random;
     }
     if (value == "both") {
         return CaseSet::Both;
     }
-    return CaseSet::Deterministic;
+    return std::nullopt;
 }
 
 std::string modeName(rubik::SolveMode mode)
@@ -1185,11 +1198,32 @@ int main(int argc, char** argv)
         } else if (arg == "--max-case-depth" && i + 1 < argc) {
             maxCaseDepth = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
         } else if (arg == "--profile" && i + 1 < argc) {
-            options.profile = parseProfile(argv[++i]);
+            const std::string value = argv[++i];
+            const auto parsed = parseProfile(value);
+            if (!parsed) {
+                std::cerr << "Invalid profile: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.profile = *parsed;
         } else if (arg == "--mode" && i + 1 < argc) {
-            options.mode = parseMode(argv[++i]);
+            const std::string value = argv[++i];
+            const auto parsed = parseMode(value);
+            if (!parsed) {
+                std::cerr << "Invalid mode: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.mode = *parsed;
         } else if (arg == "--case-set" && i + 1 < argc) {
-            caseSet = parseCaseSet(argv[++i]);
+            const std::string value = argv[++i];
+            const auto parsed = parseCaseSet(value);
+            if (!parsed) {
+                std::cerr << "Invalid case set: " << value << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            caseSet = *parsed;
         } else if (arg == "--random-count" && i + 1 < argc) {
             randomCount = static_cast<int>(std::strtol(argv[++i], nullptr, 10));
         } else if (arg == "--random-depth" && i + 1 < argc) {
