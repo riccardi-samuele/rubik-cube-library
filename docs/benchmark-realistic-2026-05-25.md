@@ -33,17 +33,6 @@ but depth-13 already has multi-second tail latency. Random depth-20 optimal
 solving is not currently production-ready with a 5 second timeout: all 5 sampled
 cases timed out.
 
-The Raspberry Pi 4 estimate must be treated as provisional until real hardware
-is available. A conservative planning range is 5x-15x slower than the desktop
-`release-native-lto` numbers for CPU-bound optimal search, with additional risk
-from memory/cache behavior. Under that range:
-
-- optimal random depth-12: about 0.4-1.2 s average, up to about 2.2-6.5 s worst
-  case for this sample;
-- optimal random depth-13: about 5-15 s average, with tail cases potentially
-  around 27-80 s;
-- optimal random depth-20: not acceptable today for guaranteed optimal solving
-  under short timeouts.
-
-Before publishing claims about Raspberry Pi performance, run the same CSV suite
-on actual Raspberry Pi 4 hardware and include thermal/governor settings.
+Do not derive Raspberry Pi or Jetson latency numbers from this run. Before
+publishing hardware-specific performance claims, run the same CSV suite on the
+actual target hardware and include thermal/governor settings.

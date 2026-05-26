@@ -155,7 +155,7 @@ claim needs a matching benchmark report with:
 - random seed and case count;
 - average, percentile, maximum, timeout, and failure data.
 
-Desktop estimates for Raspberry Pi are planning numbers only.
+Do not publish desktop-derived Raspberry Pi or Jetson latency numbers.
 
 ## Implementation Rules
 

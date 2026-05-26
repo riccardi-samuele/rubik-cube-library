@@ -634,6 +634,10 @@ add_test(
     NAME check_release_archive_versioned_docs
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_release_archive_versioned_docs.sh
 )
+add_test(
+    NAME public_docs_no_unverified_hardware_estimates
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/public_docs_no_unverified_hardware_estimates.sh
+)
 
 if (RUBIK_BUILD_EXAMPLES)
     add_executable(example-validate-input
