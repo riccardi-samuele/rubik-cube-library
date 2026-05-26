@@ -78,7 +78,8 @@ scripts/release_check.sh --profile standard
 ```
 
 This command also regenerates the source archive and verifies that a fresh
-extraction configures, builds, and passes the local test suite.
+extraction configures, builds, and passes the local test suite. The archive
+version is read from the CMake project version.
 
 Full local validation before a release candidate:
 

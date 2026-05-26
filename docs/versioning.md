@@ -52,6 +52,9 @@ format.
 CMake package compatibility is generated from the project version with
 `SameMajorVersion`.
 
+The local release validation script also reads the archive version from the
+CMake project version, so release metadata has a single version source.
+
 ## Release Notes
 
 Every public release should update:

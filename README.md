@@ -103,6 +103,7 @@ scripts/release_check.sh --profile standard
 
 This validates the configured build presets, standalone install consumption,
 source archive contents, and a fresh build/test from the generated archive.
+The archive version is read from the CMake project version.
 
 For a release candidate with desktop benchmark gates:
 

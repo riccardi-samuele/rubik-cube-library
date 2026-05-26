@@ -82,6 +82,21 @@ run_preset() {
     run_step ctest --preset "${preset}" --output-on-failure
 }
 
+read_project_version() {
+    local version
+
+    version="$(
+        sed -nE 's/^[[:space:]]*project\([^)]*VERSION[[:space:]]+([^[:space:])]+).*/\1/p' \
+            CMakeLists.txt | head -n 1
+    )"
+    if [[ -z "${version}" ]]; then
+        echo "release_check failed: could not read project version from CMakeLists.txt" >&2
+        exit 1
+    fi
+
+    printf '%s\n' "${version}"
+}
+
 check_source_archive_build() {
     local archive_path="$1"
     local archive_root="$2"
@@ -103,6 +118,10 @@ check_source_archive_build() {
 echo "release_check,profile,${profile}"
 echo "release_check,with_benchmarks,${with_benchmarks}"
 echo "release_check,with_large_local,${with_large_local}"
+release_version="$(read_project_version)"
+archive_root="rubik_cube_library-${release_version}"
+archive_path="${repo_root}/dist/${archive_root}.tar.gz"
+echo "release_check,version,${release_version}"
 
 case "${profile}" in
     quick)
@@ -126,10 +145,8 @@ else
 fi
 
 run_step cmake --build "${install_build_dir}" --target rubik-check-install-consumer
-run_step "${repo_root}/scripts/check_release_archive.sh" --version 1.0.0 --output-dir "${repo_root}/dist"
-check_source_archive_build \
-    "${repo_root}/dist/rubik_cube_library-1.0.0.tar.gz" \
-    "rubik_cube_library-1.0.0"
+run_step "${repo_root}/scripts/check_release_archive.sh" --version "${release_version}" --output-dir "${repo_root}/dist"
+check_source_archive_build "${archive_path}" "${archive_root}"
 
 if [[ "${with_benchmarks}" == "1" ]]; then
     run_step cmake --build out/release-native-lto --target rubik-benchmark-profile-realistic
