@@ -66,6 +66,7 @@ scripts/run_benchmark_suite.sh --suite optimal-depth --profile performance
 scripts/run_benchmark_suite.sh --suite profile-realistic --realistic-fast-count 20 --realistic-opt12-count 10 --realistic-opt13-count 5
 scripts/run_optimal_ab.sh --case-set random --random-count 8 --random-depth 12 --max-depth 12 --timeout-ms 5000 --repetitions 3
 scripts/extract_slowest_cases.sh --input-dir benchmark-results --output benchmark-results/slowest-cases.csv --limit 25
+scripts/run_v2_optimal_baseline.sh --build-dir out/release-native-lto
 ```
 
 `--fast-max-depth` defaults to `24`. The release-candidate
@@ -111,6 +112,17 @@ The extractor scans `slowest` rows from `rubik-bench` CSV output and writes a
 single descending list by elapsed time. Use it after stress, tail, or deep-probe
 runs to capture replay candidates before changing optimal-mode pruning or
 search policy.
+
+V2 optimal baseline:
+
+```sh
+scripts/run_v2_optimal_baseline.sh --build-dir out/release-native-lto
+```
+
+The V2 baseline runner executes the current optimal stress and optimal tail-case
+suites, writes a manifest with the selected seed/profile configuration, and
+then generates `slowest-cases.csv`. Add `--include-deep-probe` for slower
+depth-14/depth-15 frontier mapping before larger optimal-engine changes.
 
 Three-direction phase-1 bounds are now enabled by default for
 `SolveMode::Optimal` with all public profiles, including `Embedded`. Use

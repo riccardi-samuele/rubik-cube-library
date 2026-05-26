@@ -376,6 +376,15 @@ add_custom_target(rubik-benchmark-optimal-ab
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running optimal baseline vs three-phase A/B benchmark"
 )
+add_custom_target(rubik-benchmark-v2-optimal-baseline
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v2_optimal_baseline.sh
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cache-dir /tmp/rubik_cube_library_v2_optimal_baseline_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/v2-optimal-baseline
+    DEPENDS rubik-bench
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running V2 optimal baseline benchmark suite"
+)
 add_test(
     NAME cli_bench_deterministic_smoke
     COMMAND rubik-bench --mode optimal --timeout-ms 1000 --max-depth 1 --max-case-depth 1
