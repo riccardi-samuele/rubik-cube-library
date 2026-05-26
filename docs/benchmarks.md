@@ -78,6 +78,7 @@ than 24 moves.
 Current profile comparison:
 
 - [V2 Optimal Baseline - 2026-05-26](v2-optimal-baseline-2026-05-26.md)
+- [V2 Corner-State Validation - 2026-05-26](v2-corner-state-validation-2026-05-26.md)
 - [Optimal Tail Experiments - 2026-05-26](optimal-tail-experiments-2026-05-26.md)
 - [Release Candidate Validation - 2026-05-26](release-candidate-2026-05-26.md)
 - [Optimal Stress Benchmark - 2026-05-25](benchmark-optimal-stress-2026-05-25.md)
@@ -313,9 +314,9 @@ Benchmark gates:
 scripts/check_benchmark_gates.sh \
   --summary-file out/release-native-lto/benchmark-results/profile-realistic/warm_profile_realistic_summary.csv \
   --gate embedded,fast,random_depth_20_count_100,100,350,500,700 \
-  --gate embedded,optimal,random_depth_13_count_10,10,12000,12000,12000 \
-  --gate default,optimal,random_depth_13_count_10,10,5500,5500,5500 \
-  --gate performance,optimal,random_depth_13_count_10,10,5500,5500,5500
+  --gate embedded,optimal,random_depth_13_count_10,10,4000,4000,4000 \
+  --gate default,optimal,random_depth_13_count_10,10,2500,2500,2500 \
+  --gate performance,optimal,random_depth_13_count_10,10,2500,2500,2500
 ```
 
 Each gate is
@@ -323,8 +324,8 @@ Each gate is
 for a latency threshold to skip that check. Gates are intentionally separate
 from normal `ctest` because profile-realistic is a long benchmark; run the
 benchmark first, then run the gates against its summary CSV.
-The current thresholds were calibrated from three repeat runs on the same
-desktop; see [Benchmark Gate Calibration - 2026-05-25](benchmark-gate-calibration-2026-05-25.md).
+The current optimal thresholds include the promoted corner-state bound
+validation; see [V2 Corner-State Validation - 2026-05-26](v2-corner-state-validation-2026-05-26.md).
 
 Embedded multiseed gates:
 
@@ -332,35 +333,52 @@ Embedded multiseed gates:
 scripts/check_benchmark_gates.sh \
   --summary-file out/release-native-lto/benchmark-results/embedded-multiseed/warm_embedded_multiseed_summary.csv \
   --gate embedded,fast,random_seed_12345_depth_20_count_100,100,350,500,700 \
-  --gate embedded,optimal,random_seed_12345_depth_13_count_10,10,12000,12000,12000 \
+  --gate embedded,optimal,random_seed_12345_depth_13_count_10,10,4000,4000,4000 \
   --gate embedded,fast,random_seed_20260525_depth_20_count_100,100,350,500,700 \
-  --gate embedded,optimal,random_seed_20260525_depth_13_count_10,10,12000,12000,12000 \
+  --gate embedded,optimal,random_seed_20260525_depth_13_count_10,10,4000,4000,4000 \
   --gate embedded,fast,random_seed_42_depth_20_count_100,100,350,500,700 \
-  --gate embedded,optimal,random_seed_42_depth_13_count_10,10,12000,12000,12000
+  --gate embedded,optimal,random_seed_42_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,fast,random_seed_314159_depth_20_count_100,100,350,500,700 \
+  --gate embedded,optimal,random_seed_314159_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,fast,random_seed_271828_depth_20_count_100,100,350,500,700 \
+  --gate embedded,optimal,random_seed_271828_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,fast,random_seed_987654321_depth_20_count_100,100,350,500,700 \
+  --gate embedded,optimal,random_seed_987654321_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,fast,random_seed_7_depth_20_count_100,100,350,500,700 \
+  --gate embedded,optimal,random_seed_7_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,fast,random_seed_99_depth_20_count_100,100,350,500,700 \
+  --gate embedded,optimal,random_seed_99_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,fast,random_seed_123456789_depth_20_count_100,100,350,500,700 \
+  --gate embedded,optimal,random_seed_123456789_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,fast,random_seed_424242_depth_20_count_100,100,350,500,700 \
+  --gate embedded,optimal,random_seed_424242_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,fast,random_seed_8675309_depth_20_count_100,100,350,500,700 \
+  --gate embedded,optimal,random_seed_8675309_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,fast,random_seed_20240525_depth_20_count_100,100,350,500,700 \
+  --gate embedded,optimal,random_seed_20240525_depth_13_count_10,10,4000,4000,4000
 ```
 
-These are robustness gates for the current desktop seed set. They are separate
-from the calibrated profile-realistic gates and were tightened after the
-embedded fast candidate-ordering improvement.
+These are robustness gates for the current desktop seed set. The CMake target
+checks every seed emitted by the embedded-multiseed suite.
 
 Optimal stress gates:
 
 ```sh
 scripts/check_benchmark_gates.sh \
   --summary-file out/release-native-lto/benchmark-results/optimal-stress/warm_optimal_stress_summary.csv \
-  --gate embedded,optimal,random_seed_12345_depth_13_count_10,10,12000,12000,12000 \
-  --gate embedded,optimal,random_seed_20260525_depth_13_count_10,10,12000,12000,12000 \
-  --gate embedded,optimal,random_seed_42_depth_13_count_10,10,12000,12000,12000 \
-  --gate default,optimal,random_seed_12345_depth_13_count_10,10,5500,5500,5500 \
-  --gate default,optimal,random_seed_20260525_depth_13_count_10,10,5500,5500,5500 \
-  --gate default,optimal,random_seed_42_depth_13_count_10,10,5500,5500,5500 \
-  --gate performance,optimal,random_seed_12345_depth_13_count_10,10,5500,5500,5500 \
-  --gate performance,optimal,random_seed_20260525_depth_13_count_10,10,5500,5500,5500 \
-  --gate performance,optimal,random_seed_42_depth_13_count_10,10,5500,5500,5500
+  --gate embedded,optimal,random_seed_12345_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,optimal,random_seed_20260525_depth_13_count_10,10,4000,4000,4000 \
+  --gate embedded,optimal,random_seed_42_depth_13_count_10,10,4000,4000,4000 \
+  --gate default,optimal,random_seed_12345_depth_13_count_10,10,2500,2500,2500 \
+  --gate default,optimal,random_seed_20260525_depth_13_count_10,10,2500,2500,2500 \
+  --gate default,optimal,random_seed_42_depth_13_count_10,10,2500,2500,2500 \
+  --gate performance,optimal,random_seed_12345_depth_13_count_10,10,2500,2500,2500 \
+  --gate performance,optimal,random_seed_20260525_depth_13_count_10,10,2500,2500,2500 \
+  --gate performance,optimal,random_seed_42_depth_13_count_10,10,2500,2500,2500
 ```
 
-The embedded optimal threshold was tightened to `12000 ms` after enabling
-three-phase phase-1 lower bounds for `Embedded/Optimal`.
+The optimal thresholds were tightened after promoting corner-state pruning:
+`4000 ms` for embedded and `2500 ms` for default/performance.
 
 Optimal tail-case gates:
 

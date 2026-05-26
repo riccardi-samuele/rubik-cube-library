@@ -139,9 +139,9 @@ add_custom_target(rubik-benchmark-profile-realistic-gates
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_benchmark_gates.sh
         --summary-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/profile-realistic/warm_profile_realistic_summary.csv
         --gate embedded,fast,random_depth_20_count_100,100,350,500,700
-        --gate embedded,optimal,random_depth_13_count_10,10,12000,12000,12000
-        --gate default,optimal,random_depth_13_count_10,10,5500,5500,5500
-        --gate performance,optimal,random_depth_13_count_10,10,5500,5500,5500
+        --gate embedded,optimal,random_depth_13_count_10,10,4000,4000,4000
+        --gate default,optimal,random_depth_13_count_10,10,2500,2500,2500
+        --gate performance,optimal,random_depth_13_count_10,10,2500,2500,2500
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking profile-realistic benchmark gates"
 )
@@ -164,11 +164,29 @@ add_custom_target(rubik-benchmark-embedded-multiseed-gates
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_benchmark_gates.sh
         --summary-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/embedded-multiseed/warm_embedded_multiseed_summary.csv
         --gate embedded,fast,random_seed_12345_depth_20_count_100,100,350,500,700
-        --gate embedded,optimal,random_seed_12345_depth_13_count_10,10,12000,12000,12000
+        --gate embedded,optimal,random_seed_12345_depth_13_count_10,10,4000,4000,4000
         --gate embedded,fast,random_seed_20260525_depth_20_count_100,100,350,500,700
-        --gate embedded,optimal,random_seed_20260525_depth_13_count_10,10,12000,12000,12000
+        --gate embedded,optimal,random_seed_20260525_depth_13_count_10,10,4000,4000,4000
         --gate embedded,fast,random_seed_42_depth_20_count_100,100,350,500,700
-        --gate embedded,optimal,random_seed_42_depth_13_count_10,10,12000,12000,12000
+        --gate embedded,optimal,random_seed_42_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,fast,random_seed_314159_depth_20_count_100,100,350,500,700
+        --gate embedded,optimal,random_seed_314159_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,fast,random_seed_271828_depth_20_count_100,100,350,500,700
+        --gate embedded,optimal,random_seed_271828_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,fast,random_seed_987654321_depth_20_count_100,100,350,500,700
+        --gate embedded,optimal,random_seed_987654321_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,fast,random_seed_7_depth_20_count_100,100,350,500,700
+        --gate embedded,optimal,random_seed_7_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,fast,random_seed_99_depth_20_count_100,100,350,500,700
+        --gate embedded,optimal,random_seed_99_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,fast,random_seed_123456789_depth_20_count_100,100,350,500,700
+        --gate embedded,optimal,random_seed_123456789_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,fast,random_seed_424242_depth_20_count_100,100,350,500,700
+        --gate embedded,optimal,random_seed_424242_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,fast,random_seed_8675309_depth_20_count_100,100,350,500,700
+        --gate embedded,optimal,random_seed_8675309_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,fast,random_seed_20240525_depth_20_count_100,100,350,500,700
+        --gate embedded,optimal,random_seed_20240525_depth_13_count_10,10,4000,4000,4000
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking embedded multiseed benchmark gates"
 )
@@ -188,15 +206,15 @@ add_custom_target(rubik-benchmark-optimal-stress
 add_custom_target(rubik-benchmark-optimal-stress-gates
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_benchmark_gates.sh
         --summary-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-stress/warm_optimal_stress_summary.csv
-        --gate embedded,optimal,random_seed_12345_depth_13_count_10,10,12000,12000,12000
-        --gate embedded,optimal,random_seed_20260525_depth_13_count_10,10,12000,12000,12000
-        --gate embedded,optimal,random_seed_42_depth_13_count_10,10,12000,12000,12000
-        --gate default,optimal,random_seed_12345_depth_13_count_10,10,5500,5500,5500
-        --gate default,optimal,random_seed_20260525_depth_13_count_10,10,5500,5500,5500
-        --gate default,optimal,random_seed_42_depth_13_count_10,10,5500,5500,5500
-        --gate performance,optimal,random_seed_12345_depth_13_count_10,10,5500,5500,5500
-        --gate performance,optimal,random_seed_20260525_depth_13_count_10,10,5500,5500,5500
-        --gate performance,optimal,random_seed_42_depth_13_count_10,10,5500,5500,5500
+        --gate embedded,optimal,random_seed_12345_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,optimal,random_seed_20260525_depth_13_count_10,10,4000,4000,4000
+        --gate embedded,optimal,random_seed_42_depth_13_count_10,10,4000,4000,4000
+        --gate default,optimal,random_seed_12345_depth_13_count_10,10,2500,2500,2500
+        --gate default,optimal,random_seed_20260525_depth_13_count_10,10,2500,2500,2500
+        --gate default,optimal,random_seed_42_depth_13_count_10,10,2500,2500,2500
+        --gate performance,optimal,random_seed_12345_depth_13_count_10,10,2500,2500,2500
+        --gate performance,optimal,random_seed_20260525_depth_13_count_10,10,2500,2500,2500
+        --gate performance,optimal,random_seed_42_depth_13_count_10,10,2500,2500,2500
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking optimal stress benchmark gates"
 )

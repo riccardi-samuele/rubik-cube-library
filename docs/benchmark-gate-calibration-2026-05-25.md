@@ -64,6 +64,13 @@ refreshed profile-realistic run measured `Embedded/Optimal` depth-13 x10 at p95
 is therefore tighter than the original calibration row: p95/p99/max
 `12,000 ms`.
 
+After promoting corner orientation/permutation pruning by default, the refreshed
+profile-realistic run measured `Embedded/Optimal` depth-13 x10 at p95/p99/max
+`2,478 ms`, `Default/Optimal` at `1,141 ms`, and `Performance/Optimal` at
+`1,153 ms`. The active optimal gates are now p95/p99/max `4,000 ms` for
+embedded and `2,500 ms` for default/performance; see
+[V2 Corner-State Validation - 2026-05-26](v2-corner-state-validation-2026-05-26.md).
+
 ## Active Gates
 
 The calibrated CMake target now runs the profile-realistic suite with
@@ -73,9 +80,9 @@ The calibrated CMake target now runs the profile-realistic suite with
 scripts/check_benchmark_gates.sh \
   --summary-file out/release-native-lto/benchmark-results/profile-realistic/warm_profile_realistic_summary.csv \
   --gate embedded,fast,random_depth_20_count_100,100,350,500,700 \
-  --gate embedded,optimal,random_depth_13_count_10,10,12000,12000,12000 \
-  --gate default,optimal,random_depth_13_count_10,10,5500,5500,5500 \
-  --gate performance,optimal,random_depth_13_count_10,10,5500,5500,5500
+  --gate embedded,optimal,random_depth_13_count_10,10,4000,4000,4000 \
+  --gate default,optimal,random_depth_13_count_10,10,2500,2500,2500 \
+  --gate performance,optimal,random_depth_13_count_10,10,2500,2500,2500
 ```
 
 Run with:

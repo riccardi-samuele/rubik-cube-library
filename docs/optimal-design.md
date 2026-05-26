@@ -229,7 +229,10 @@ Before replacing the current optimal engine, the new engine must pass:
 
 Current corner-state promotion status:
 
-- depth-13 random optimal stress: passes all existing public-profile gates;
+- depth-13 random optimal stress: passes the tightened V2 public-profile gates
+  after corner-state promotion;
+- embedded-multiseed gates now cover all 12 emitted seeds, with 120/120 optimal
+  depth-13 cases solved under the active 4000 ms p95/p99/max gate;
 - depth-14 deep probe: all sampled cases solved;
 - depth-15 deep probe: selected seed `12345` and `42` cases still time out at
   30 seconds, so the worst-tail proof search is not yet publication-ready.
