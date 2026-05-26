@@ -435,6 +435,13 @@ set_tests_properties(cli_bench_large_local_policy PROPERTIES
     PASS_REGULAR_EXPRESSION "benchmark,corner_up_edge_bounds,profile_enabled"
 )
 add_test(
+    NAME cli_bench_reports_version
+    COMMAND rubik-bench --report-policy
+)
+set_tests_properties(cli_bench_reports_version PROPERTIES
+    PASS_REGULAR_EXPRESSION "benchmark,version,${PROJECT_VERSION}"
+)
+add_test(
     NAME cli_solve_large_local_profile
     COMMAND rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --mode optimal --profile large-local --max-depth 1 --timeout-ms 1000
 )

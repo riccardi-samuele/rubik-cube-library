@@ -739,7 +739,7 @@ optimal samples still need confirmation before changing the default.
 The output is CSV-like text with one row per case plus aggregate report rows.
 When using `scripts/run_benchmark_suite.sh`, each output file also includes
 `benchmark,...` rows for suite metadata and whole-command wall time.
-Direct `rubik-bench` output includes `benchmark,mode`,
+Direct `rubik-bench` output includes `benchmark,version`, `benchmark,mode`,
 `benchmark,profile`, `benchmark,three_phase1_policy`, and
 `benchmark,three_phase1_effective` rows so old-baseline and default-candidate
 runs are distinguishable in saved CSV files. It also performs an explicit
@@ -763,8 +763,9 @@ Additional report rows:
 - `benchmark,cache_mode,warm|cold`
 - `benchmark,cache_dir,PATH`
 - `benchmark,suite_profile,default|embedded|performance`
+- `benchmark,version,N`
 - `benchmark,mode,optimal|fast`
-- `benchmark,profile,default|embedded|performance`
+- `benchmark,profile,default|embedded|performance|large-local`
 - `benchmark,three_phase1_policy,default_enabled|default_disabled|forced_by_env|disabled_by_env`
 - `benchmark,three_phase1_effective,true|false`
 - `benchmark,warmup_table_payload_bytes,N`: logical pruning-table payload warmed

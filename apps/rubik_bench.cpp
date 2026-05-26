@@ -380,6 +380,7 @@ void printBenchmarkPolicyRows(const rubik::SolveOptions& options, bool lowerBoun
         ? threePhase1LowerBoundPolicy(options.profile)
         : threePhase1SolvePolicy(options);
 
+    std::cout << "benchmark,version," << RUBIK_VERSION << "\n";
     std::cout << "benchmark,mode," << modeName(options.mode) << "\n";
     std::cout << "benchmark,profile," << profileName(options.profile) << "\n";
     std::cout << "benchmark,threads," << options.threads << "\n";
