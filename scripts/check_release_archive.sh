@@ -122,9 +122,9 @@ for required in \
     "${prefix}NOTICE" \
     "${prefix}CHANGELOG.md" \
     "${prefix}cmake/version.hpp.in" \
-    "${prefix}docs/release-1.0.0.md" \
+    "${prefix}docs/release-${version}.md" \
     "${prefix}docs/release-candidate-2026-05-26.md" \
-    "${prefix}docs/github-release-v1.0.0.md" \
+    "${prefix}docs/github-release-v${version}.md" \
     "${prefix}docs/benchmarks.md" \
     "${prefix}include/rubik/solver.hpp" \
     "${prefix}src/solver.cpp" \

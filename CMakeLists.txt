@@ -630,6 +630,10 @@ add_test(
     NAME release_check_archive_build
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/release_check_archive_build.sh
 )
+add_test(
+    NAME check_release_archive_versioned_docs
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_release_archive_versioned_docs.sh
+)
 
 if (RUBIK_BUILD_EXAMPLES)
     add_executable(example-validate-input

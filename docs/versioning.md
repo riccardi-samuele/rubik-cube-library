@@ -60,6 +60,7 @@ CMake project version, so release metadata has a single version source.
 Every public release should update:
 
 - `CHANGELOG.md`;
-- `docs/release-<version>.md` or the active release checklist;
+- `docs/release-<version>.md`;
+- `docs/github-release-v<version>.md`;
 - benchmark evidence for claims published in the README;
 - any API stability changes in this file and `docs/api.md`.

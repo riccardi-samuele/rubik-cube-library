@@ -120,6 +120,9 @@ Create and validate only the source release archive contents:
 scripts/check_release_archive.sh --version 1.0.0
 ```
 
+The archive check requires the matching versioned release documents, for
+example `docs/release-1.0.0.md` and `docs/github-release-v1.0.0.md`.
+
 ## Install
 
 Install the library, headers, CMake package files, and CLI tools:
