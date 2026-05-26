@@ -30,6 +30,31 @@ void testVersionMetadata()
     assert(std::string(rubik::version_string) == "2.0.0");
 }
 
+void testV3AdaptiveApiDefaults()
+{
+    rubik::SolveOptions options;
+    assert(options.profile == rubik::SolveProfile::Default);
+    assert(options.cachePolicy == rubik::CachePolicy::Auto);
+
+    rubik::SolvePlan plan;
+    assert(plan.requestedProfile == rubik::SolveProfile::Default);
+    assert(plan.effectiveProfile == rubik::SolveProfile::Default);
+    assert(plan.cachePolicy == rubik::CachePolicy::Auto);
+    assert(plan.requestedThreads == 1);
+    assert(plan.effectiveThreads == 1);
+    assert(plan.requestedMaxMemoryBytes == 0);
+    assert(plan.effectiveMaxMemoryBytes == 0);
+    assert(plan.estimatedTablePayloadBytes == 0);
+    assert(!plan.diskCacheEnabled);
+    assert(!plan.diskCacheWarm);
+    assert(!plan.builtCacheDuringSolve);
+    assert(plan.strategyName.empty());
+    assert(plan.boundsUsed.empty());
+
+    rubik::SolveResult result;
+    assert(result.plan.cachePolicy == rubik::CachePolicy::Auto);
+}
+
 std::vector<std::uint8_t> buildCornerEdgeOrientationPruningForTest()
 {
     constexpr std::uint8_t unvisited = 0xff;
@@ -1014,6 +1039,7 @@ void testExperimentalPhaseAliases()
 int main()
 {
     testVersionMetadata();
+    testV3AdaptiveApiDefaults();
     testSolvedCube();
     testStructuredStickerInput();
     testPhysicalValidation();

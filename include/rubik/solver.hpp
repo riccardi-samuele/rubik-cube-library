@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "rubik/cube.hpp"
@@ -25,7 +26,8 @@ enum class SolveProfile {
     Embedded,
     Default,
     Performance,
-    LargeLocal
+    LargeLocal,
+    Auto
 };
 
 enum class SolveStatus {
@@ -40,6 +42,31 @@ enum class SolveStatus {
     InternalError
 };
 
+enum class CachePolicy {
+    Auto,
+    RequireWarm,
+    AllowBuild,
+    Disabled
+};
+
+struct SolvePlan {
+    SolveProfile requestedProfile = SolveProfile::Default;
+    SolveProfile effectiveProfile = SolveProfile::Default;
+    SolveMode mode = SolveMode::Optimal;
+    Metric metric = Metric::HTM;
+    std::size_t requestedMaxMemoryBytes = 0;
+    std::size_t effectiveMaxMemoryBytes = 0;
+    std::size_t estimatedTablePayloadBytes = 0;
+    unsigned int requestedThreads = 1;
+    unsigned int effectiveThreads = 1;
+    CachePolicy cachePolicy = CachePolicy::Auto;
+    bool diskCacheEnabled = false;
+    bool diskCacheWarm = false;
+    bool builtCacheDuringSolve = false;
+    std::vector<std::string> boundsUsed;
+    std::string strategyName;
+};
+
 struct SolveOptions {
     SolveMode mode = SolveMode::Optimal;
     Metric metric = Metric::HTM;
@@ -48,6 +75,7 @@ struct SolveOptions {
     std::size_t maxMemoryBytes = 0;
     unsigned int threads = 1;
     SolveProfile profile = SolveProfile::Default;
+    CachePolicy cachePolicy = CachePolicy::Auto;
     bool collectDiagnostics = false;
 };
 
@@ -71,6 +99,7 @@ struct SolveResult {
     std::size_t memoryUsedBytes = 0;
     std::vector<std::uint64_t> nodesByDepth;
     SolveBoundDiagnostics boundDiagnostics;
+    SolvePlan plan;
 };
 
 class Solver {
