@@ -117,11 +117,13 @@ release validation and sanitizer tests on a clean Ubuntu runner.
 Create and validate only the source release archive contents:
 
 ```sh
-scripts/check_release_archive.sh --version 1.0.0
+scripts/check_release_archive.sh
 ```
 
-The archive check requires the matching versioned release documents, for
-example `docs/release-1.0.0.md` and `docs/github-release-v1.0.0.md`.
+The archive check reads the default archive version from the CMake project
+version and requires the matching versioned release documents, for example
+`docs/release-1.0.0.md` and `docs/github-release-v1.0.0.md`. Pass `--version`
+only when deliberately validating a different archive label.
 
 ## Install
 

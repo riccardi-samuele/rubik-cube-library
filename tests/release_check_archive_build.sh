@@ -74,7 +74,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-printf 'check_release_archive --version %s --output-dir %s\n' "${version}" "${output_dir}"
+if [[ -z "${version}" ]]; then
+    version="$(
+        sed -nE 's/^[[:space:]]*project\([^)]*VERSION[[:space:]]+([^[:space:])]+).*/\1/p' \
+            CMakeLists.txt | head -n 1
+    )"
+fi
+
+printf 'check_release_archive effective-version %s --output-dir %s\n' "${version}" "${output_dir}"
 archive_root="rubik_cube_library-${version}"
 mkdir -p "${output_dir}" "${archive_root}"
 printf 'cmake_minimum_required(VERSION 3.20)\nproject(rubik_cube_library VERSION %s LANGUAGES CXX)\n' "${version}" > "${archive_root}/CMakeLists.txt"
@@ -87,7 +94,7 @@ version_log="${tmp_dir}/version.log"
 PATH="${fake_bin}:${PATH}" \
     "${version_repo}/scripts/release_check.sh" --profile quick > "${version_log}"
 
-if ! grep -q "check_release_archive --version 9.8.7" "${version_log}"; then
+if ! grep -q "check_release_archive effective-version 9.8.7" "${version_log}"; then
     echo "release_check archive-build test failed: release version was not read from CMakeLists.txt" >&2
     cat "${version_log}" >&2
     exit 1

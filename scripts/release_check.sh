@@ -145,7 +145,7 @@ else
 fi
 
 run_step cmake --build "${install_build_dir}" --target rubik-check-install-consumer
-run_step "${repo_root}/scripts/check_release_archive.sh" --version "${release_version}" --output-dir "${repo_root}/dist"
+run_step "${repo_root}/scripts/check_release_archive.sh" --output-dir "${repo_root}/dist"
 check_source_archive_build "${archive_path}" "${archive_root}"
 
 if [[ "${with_benchmarks}" == "1" ]]; then

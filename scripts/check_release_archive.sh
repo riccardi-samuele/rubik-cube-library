@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-version="1.0.0"
+version=""
 output_dir="dist"
 
 usage() {
@@ -12,10 +12,25 @@ Creates a source release archive and verifies that generated local artifacts are
 not included.
 
 Options:
-  --version VERSION       archive version label, default: 1.0.0
+  --version VERSION       archive version label, default: CMake project version
   --output-dir DIR        output directory, default: dist
   -h, --help              show this help
 USAGE
+}
+
+read_project_version() {
+    local project_version
+
+    project_version="$(
+        sed -nE 's/^[[:space:]]*project\([^)]*VERSION[[:space:]]+([^[:space:])]+).*/\1/p' \
+            CMakeLists.txt | head -n 1
+    )"
+    if [[ -z "${project_version}" ]]; then
+        echo "release archive check failed: could not read project version from CMakeLists.txt" >&2
+        exit 1
+    fi
+
+    printf '%s\n' "${project_version}"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -41,6 +56,10 @@ done
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repo_root}"
+
+if [[ -z "${version}" ]]; then
+    version="$(read_project_version)"
+fi
 
 mkdir -p "${output_dir}"
 
