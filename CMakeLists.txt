@@ -97,6 +97,26 @@ add_executable(rubik-bench
     apps/rubik_bench.cpp
 )
 target_link_libraries(rubik-bench PRIVATE rubik)
+
+add_executable(rubik-cache-setup
+    apps/rubik_cache_setup.cpp
+)
+target_link_libraries(rubik-cache-setup PRIVATE rubik)
+add_test(
+    NAME cli_cache_setup_dry_run
+    COMMAND rubik-cache-setup --profile auto --dry-run
+)
+set_tests_properties(cli_cache_setup_dry_run PROPERTIES
+    PASS_REGULAR_EXPRESSION "status: Ready"
+)
+add_test(
+    NAME cli_cache_setup_rejects_invalid_profile
+    COMMAND rubik-cache-setup --profile invalid --dry-run
+)
+set_tests_properties(cli_cache_setup_rejects_invalid_profile PROPERTIES
+    WILL_FAIL TRUE
+)
+
 add_custom_target(rubik-benchmark-smoke
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
         --suite smoke
