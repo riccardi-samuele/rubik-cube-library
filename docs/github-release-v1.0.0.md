@@ -9,6 +9,7 @@ Use this document as the GitHub Release body for tag `v1.0.0`.
 - Title: `v1.0.0 - First stable release`
 - Attachments:
   - `dist/rubik_cube_library-1.0.0.tar.gz`
+  - `dist/rubik_cube_library-1.0.0.tar.gz.sha256`
 
 ## Release Body
 
@@ -190,6 +191,8 @@ target_link_libraries(my_solver PRIVATE rubik::rubik)
 - [ ] Confirm the tag points at the same source used for the final archive.
 - [ ] Run `scripts/release_check.sh --profile full --with-benchmarks` one last
       time after all release-note edits are complete.
-- [ ] Regenerate `dist/rubik_cube_library-1.0.0.tar.gz`.
-- [ ] Attach `dist/rubik_cube_library-1.0.0.tar.gz` to the GitHub Release.
+- [ ] Regenerate `dist/rubik_cube_library-1.0.0.tar.gz` and its `.sha256`
+      checksum.
+- [ ] Attach `dist/rubik_cube_library-1.0.0.tar.gz` and its `.sha256`
+      checksum to the GitHub Release.
 - [x] Confirm the release body does not claim Raspberry Pi or Jetson latency.

@@ -44,12 +44,14 @@ Validated source archive:
 
 ```text
 dist/rubik_cube_library-1.0.0.tar.gz
+dist/rubik_cube_library-1.0.0.tar.gz.sha256
 ```
 
 Archive audit:
 
 - Size: 120 KiB.
 - Manifest entries: 108.
+- SHA-256 checksum file generated next to the archive.
 - Includes the release-candidate validation document.
 - Excludes generated build trees, benchmark CSV output directories, package
   output directories, runtime caches, IDE files, and compile databases.

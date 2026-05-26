@@ -62,3 +62,23 @@ if ! grep -q "release_archive,path,${tmp_dir}/dist-default/rubik_cube_library-9.
     cat "${tmp_dir}/archive-default.log" >&2
     exit 1
 fi
+
+checksum_path="${tmp_dir}/dist-default/rubik_cube_library-9.8.7.tar.gz.sha256"
+
+if [[ ! -f "${checksum_path}" ]]; then
+    echo "check_release_archive checksum test failed: missing ${checksum_path}" >&2
+    cat "${tmp_dir}/archive-default.log" >&2
+    exit 1
+fi
+
+if ! grep -Eq "^[0-9a-f]{64}  rubik_cube_library-9\\.8\\.7\\.tar\\.gz$" "${checksum_path}"; then
+    echo "check_release_archive checksum test failed: invalid checksum format" >&2
+    cat "${checksum_path}" >&2
+    exit 1
+fi
+
+if ! grep -q "release_archive,sha256_path,${checksum_path}" "${tmp_dir}/archive-default.log"; then
+    echo "check_release_archive checksum test failed: checksum path was not reported" >&2
+    cat "${tmp_dir}/archive-default.log" >&2
+    exit 1
+fi

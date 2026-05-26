@@ -122,8 +122,9 @@ scripts/check_release_archive.sh
 
 The archive check reads the default archive version from the CMake project
 version and requires the matching versioned release documents, for example
-`docs/release-1.0.0.md` and `docs/github-release-v1.0.0.md`. Pass `--version`
-only when deliberately validating a different archive label.
+`docs/release-1.0.0.md` and `docs/github-release-v1.0.0.md`. It also writes a
+matching `.sha256` checksum file next to the archive. Pass `--version` only when
+deliberately validating a different archive label.
 
 ## Install
 

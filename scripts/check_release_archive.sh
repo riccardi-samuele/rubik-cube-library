@@ -65,6 +65,7 @@ mkdir -p "${output_dir}"
 
 archive_name="rubik_cube_library-${version}.tar.gz"
 archive_path="${output_dir}/${archive_name}"
+checksum_path="${archive_path}.sha256"
 prefix="rubik_cube_library-${version}/"
 contents_file="$(mktemp)"
 trap 'rm -f "${contents_file}"' EXIT
@@ -157,5 +158,11 @@ do
     fi
 done
 
+(
+    cd "${output_dir}"
+    sha256sum "${archive_name}" > "${archive_name}.sha256"
+)
+
 echo "release_archive,path,${archive_path}"
+echo "release_archive,sha256_path,${checksum_path}"
 echo "release_archive,status,passed"
