@@ -106,16 +106,16 @@ Recent rejected experiments:
   (`RUBIK_EXPERIMENTAL_OPTIMAL_GOAL_TABLE_DEPTH=6`): preserves correctness, but
   the sampled depth-15 case solved slower than corner-state pruning alone.
 
-Promotion candidates:
+Promoted V2 pruning:
 
-- Full corner-state pruning table
-  (`RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS=1`): adds 88,179,840 entries and
-  materially improves the current depth-14/depth-15 frontier probes. It passes
-  the current depth-13 optimal-stress gates with wide margin and solves all
-  sampled depth-14 deep-probe cases. The V2 tail experiment reduced the fixed
-  embedded tail-case average from 6,516.20 ms to 1,482.60 ms and max from
-  7,575 ms to 2,346 ms, with the embedded optimal payload rising to about
-  110 MB. This is the first V2 promotion target.
+- Full corner-state pruning table: adds 88,179,840 entries and materially
+  improves the current depth-14/depth-15 frontier probes. It passes the current
+  depth-13 optimal-stress gates with wide margin and solves all sampled depth-14
+  deep-probe cases. The V2 tail experiment reduced the fixed embedded tail-case
+  average from 6,516.20 ms to 1,482.60 ms and max from 7,575 ms to 2,346 ms,
+  with the embedded optimal payload rising to about 110 MB. It is now enabled
+  by default for optimal solving; use `RUBIK_DISABLE_CORNER_STATE_BOUNDS=1`
+  only for old-baseline A/B measurements.
 
 Promising active experiments:
 

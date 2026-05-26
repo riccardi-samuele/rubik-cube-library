@@ -275,6 +275,22 @@ ThreePhase1Policy threePhase1LowerBoundPolicy(rubik::SolveProfile profile)
     };
 }
 
+std::string cornerStateBoundsPolicy()
+{
+    if (environmentFlagEnabled("RUBIK_DISABLE_CORNER_STATE_BOUNDS")) {
+        return "disabled_by_env";
+    }
+    if (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS")) {
+        return "forced_by_env";
+    }
+    return "default_enabled";
+}
+
+bool cornerStateBoundsEnabled()
+{
+    return cornerStateBoundsPolicy() != "disabled_by_env";
+}
+
 void printBenchmarkPolicyRows(const rubik::SolveOptions& options, bool lowerBoundOnly)
 {
     const ThreePhase1Policy policy = lowerBoundOnly
@@ -294,10 +310,7 @@ void printBenchmarkPolicyRows(const rubik::SolveOptions& options, bool lowerBoun
                       : "base_bound")
               << "\n";
     std::cout << "benchmark,corner_state_bounds,"
-              << (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS")
-                      ? "enabled"
-                      : "disabled")
-              << "\n";
+              << cornerStateBoundsPolicy() << "\n";
     std::cout << "benchmark,corner_up_edge_bounds,"
               << (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS")
                       ? "enabled"
@@ -896,13 +909,29 @@ std::uint64_t printMemoryTableRow(const std::string& profile, const rubik::detai
     return bytes;
 }
 
-void printMemoryProfileRows(const std::string& profile, std::span<const rubik::detail::TableProfileEntry> entries)
+void printMemoryProfileRows(
+    const std::string& profile,
+    std::span<const rubik::detail::TableProfileEntry> entries,
+    bool includeCornerState = false)
 {
     std::uint64_t totalBytes = 0;
     std::uint64_t tableCount = 0;
 
     for (const rubik::detail::TableProfileEntry& entry : entries) {
         totalBytes += printMemoryTableRow(profile, entry);
+        ++tableCount;
+    }
+    if (includeCornerState) {
+        const auto entriesCount = static_cast<std::uint64_t>(rubik::coordinates::corner_orientation_count) *
+            static_cast<std::uint64_t>(rubik::coordinates::corner_permutation_count);
+        std::cout
+            << "memory_table,"
+            << profile
+            << ",corner_orientation_permutation,"
+            << entriesCount << ','
+            << entriesCount
+            << "\n";
+        totalBytes += entriesCount;
         ++tableCount;
     }
 
@@ -916,9 +945,10 @@ void printMemoryReport()
 
     std::cout << "memory_report,cache_dir," << cacheDirectory() << "\n";
     std::cout << "memory_table,profile,name,entries,bytes\n";
-    printMemoryProfileRows("embedded_optimal", rubik::detail::optimalTableProfile(rubik::SolveProfile::Embedded));
-    printMemoryProfileRows("default_optimal", rubik::detail::optimalTableProfile(rubik::SolveProfile::Default));
-    printMemoryProfileRows("performance_optimal", rubik::detail::optimalTableProfile(rubik::SolveProfile::Performance));
+    const bool includeCornerState = cornerStateBoundsEnabled();
+    printMemoryProfileRows("embedded_optimal", rubik::detail::optimalTableProfile(rubik::SolveProfile::Embedded), includeCornerState);
+    printMemoryProfileRows("default_optimal", rubik::detail::optimalTableProfile(rubik::SolveProfile::Default), includeCornerState);
+    printMemoryProfileRows("performance_optimal", rubik::detail::optimalTableProfile(rubik::SolveProfile::Performance), includeCornerState);
 
     std::vector<rubik::detail::TableProfileEntry> fastTwoPhase;
     const auto phase1 = rubik::detail::phase1BaseTableProfile();
@@ -935,7 +965,7 @@ std::chrono::milliseconds warmUpTables(const rubik::SolveOptions& options)
     for (const rubik::detail::TableProfileEntry& entry : rubik::detail::optimalTableProfile(options.profile)) {
         (void)entry.table();
     }
-    if (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS")) {
+    if (cornerStateBoundsEnabled()) {
         (void)rubik::pruning_tables::cornerOrientationPermutation();
     }
     if (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS")) {
@@ -963,7 +993,7 @@ std::chrono::milliseconds warmUpTables(const rubik::SolveOptions& options)
 std::size_t warmUpTablePayloadBytes(const rubik::SolveOptions& options)
 {
     std::size_t bytes = rubik::detail::estimatedSolverTablePayloadBytes(options.mode, options.profile);
-    if (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS")) {
+    if (cornerStateBoundsEnabled()) {
         bytes += static_cast<std::size_t>(rubik::coordinates::corner_orientation_count) *
             static_cast<std::size_t>(rubik::coordinates::corner_permutation_count);
     }

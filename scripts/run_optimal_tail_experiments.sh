@@ -9,7 +9,7 @@ timeout_ms="30000"
 max_depth="13"
 threads="1"
 max_memory_mb="1024"
-variants="baseline,corner_state"
+variants="baseline,no_corner_state"
 
 usage() {
     cat <<'USAGE'
@@ -24,10 +24,11 @@ Options:
   --max-depth N         solver max depth, default: 13
   --threads N           solver threads, default: 1
   --max-memory-mb N     solver memory limit, default: 1024
-  --variants LIST       comma-separated variants, default: baseline,corner_state
+  --variants LIST       comma-separated variants, default: baseline,no_corner_state
 
 Variants:
   baseline              current default optimal engine
+  no_corner_state       current engine with RUBIK_DISABLE_CORNER_STATE_BOUNDS=1
   corner_state          RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS=1
   corner_state_up       corner_state + RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1
   corner_state_down     corner_state + RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS=1
@@ -150,6 +151,9 @@ manifest_file="${output_dir}/manifest.csv"
 variant_env() {
     case "$1" in
         baseline)
+            ;;
+        no_corner_state)
+            echo "RUBIK_DISABLE_CORNER_STATE_BOUNDS=1"
             ;;
         corner_state)
             echo "RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS=1"

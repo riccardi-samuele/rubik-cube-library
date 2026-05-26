@@ -435,7 +435,13 @@ bool phase2OptimalMoveOrderingEnabled()
 
 bool experimentalCornerStateBoundsEnabled()
 {
-    return environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS");
+    if (environmentFlagEnabled("RUBIK_DISABLE_CORNER_STATE_BOUNDS")) {
+        return false;
+    }
+    if (environmentFlagEnabled("RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS")) {
+        return true;
+    }
+    return true;
 }
 
 bool experimentalCornerUpEdgeBoundsEnabled()

@@ -132,7 +132,7 @@ Optimal tail experiments:
 ```sh
 scripts/run_optimal_tail_experiments.sh \
   --build-dir out/release-native-lto \
-  --variants baseline,corner_state,corner_state_up,corner_state_down \
+  --variants baseline,no_corner_state,corner_state_up,corner_state_down \
   --max-memory-mb 2048
 ```
 
@@ -140,6 +140,8 @@ The tail experiment runner replays the fixed slow depth-13 tail cases and
 compares experimental optimal-engine variants under the same profile, memory
 budget, timeout, and thread count. It writes `summary.csv` and `aggregate.csv`
 so pruning changes can be promoted or rejected based on the same cases.
+After the V2 corner-state promotion, `baseline` means the current default
+optimal policy and `no_corner_state` means the older 1.0-style pruning policy.
 
 Three-direction phase-1 bounds are now enabled by default for
 `SolveMode::Optimal` with all public profiles, including `Embedded`. Use
@@ -182,22 +184,21 @@ alone on the current depth-15 frontier case.
 Experimental corner/edge-group pruning:
 
 ```sh
-RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS=1 \
 RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1 \
 scripts/run_benchmark_suite.sh --suite optimal-deep-probe
 ```
 
 `RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1` and
 `RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS=1` add a 479,001,600-entry table
-over corner permutation plus one edge group. A single table plus corner-state
-fits under the current 1 GB logical memory budget. The U-edge variant solved the
-seed `12345` depth-15 frontier case in 28.914 seconds, but seed `42` still timed
-out at 30 seconds, so this remains experimental.
+over corner permutation plus one edge group. A single table plus default
+corner-state pruning fits under the current 1 GB logical memory budget. The
+U-edge variant solved the seed `12345` depth-15 frontier case in 28.914
+seconds, but seed `42` still timed out at 30 seconds, so this remains
+experimental.
 
 Large local optimal probe:
 
 ```sh
-RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS=1 \
 RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1 \
 RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS=1 \
 out/release-native-lto/rubik-bench \
@@ -220,7 +221,6 @@ benchmark memory contract for large local experiments; the default remains
 The same setup is available as a repeatable suite:
 
 ```sh
-RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS=1 \
 RUBIK_EXPERIMENTAL_CORNER_UP_EDGE_BOUNDS=1 \
 RUBIK_EXPERIMENTAL_CORNER_DOWN_EDGE_BOUNDS=1 \
 scripts/run_benchmark_suite.sh \
@@ -239,17 +239,17 @@ The current CMake target uses twenty-four fixed depth-15 seeds and a 30 second g
 The current 8-thread tail target replays the six slowest known depth-15 seeds
 with an 18 second gate: `987654321`, `424242`, `666`, `555`, `99`, and `888`.
 
-Experimental corner-state pruning:
+Default corner-state pruning:
 
 ```sh
-RUBIK_EXPERIMENTAL_CORNER_STATE_BOUNDS=1 scripts/run_benchmark_suite.sh --suite optimal-deep-probe
+scripts/run_benchmark_suite.sh --suite optimal-deep-probe
 ```
 
-This adds a full corner orientation + corner permutation pruning table. It is
-admissible and currently costs 88,179,840 additional table bytes. The depth-13
-optimal-stress sweep passes all existing gates with wide margin, and the
-depth-14 deep probe solves all sampled cases. The table is still experimental
-because selected depth-15 cases continue to time out at 30 seconds.
+Optimal mode uses a full corner orientation + corner permutation pruning table
+by default. It is admissible and costs 88,179,840 additional table bytes. The
+V2 tail experiment reduced the fixed embedded tail-case average from
+6,516.20 ms to 1,482.60 ms. Use `RUBIK_DISABLE_CORNER_STATE_BOUNDS=1` only for
+A/B comparisons against the older 1.0 pruning policy.
 
 Cache modes:
 

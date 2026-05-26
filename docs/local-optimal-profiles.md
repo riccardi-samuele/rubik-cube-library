@@ -30,13 +30,14 @@ Target devices:
 - local applications where bounded latency is acceptable if it keeps the result
   optimal.
 
-Current table payload: about 22 MB for optimal tables.
+Current table payload: about 110 MB for optimal tables.
 
 Design target: stay comfortably below a 1 GB working memory budget unless the
 caller explicitly opts into a larger configuration. This profile enables the
-three-direction phase-1 lower bound by default for optimal solving. The current
-implementation reuses tables already present in the embedded optimal profile,
-so the measured pruning-table payload remains about 22 MB.
+three-direction phase-1 lower bound and corner-state pruning by default for
+optimal solving. The corner-state table is admissible and materially reduces
+the current tail-case latency while staying well below the embedded memory
+budget.
 
 ### `SolveProfile::Default`
 
@@ -46,10 +47,11 @@ Target devices:
 - server processes that want good optimal performance without very large tables;
 - the default public API behavior.
 
-Current table payload: about 205 MB for optimal tables.
+Current table payload: about 294 MB for optimal tables.
 
-This profile enables the three-direction phase-1 lower bound by default for
-optimal solving. It is the main correctness and compatibility baseline.
+This profile enables the three-direction phase-1 lower bound and corner-state
+pruning by default for optimal solving. It is the main correctness and
+compatibility baseline.
 
 ### `SolveProfile::Performance`
 
@@ -60,7 +62,7 @@ Target devices:
 - Jetson Orin class devices;
 - workstations where extra memory is acceptable.
 
-Current table payload: about 346 MB for optimal tables.
+Current table payload: about 435 MB for optimal tables.
 
 This profile may use larger admissible tables and more expensive search helpers
 when benchmarks show a real wall-clock win. It is the right place for local
