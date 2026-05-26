@@ -479,6 +479,18 @@ add_test(
     COMMAND bash -c "output=\"$($1 --random-count abc --report-policy 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Invalid random-count'" _ $<TARGET_FILE:rubik-bench>
 )
 add_test(
+    NAME cli_solve_rejects_missing_profile_value
+    COMMAND bash -c "output=\"$($1 UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --profile 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Missing value for --profile'" _ $<TARGET_FILE:rubik-solve>
+)
+add_test(
+    NAME cli_bench_rejects_missing_threads_value
+    COMMAND bash -c "output=\"$($1 --threads 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Missing value for --threads'" _ $<TARGET_FILE:rubik-bench>
+)
+add_test(
+    NAME cli_bench_rejects_missing_random_count_value
+    COMMAND bash -c "output=\"$($1 --random-count 2>&1)\"; status=$?; printf '%s\n' \"$output\"; test $status -ne 0 && printf '%s\n' \"$output\" | grep -q 'Missing value for --random-count'" _ $<TARGET_FILE:rubik-bench>
+)
+add_test(
     NAME cli_bench_percentile_summary
     COMMAND rubik-bench --mode fast --timeout-ms 5000 --max-depth 24 --case-set random --random-count 1 --random-depth 8 --random-seed 42
 )

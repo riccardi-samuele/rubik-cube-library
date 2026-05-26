@@ -104,40 +104,61 @@ int main(int argc, char** argv)
         .threads = 1,
     };
 
+    const auto requireValue = [&](const std::string& option, int& index) -> std::optional<std::string> {
+        if (index + 1 >= argc) {
+            std::cerr << "Missing value for " << option << "\n";
+            printUsage(argv[0]);
+            return std::nullopt;
+        }
+        return std::string(argv[++index]);
+    };
+
     for (int i = 2; i < argc; ++i) {
         const std::string arg = argv[i];
-        if (arg == "--timeout-ms" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 0, std::numeric_limits<long long>::max());
+        if (arg == "--timeout-ms") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 0, std::numeric_limits<long long>::max());
             if (!parsed) {
-                std::cerr << "Invalid timeout-ms: " << value << "\n";
+                std::cerr << "Invalid timeout-ms: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             options.timeout = std::chrono::milliseconds(*parsed);
-        } else if (arg == "--max-depth" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 0, 1000);
+        } else if (arg == "--max-depth") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 0, 1000);
             if (!parsed) {
-                std::cerr << "Invalid max-depth: " << value << "\n";
+                std::cerr << "Invalid max-depth: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             options.maxDepth = static_cast<int>(*parsed);
-        } else if (arg == "--profile" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto profile = parseProfile(value);
+        } else if (arg == "--profile") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto profile = parseProfile(*value);
             if (!profile) {
-                std::cerr << "Invalid profile: " << value << "\n";
+                std::cerr << "Invalid profile: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             options.profile = *profile;
-        } else if (arg == "--mode" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto mode = parseMode(value);
+        } else if (arg == "--mode") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto mode = parseMode(*value);
             if (!mode) {
-                std::cerr << "Invalid mode: " << value << "\n";
+                std::cerr << "Invalid mode: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }

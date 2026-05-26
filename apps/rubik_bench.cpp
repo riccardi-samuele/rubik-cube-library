@@ -1211,130 +1211,181 @@ int main(int argc, char** argv)
     bool reportPolicy = false;
     bool benchmarkLowerBound = false;
 
+    const auto requireValue = [&](const std::string& option, int& index) -> std::optional<std::string> {
+        if (index + 1 >= argc) {
+            std::cerr << "Missing value for " << option << "\n";
+            printUsage(argv[0]);
+            return std::nullopt;
+        }
+        return std::string(argv[++index]);
+    };
+
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
-        if (arg == "--timeout-ms" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 0, std::numeric_limits<long long>::max());
+        if (arg == "--timeout-ms") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 0, std::numeric_limits<long long>::max());
             if (!parsed) {
-                std::cerr << "Invalid timeout-ms: " << value << "\n";
+                std::cerr << "Invalid timeout-ms: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             options.timeout = std::chrono::milliseconds(*parsed);
-        } else if (arg == "--max-depth" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 0, 1000);
+        } else if (arg == "--max-depth") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 0, 1000);
             if (!parsed) {
-                std::cerr << "Invalid max-depth: " << value << "\n";
+                std::cerr << "Invalid max-depth: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             options.maxDepth = static_cast<int>(*parsed);
-        } else if (arg == "--max-memory-mb" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseUnsignedInteger(value);
+        } else if (arg == "--max-memory-mb") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseUnsignedInteger(*value);
             if (!parsed || *parsed > std::numeric_limits<std::size_t>::max() / (1024ull * 1024ull)) {
-                std::cerr << "Invalid max-memory-mb: " << value << "\n";
+                std::cerr << "Invalid max-memory-mb: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             options.maxMemoryBytes = static_cast<std::size_t>(*parsed) * 1024ull * 1024ull;
-        } else if (arg == "--threads" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 1, std::numeric_limits<unsigned int>::max());
+        } else if (arg == "--threads") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 1, std::numeric_limits<unsigned int>::max());
             if (!parsed) {
-                std::cerr << "Invalid threads: " << value << "\n";
+                std::cerr << "Invalid threads: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             options.threads = static_cast<unsigned int>(*parsed);
-        } else if (arg == "--max-case-depth" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 0, 1000);
+        } else if (arg == "--max-case-depth") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 0, 1000);
             if (!parsed) {
-                std::cerr << "Invalid max-case-depth: " << value << "\n";
+                std::cerr << "Invalid max-case-depth: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             maxCaseDepth = static_cast<int>(*parsed);
-        } else if (arg == "--profile" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseProfile(value);
+        } else if (arg == "--profile") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseProfile(*value);
             if (!parsed) {
-                std::cerr << "Invalid profile: " << value << "\n";
+                std::cerr << "Invalid profile: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             options.profile = *parsed;
-        } else if (arg == "--mode" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseMode(value);
+        } else if (arg == "--mode") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseMode(*value);
             if (!parsed) {
-                std::cerr << "Invalid mode: " << value << "\n";
+                std::cerr << "Invalid mode: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             options.mode = *parsed;
-        } else if (arg == "--case-set" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseCaseSet(value);
+        } else if (arg == "--case-set") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseCaseSet(*value);
             if (!parsed) {
-                std::cerr << "Invalid case set: " << value << "\n";
+                std::cerr << "Invalid case set: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             caseSet = *parsed;
-        } else if (arg == "--random-count" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 0, std::numeric_limits<int>::max());
+        } else if (arg == "--random-count") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 0, std::numeric_limits<int>::max());
             if (!parsed) {
-                std::cerr << "Invalid random-count: " << value << "\n";
+                std::cerr << "Invalid random-count: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             randomCount = static_cast<int>(*parsed);
-        } else if (arg == "--random-depth" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 0, 1000);
+        } else if (arg == "--random-depth") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 0, 1000);
             if (!parsed) {
-                std::cerr << "Invalid random-depth: " << value << "\n";
+                std::cerr << "Invalid random-depth: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             randomDepth = static_cast<int>(*parsed);
-        } else if (arg == "--random-seed" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseUnsignedInteger(value);
+        } else if (arg == "--random-seed") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseUnsignedInteger(*value);
             if (!parsed) {
-                std::cerr << "Invalid random-seed: " << value << "\n";
+                std::cerr << "Invalid random-seed: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             randomSeed = *parsed;
-        } else if (arg == "--random-start-index" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 1, std::numeric_limits<int>::max());
+        } else if (arg == "--random-start-index") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 1, std::numeric_limits<int>::max());
             if (!parsed) {
-                std::cerr << "Invalid random-start-index: " << value << "\n";
+                std::cerr << "Invalid random-start-index: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             randomStartIndex = static_cast<int>(*parsed);
-        } else if (arg == "--slowest-count" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 0, std::numeric_limits<int>::max());
+        } else if (arg == "--slowest-count") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 0, std::numeric_limits<int>::max());
             if (!parsed) {
-                std::cerr << "Invalid slowest-count: " << value << "\n";
+                std::cerr << "Invalid slowest-count: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
             slowestCount = static_cast<int>(*parsed);
-        } else if (arg == "--lower-bound-iterations" && i + 1 < argc) {
-            const std::string value = argv[++i];
-            const auto parsed = parseInteger(value, 1, std::numeric_limits<int>::max());
+        } else if (arg == "--lower-bound-iterations") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const auto parsed = parseInteger(*value, 1, std::numeric_limits<int>::max());
             if (!parsed) {
-                std::cerr << "Invalid lower-bound-iterations: " << value << "\n";
+                std::cerr << "Invalid lower-bound-iterations: " << *value << "\n";
                 printUsage(argv[0]);
                 return 2;
             }
