@@ -39,7 +39,7 @@ Implemented:
 - example programs;
 - install/export packaging for downstream CMake projects;
 - optimized CMake presets for release, native, LTO, and sanitizer builds;
-- public API stability documentation for `1.0.0`, `2.0.0`, and the V3 draft;
+- public API stability documentation for `1.0.0`, `2.0.0`, and `3.0.0`;
 - unit tests and release validation scripts.
 
 Experimental or hardware-dependent:

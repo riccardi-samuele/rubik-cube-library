@@ -3,8 +3,8 @@
 The API is intentionally small while the solver internals are still evolving.
 The `2.0.0` compatibility contract is documented in
 [API Stability - 2.0.0](api-stability-2.0.0.md).
-The draft V3 adaptive API contract is documented in
-[API Stability - 3.0.0 Draft](api-stability-3.0.0.md).
+The V3 adaptive API contract is documented in
+[API Stability - 3.0.0](api-stability-3.0.0.md).
 
 ## Version Metadata
 

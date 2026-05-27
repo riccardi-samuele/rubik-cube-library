@@ -40,7 +40,7 @@ Non-goals for this release:
 | --- | --- | --- |
 | Core cubie/sticker model | Ready | Validation covers physical cube constraints. |
 | Move parsing/formatting | Ready | HTM moves implemented. |
-| Public `Solver` API | Ready for candidate | V3 draft stability surface is documented. |
+| Public `Solver` API | Ready for candidate | V3 stability surface is documented. |
 | Optimal correctness | Ready when returning `Optimal` | Certified HTM contract is unchanged from V2. |
 | `SolveProfile::Auto` | Ready for candidate | Auto selects a local optimal policy and reports it through `SolvePlan`. |
 | Explicit profiles | Ready | Existing fixed profiles remain available. |
@@ -69,14 +69,14 @@ See [V3 Local Verification - 2026-05-27](v3-local-verification-2026-05-27.md).
 
 ## Required Before Tag
 
-- [x] Document the `3.0.0` API stability draft.
+- [x] Document the `3.0.0` API stability contract.
 - [x] Make `SolveProfile::Auto` the recommended optimal profile in public
       documentation.
 - [x] Add `SolvePlan` reporting for the effective Auto plan.
 - [x] Add cache preparation APIs and CLI support.
 - [x] Add repeatable V3 Auto benchmark gates.
 - [x] Record local V3 verification without unmeasured hardware claims.
-- [ ] Finalize the `3.0.0` API stability document by removing draft wording.
+- [x] Finalize the `3.0.0` API stability document by removing draft wording.
 - [x] Add changelog entry for `3.0.0`.
 - [x] Draft GitHub Release text and asset checklist for `v3.0.0`.
 - [ ] Set project version to `3.0.0` in CMake package metadata.
@@ -160,7 +160,7 @@ Stable surface:
 - CLI `rubik-cache-setup`
 
 The full release contract is documented in
-[API Stability - 3.0.0 Draft](api-stability-3.0.0.md).
+[API Stability - 3.0.0](api-stability-3.0.0.md).
 
 Experimental surface:
 
