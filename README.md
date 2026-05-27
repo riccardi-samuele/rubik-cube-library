@@ -210,6 +210,12 @@ Prepare pruning-table cache data before latency-sensitive optimal solving:
 ./build/rubik-cache-setup --profile auto
 ```
 
+Emit machine-readable cache setup rows for scripts:
+
+```sh
+./build/rubik-cache-setup --profile auto --dry-run --format csv
+```
+
 Use the high-memory local optimal profile explicitly:
 
 ```sh

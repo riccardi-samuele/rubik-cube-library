@@ -180,6 +180,8 @@ selected effective profile are present. In dry-run mode, no tables are built;
 latency-sensitive solving.
 
 `rubik-cache-setup` exposes the same workflow for command-line deployments.
+Pass `--format csv` to emit stable `cache_setup,key,value` rows for benchmark
+or deployment scripts.
 
 Runtime thread-safety expectations are documented in
 [Runtime Behavior](runtime.md).

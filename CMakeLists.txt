@@ -166,6 +166,20 @@ add_test(
 set_tests_properties(cli_cache_setup_rejects_invalid_profile PROPERTIES
     WILL_FAIL TRUE
 )
+add_test(
+    NAME cli_cache_setup_rejects_invalid_format
+    COMMAND rubik-cache-setup --profile auto --dry-run --format json
+)
+set_tests_properties(cli_cache_setup_rejects_invalid_format PROPERTIES
+    WILL_FAIL TRUE
+)
+add_test(
+    NAME cli_cache_setup_rejects_missing_format
+    COMMAND rubik-cache-setup --profile auto --dry-run --format
+)
+set_tests_properties(cli_cache_setup_rejects_missing_format PROPERTIES
+    WILL_FAIL TRUE
+)
 
 add_custom_target(rubik-benchmark-smoke
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
