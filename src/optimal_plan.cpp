@@ -11,7 +11,7 @@ namespace rubik::detail {
 namespace {
 
 constexpr std::size_t auto_default_memory_bytes = 2ull * 1024ull * 1024ull * 1024ull;
-constexpr unsigned int auto_default_thread_cap = 8;
+constexpr unsigned int auto_default_thread_cap = 16;
 
 std::vector<std::string> boundsForProfile(SolveProfile profile)
 {

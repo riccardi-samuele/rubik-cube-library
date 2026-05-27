@@ -92,7 +92,7 @@ void testAutoPlannerDesktopDefaults()
     expect(plan.publicPlan.effectiveProfile == rubik::SolveProfile::LargeLocal);
     expect(plan.publicPlan.effectiveMaxMemoryBytes == 2ull * 1024ull * 1024ull * 1024ull);
     expect(plan.publicPlan.effectiveThreads >= 1);
-    expect(plan.publicPlan.effectiveThreads <= 8);
+    expect(plan.publicPlan.effectiveThreads <= 16);
     expect(plan.publicPlan.strategyName == "auto_desktop_tail");
     expect(!plan.publicPlan.boundsUsed.empty());
 }
