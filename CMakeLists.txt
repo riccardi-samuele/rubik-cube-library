@@ -578,6 +578,19 @@ add_custom_target(rubik-benchmark-v4-tail-corpus
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running V4 optimal CPU tail corpus"
 )
+add_custom_target(rubik-benchmark-v4-deep-split-ab
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_deep_split_ab.sh
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cases-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/v4-tail-discovery/slowest.csv
+        --cache-dir /tmp/rubik_cube_library_v4_deep_split_ab_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/v4-deep-split-ab
+        --threads 0
+        --max-memory-mb 2048
+        --cache-mode warm
+    DEPENDS rubik-bench rubik-cache-setup
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running V4 deep root split A/B benchmark"
+)
 add_custom_target(rubik-benchmark-optimal-auto-discovery
     COMMAND rubik-cache-setup
         --profile auto
@@ -920,6 +933,18 @@ add_test(
     NAME run_v4_tail_corpus_rejects_missing_values
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v4_tail_corpus_rejects_missing_values.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_tail_corpus.sh
+)
+add_test(
+    NAME run_v4_deep_split_ab_help
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_deep_split_ab.sh --help
+)
+set_tests_properties(run_v4_deep_split_ab_help PROPERTIES
+    PASS_REGULAR_EXPRESSION "Usage: scripts/run_v4_deep_split_ab.sh"
+)
+add_test(
+    NAME run_v4_deep_split_ab_rejects_missing_values
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v4_deep_split_ab_rejects_missing_values.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_deep_split_ab.sh
 )
 add_test(
     NAME extract_slowest_cases
