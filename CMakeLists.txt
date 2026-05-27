@@ -153,6 +153,13 @@ set_tests_properties(cli_cache_setup_dry_run PROPERTIES
     PASS_REGULAR_EXPRESSION "status: Ready"
 )
 add_test(
+    NAME cli_cache_setup_csv_dry_run
+    COMMAND rubik-cache-setup --profile auto --dry-run --format csv
+)
+set_tests_properties(cli_cache_setup_csv_dry_run PROPERTIES
+    PASS_REGULAR_EXPRESSION "cache_setup,status,Ready"
+)
+add_test(
     NAME cli_cache_setup_rejects_invalid_profile
     COMMAND rubik-cache-setup --profile invalid --dry-run
 )

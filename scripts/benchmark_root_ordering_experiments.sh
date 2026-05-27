@@ -186,13 +186,14 @@ if [[ "${cache_mode}" == "warm" || "${cache_mode}" == "cold" ]]; then
         --threads "${threads}" \
         --max-memory-mb "${max_memory_mb}" \
         --cache-dir "${cache_dir}" \
+        --format csv \
         | tee "${cache_setup_output}"
     cache_setup_ended_at="$(date +%s%3N)"
     cache_setup_elapsed_ms="$((cache_setup_ended_at - cache_setup_started_at))"
 else
     {
-        echo "status: Skipped"
-        echo "message: cache setup skipped by cache-mode reuse"
+        echo "cache_setup,status,Skipped"
+        echo "cache_setup,message,cache setup skipped by cache-mode reuse"
     } > "${cache_setup_output}"
 fi
 
