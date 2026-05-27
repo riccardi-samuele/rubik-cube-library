@@ -52,6 +52,14 @@ const char* autoStrategyName(SolveProfile effectiveProfile)
         : "auto_shallow_optimal";
 }
 
+bool fitsMemoryBudget(std::size_t payloadBytes, std::size_t memoryBudgetBytes)
+{
+    if (memoryBudgetBytes == 0) {
+        return true;
+    }
+    return payloadBytes <= memoryBudgetBytes;
+}
+
 } // namespace
 
 std::size_t autoMemoryBudgetBytes(const SolveOptions& options)
@@ -91,6 +99,22 @@ AutoPlanDecision makeAutoPlan(const SolveOptions& options)
     decision.estimatedTablePayloadBytes = estimatedPayloadForProfile(decision.effectiveProfile);
     decision.boundsUsed = boundsForProfile(decision.effectiveProfile);
     decision.strategyName = autoStrategyName(decision.effectiveProfile);
+
+    if (!fitsMemoryBudget(decision.estimatedTablePayloadBytes, decision.effectiveMaxMemoryBytes)) {
+        const std::size_t performancePayload = estimatedPayloadForProfile(SolveProfile::Performance);
+        if (fitsMemoryBudget(performancePayload, decision.effectiveMaxMemoryBytes)) {
+            decision.effectiveProfile = SolveProfile::Performance;
+            decision.estimatedTablePayloadBytes = performancePayload;
+            decision.boundsUsed = boundsForProfile(decision.effectiveProfile);
+            decision.strategyName = "auto_memory_fallback";
+            return decision;
+        }
+
+        decision.supported = false;
+        decision.status = SolveStatus::MemoryLimitExceeded;
+        return decision;
+    }
+
     return decision;
 }
 

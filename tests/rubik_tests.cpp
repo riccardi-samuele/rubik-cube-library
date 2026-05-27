@@ -141,6 +141,38 @@ void testAutoPlannerUsesLargeLocalForDeepOptimal()
     expect(plan.publicPlan.strategyName == "auto_desktop_tail");
 }
 
+void testAutoPlannerFallsBackWhenLargeLocalMemoryIsTooSmall()
+{
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 15;
+    options.maxMemoryBytes = 700ull * 1024ull * 1024ull;
+    options.threads = 0;
+
+    const auto plan = rubik::detail::makeOptimalPlan(options);
+    expect(plan.supported);
+    expect(plan.publicPlan.effectiveProfile == rubik::SolveProfile::Performance);
+    expect(plan.publicPlan.strategyName == "auto_memory_fallback");
+    expect(plan.publicPlan.estimatedTablePayloadBytes < 700ull * 1024ull * 1024ull);
+}
+
+void testAutoPlannerRejectsWhenMemoryIsTooSmallForAuto()
+{
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 15;
+    options.maxMemoryBytes = 128ull * 1024ull * 1024ull;
+    options.threads = 0;
+
+    const auto plan = rubik::detail::makeOptimalPlan(options);
+    expect(!plan.supported);
+    expect(plan.status == rubik::SolveStatus::MemoryLimitExceeded);
+}
+
 void testAutoPlannerReportsFullTailPayload()
 {
     rubik::SolveOptions options;
@@ -1279,6 +1311,8 @@ int main()
     testAutoPlannerInternalDecisionMatchesPublicPlan();
     testAutoPlannerUsesPerformanceForShallowOptimal();
     testAutoPlannerUsesLargeLocalForDeepOptimal();
+    testAutoPlannerFallsBackWhenLargeLocalMemoryIsTooSmall();
+    testAutoPlannerRejectsWhenMemoryIsTooSmallForAuto();
     testAutoPlannerReportsFullTailPayload();
     testAutoStrongMoveOrderingPolicy();
     testAutoSolveReportsPlan();
