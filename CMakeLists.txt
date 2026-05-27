@@ -414,6 +414,11 @@ add_custom_target(rubik-benchmark-optimal-large-local-tail-8threads-gates
     COMMENT "Checking large local optimal 8-thread tail gates"
 )
 add_custom_target(rubik-benchmark-optimal-auto-tail
+    COMMAND rubik-cache-setup
+        --profile auto
+        --cache-dir /tmp/rubik_cube_library_optimal_auto_tail_cache
+        --max-memory-mb 2048
+        --threads 0
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
         --suite optimal-auto-tail
         --cache-mode warm
@@ -424,7 +429,7 @@ add_custom_target(rubik-benchmark-optimal-auto-tail
         --deep-opt15-count 1
         --threads 0
         --max-memory-mb 2048
-    DEPENDS rubik-bench
+    DEPENDS rubik-bench rubik-cache-setup
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running Auto optimal depth-15 tail benchmark"
 )

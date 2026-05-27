@@ -268,6 +268,9 @@ Use `rubik-cache-setup --profile auto` or `prepareCache()` before
 latency-sensitive benchmark runs when cold-cache setup should be separated from
 solve latency. The Auto benchmark targets use warm cache mode and still print
 warm-up timing so reports can distinguish cache preparation from search time.
+The CMake `optimal-auto-tail` and `optimal-auto-hardening` targets run
+`rubik-cache-setup` before solving so their gated rows track search latency, not
+first-run table generation.
 
 The repeatable Auto gates are:
 
@@ -343,7 +346,8 @@ Profile selection:
   class validation and uses the public `large-local` profile.
 - `--suite optimal-auto-tail`: replay the slowest known depth-15 local optimal
   seeds through `SolveProfile::Auto`. The CMake target uses automatic thread
-  selection and a 2 GiB memory budget to validate the adaptive desktop path.
+  selection, prewarms the cache, and uses a 2 GiB memory budget to validate the
+  adaptive desktop path.
 - `--suite optimal-auto-hardening`: run a longer `SolveProfile::Auto`
   depth-14/depth-15 diagnostic sweep across fixed seeds. This suite is for
   performance hardening and tail discovery, not routine release validation.
