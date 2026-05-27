@@ -14,17 +14,27 @@ consumer with find_package(rubik CONFIG REQUIRED), builds it, and runs it.
 USAGE
 }
 
+require_value() {
+    if [[ $# -lt 2 ]]; then
+        usage >&2
+        exit 2
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --build-dir)
+            require_value "$@"
             build_dir="$2"
             shift 2
             ;;
         --install-prefix)
+            require_value "$@"
             install_prefix="$2"
             shift 2
             ;;
         --consumer-build-dir)
+            require_value "$@"
             consumer_build_dir="$2"
             shift 2
             ;;
