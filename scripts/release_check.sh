@@ -19,11 +19,12 @@ Profiles:
 Options:
   --profile NAME          quick|standard|full, default: standard
   --with-benchmarks       run profile-realistic, Auto, embedded-multiseed, and optimal-stress gates
-  --with-large-local      also run large-local and Auto tail optimal benchmark gates
+  --with-large-local      also run large-local, Auto tail, and Auto hardening optimal benchmark gates
   -h, --help              show this help
 
 Large-local gates use the public high-memory optimal profile and can take a
-long time on a cold cache.
+long time on a cold cache. Auto hardening extends the adaptive optimal tail
+coverage and can add several minutes to the run.
 USAGE
 }
 
@@ -166,6 +167,8 @@ if [[ "${with_large_local}" == "1" ]]; then
     run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-large-local-tail-8threads-gates
     run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail
     run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-gates
+    run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening
+    run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening-gates
 fi
 
 echo

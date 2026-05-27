@@ -247,8 +247,8 @@ Release-candidate benchmark gates:
 scripts/release_check.sh --profile full --with-benchmarks
 ```
 
-Large local optimal gates are intentionally separate because they need large
-tables and can take a long time on a cold cache:
+Large local and adaptive Auto hardening optimal gates are intentionally separate
+because they need large tables and can take a long time on a cold cache:
 
 ```sh
 scripts/release_check.sh --profile full --with-large-local
