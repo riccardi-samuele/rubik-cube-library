@@ -31,6 +31,8 @@ cmake --build build --target rubik-benchmark-optimal-auto-tail-ordering-ab
 cmake --build build --target rubik-benchmark-optimal-auto-hardening
 cmake --build build --target rubik-benchmark-optimal-auto-hardening-gates
 cmake --build build --target rubik-benchmark-v3-auto-gates
+cmake --build build --target rubik-benchmark-v4-tail-discovery
+cmake --build build --target rubik-benchmark-v4-tail-corpus
 cmake --build build --target rubik-benchmark-optimal-auto-discovery
 cmake --build build --target rubik-benchmark-embedded-multiseed
 cmake --build build --target rubik-benchmark-embedded-multiseed-gates
@@ -66,6 +68,9 @@ scripts/run_benchmark_suite.sh --suite optimal-auto-tail --seeds 987654321,42424
 scripts/run_auto_tail_ordering_ab.sh --build-dir out/release-native-lto --cache-dir /tmp/rubik_cube_library_optimal_auto_tail_cache --output-dir out/release-native-lto/benchmark-results/optimal-auto-tail-ordering-ab --seeds 987654321,424242,1009,2016,666,555,99,888 --threads 0 --max-memory-mb 2048
 scripts/run_benchmark_suite.sh --suite optimal-auto-hardening --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525 --threads 0 --max-memory-mb 2048 --deep-opt14-count 2 --deep-opt15-count 1
 scripts/check_benchmark_gates.sh --summary-file out/release-native-lto/benchmark-results/optimal-auto-hardening/warm_optimal_auto_hardening_summary.csv --gate auto,optimal,random_seed_987654321_depth_15_count_1,1,12000,12000,12000
+scripts/run_v4_tail_discovery.sh --build-dir out/release-native-lto --output-dir out/release-native-lto/benchmark-results/v4-tail-discovery --cache-dir /tmp/rubik_cube_library_v4_tail_discovery_cache --threads 0 --max-memory-mb 2048
+scripts/run_v4_tail_corpus.sh --build-dir out/release-native-lto --cases-file out/release-native-lto/benchmark-results/v4-tail-discovery/slowest.csv --output-dir out/release-native-lto/benchmark-results/v4-tail-corpus --cache-dir /tmp/rubik_cube_library_v4_tail_discovery_cache --threads 0 --max-memory-mb 2048 --cache-mode reuse
+scripts/compare_v4_tail_runs.py --baseline out/release-native-lto/benchmark-results/v4-tail-corpus-baseline/summary.csv --candidate out/release-native-lto/benchmark-results/v4-tail-corpus/summary.csv
 scripts/run_benchmark_suite.sh --suite optimal-auto-discovery --seeds 101,202,303,404,505,606,707,808 --threads 0 --max-memory-mb 2048 --deep-opt15-count 2
 scripts/run_benchmark_suite.sh --suite embedded-multiseed --seeds 12345,20260525,42 --realistic-fast-count 100 --fast-max-depth 28 --realistic-opt13-count 10
 scripts/check_benchmark_gates.sh --summary-file benchmark-results/warm_embedded_multiseed_summary.csv --gate embedded,fast,random_seed_20260525_depth_20_count_100,100,350,500,700
@@ -84,6 +89,10 @@ scripts/run_v2_optimal_baseline.sh --build-dir out/release-native-lto
 scripts/run_optimal_tail_experiments.sh --build-dir out/release-native-lto --variants baseline,corner_state
 ```
 
+The V4 corpus target replays the `slowest.csv` produced by the V4 discovery
+target. Run `rubik-benchmark-v4-tail-discovery` first when that file is not
+present or when refreshing the corpus.
+
 `--fast-max-depth` defaults to `24`. The release-candidate
 `embedded-multiseed` target uses `28` so the fast-mode robustness sweep does not
 fail on valid depth-20 scrambles that need a non-optimal fast solution longer
@@ -91,6 +100,7 @@ than 24 moves.
 
 Current profile comparison:
 
+- [V4 Local Baseline - 2026-05-27](v4-local-baseline-2026-05-27.md)
 - [Auto Optimal Hardening - 2026-05-27](optimal-auto-hardening-2026-05-27.md)
 - [Auto Optimal Discovery - 2026-05-27](optimal-auto-discovery-2026-05-27.md)
 - [V2 Optimal Baseline - 2026-05-26](v2-optimal-baseline-2026-05-26.md)

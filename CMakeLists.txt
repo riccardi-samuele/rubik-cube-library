@@ -554,6 +554,30 @@ add_custom_target(rubik-benchmark-v3-auto-gates
         rubik-benchmark-optimal-auto-hardening-gates
     COMMENT "Running V3 Auto optimal benchmark gates"
 )
+add_custom_target(rubik-benchmark-v4-tail-discovery
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_tail_discovery.sh
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cache-dir /tmp/rubik_cube_library_v4_tail_discovery_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/v4-tail-discovery
+        --threads 0
+        --max-memory-mb 2048
+    DEPENDS rubik-bench rubik-cache-setup
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running V4 optimal CPU tail discovery"
+)
+add_custom_target(rubik-benchmark-v4-tail-corpus
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_tail_corpus.sh
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cases-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/v4-tail-discovery/slowest.csv
+        --cache-dir /tmp/rubik_cube_library_v4_tail_discovery_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/v4-tail-corpus
+        --threads 0
+        --max-memory-mb 2048
+        --cache-mode reuse
+    DEPENDS rubik-bench rubik-cache-setup
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running V4 optimal CPU tail corpus"
+)
 add_custom_target(rubik-benchmark-optimal-auto-discovery
     COMMAND rubik-cache-setup
         --profile auto

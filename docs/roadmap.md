@@ -11,9 +11,10 @@ making the optimal path faster, easier to integrate, and easier to validate
 across local hardware profiles.
 
 `2.0.0` added stronger local optimal profiles, benchmark gates, and release
-validation. The current V3 workstream focuses on an adaptive optimal path that
-selects an effective local profile, reports that selection, and provides cache
-setup workflows for applications that need predictable startup behavior.
+validation. `3.0.0` made the adaptive Auto optimal path the recommended local
+profile and added cache setup workflows for applications that need predictable
+startup behavior. The current V4 workstream focuses on CPU-only optimal
+tail-latency reduction.
 
 ## Current Status
 
@@ -34,6 +35,7 @@ Implemented:
 - root-level thread parallelism for optimal search;
 - CLI solver;
 - CLI benchmark runner;
+- V4 CPU tail discovery, replay, and A/B comparison tooling;
 - profile-smoke, profile-realistic, Auto, embedded-multiseed, optimal-stress,
   Auto tail, and large local benchmark suites;
 - example programs;
@@ -52,6 +54,30 @@ Experimental or hardware-dependent:
 
 Hardware-specific performance claims stay unpublished until they are measured
 on the real target devices.
+
+## Road To 4.0
+
+The `4.0` target is a CPU-only optimal tail-latency release. It should reduce
+the slowest local `SolveMode::Optimal` cases without weakening the certified
+minimum-move contract.
+
+Primary goals:
+
+1. Record a clean V3 baseline before solver changes.
+2. Discover a broader deterministic set of difficult depth-15 optimal cases.
+3. Promote slow cases into a replayable V4 tail corpus.
+4. Compare candidate optimizations against the baseline with A/B tooling.
+5. Improve CPU root scheduling, root ordering, or Auto policy only when
+   benchmark data supports the change.
+
+Out of scope for `4.0`:
+
+- GPU acceleration;
+- cloud solving;
+- QTM;
+- camera recognition;
+- hardware control;
+- unmeasured hardware performance claims.
 
 ## Road To 3.0
 
