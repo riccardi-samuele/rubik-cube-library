@@ -218,6 +218,51 @@ void testAutoOptimalPlanUsesRealCacheWarmth()
     std::filesystem::remove_all(cacheDirectory, error);
 }
 
+void testAutoPlannerFallsBackForColdTightTimeout()
+{
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 15;
+    options.timeout = std::chrono::milliseconds{1500};
+    options.cachePolicy = rubik::CachePolicy::Auto;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+
+    const auto decision = rubik::detail::makeAutoPlan(options, false);
+    expect(decision.supported);
+    expect(decision.effectiveProfile == rubik::SolveProfile::Performance);
+    expect(std::string(decision.strategyName) == "auto_timeout_fallback");
+}
+
+void testAutoOptimalPlanUsesRealTimeoutCacheWarmth()
+{
+    const std::filesystem::path cacheDirectory =
+        std::filesystem::temp_directory_path() / "rubik_auto_plan_uses_real_timeout_cache_warmth";
+    std::error_code error;
+    std::filesystem::remove_all(cacheDirectory, error);
+    setenv("RUBIK_TABLE_CACHE_DIR", cacheDirectory.string().c_str(), 1);
+
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 15;
+    options.timeout = std::chrono::milliseconds{1500};
+    options.cachePolicy = rubik::CachePolicy::Auto;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+
+    const auto plan = rubik::detail::makeOptimalPlan(options);
+    expect(plan.supported);
+    expect(plan.publicPlan.effectiveProfile == rubik::SolveProfile::Performance);
+    expect(plan.publicPlan.strategyName == "auto_timeout_fallback");
+
+    unsetenv("RUBIK_TABLE_CACHE_DIR");
+    std::filesystem::remove_all(cacheDirectory, error);
+}
+
 void testAutoPlannerReportsFullTailPayload()
 {
     rubik::SolveOptions options;
@@ -1384,6 +1429,8 @@ int main()
     testAutoPlannerRejectsWhenMemoryIsTooSmallForAuto();
     testAutoPlannerReportsColdLargeLocalRequirement();
     testAutoOptimalPlanUsesRealCacheWarmth();
+    testAutoPlannerFallsBackForColdTightTimeout();
+    testAutoOptimalPlanUsesRealTimeoutCacheWarmth();
     testAutoPlannerReportsFullTailPayload();
     testAutoStrongMoveOrderingPolicy();
     testAutoSolveReportsPlan();

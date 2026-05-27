@@ -4,6 +4,7 @@
 #include "rubik/detail/table_profiles.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <thread>
 
 namespace rubik::detail {
@@ -11,6 +12,7 @@ namespace {
 
 constexpr std::size_t auto_default_memory_bytes = 2ull * 1024ull * 1024ull * 1024ull;
 constexpr unsigned int auto_default_thread_cap = 16;
+constexpr std::chrono::milliseconds auto_tight_timeout_threshold{2000};
 
 std::vector<std::string> boundsForProfile(SolveProfile profile)
 {
@@ -58,6 +60,15 @@ bool fitsMemoryBudget(std::size_t payloadBytes, std::size_t memoryBudgetBytes)
         return true;
     }
     return payloadBytes <= memoryBudgetBytes;
+}
+
+bool shouldAvoidColdLargeLocal(const SolveOptions& options, const AutoPlanDecision& decision, bool selectedProfileCacheWarm)
+{
+    return options.cachePolicy != CachePolicy::RequireWarm &&
+        decision.effectiveProfile == SolveProfile::LargeLocal &&
+        !selectedProfileCacheWarm &&
+        options.timeout.count() > 0 &&
+        options.timeout <= auto_tight_timeout_threshold;
 }
 
 } // namespace
@@ -112,6 +123,14 @@ AutoPlanDecision makeAutoPlan(const SolveOptions& options, bool selectedProfileC
 
         decision.supported = false;
         decision.status = SolveStatus::MemoryLimitExceeded;
+        return decision;
+    }
+
+    if (shouldAvoidColdLargeLocal(options, decision, selectedProfileCacheWarm)) {
+        decision.effectiveProfile = SolveProfile::Performance;
+        decision.estimatedTablePayloadBytes = estimatedPayloadForProfile(decision.effectiveProfile);
+        decision.boundsUsed = boundsForProfile(decision.effectiveProfile);
+        decision.strategyName = "auto_timeout_fallback";
         return decision;
     }
 

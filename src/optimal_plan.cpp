@@ -70,8 +70,11 @@ OptimalPlan makeOptimalPlan(const SolveOptions& options)
 
     if (options.profile == SolveProfile::Auto) {
         AutoPlanDecision autoPlan = makeAutoPlan(options);
-        if (autoPlan.supported && options.cachePolicy == CachePolicy::RequireWarm) {
-            autoPlan = makeAutoPlan(options, profileCacheWarm(autoPlan.effectiveProfile));
+        if (autoPlan.supported &&
+            (options.cachePolicy == CachePolicy::RequireWarm || options.timeout.count() > 0)) {
+            const bool selectedProfileCacheWarm =
+                plan.publicPlan.diskCacheEnabled && profileCacheWarm(autoPlan.effectiveProfile);
+            autoPlan = makeAutoPlan(options, selectedProfileCacheWarm);
         }
 
         plan.effectiveOptions.profile = autoPlan.effectiveProfile;
