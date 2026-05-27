@@ -348,17 +348,26 @@ For V3 performance hardening, use the longer Auto diagnostic suite:
 ```sh
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening-gates
-scripts/release_check.sh --profile quick --with-v3-auto
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-discovery
 ```
 
 This suite runs `SolveProfile::Auto` across fixed depth-14 and depth-15 random
 seeds with warm cache and a 2 GiB memory budget. It is intended for local tail
-latency analysis before changing optimal search policy; it is not part of the
-normal release gate. `scripts/release_check.sh --profile full --with-large-local`
-includes the Auto hardening benchmark and gates. The CMake target runs
-`rubik-cache-setup` first so the reported solve rows are not dominated by
-first-run table generation.
+latency analysis before changing optimal search policy.
+
+For a release-candidate V3 Auto gate without the broader desktop benchmark
+suite, run:
+
+```sh
+scripts/release_check.sh --profile quick --with-v3-auto
+```
+
+That command runs quick release validation plus `rubik-benchmark-v3-auto-gates`.
+It does not enable the wider `--with-benchmarks` set such as profile-realistic,
+embedded multiseed, or optimal stress gates. `scripts/release_check.sh --profile
+full --with-large-local` includes the Auto hardening benchmark and gates. The
+CMake target runs `rubik-cache-setup` first so the reported solve rows are not
+dominated by first-run table generation.
 The discovery target runs additional depth-15 random batches and writes a
 `warm_optimal_auto_discovery_slowest.csv` file sorted by elapsed time. Promote
 only repeatedly slow discovery cases into gated tail regressions.

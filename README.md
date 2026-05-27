@@ -253,6 +253,13 @@ Release-candidate benchmark gates:
 scripts/release_check.sh --profile full --with-benchmarks
 ```
 
+V3 Auto release-candidate gates can be run separately from the broader desktop
+benchmark set:
+
+```sh
+scripts/release_check.sh --profile quick --with-v3-auto
+```
+
 Large local and adaptive Auto hardening optimal gates are intentionally separate
 because they need large tables and can take a long time on a cold cache:
 
