@@ -6,7 +6,7 @@ cd "${repo_root}"
 
 matches="$(
     rg -n -i \
-        "raspberry pi [0-9]+ estimate|planning range|[0-9]+x-[0-9]+x slower|desktop estimates for raspberry|internal planning notes|internal process notes|local process notes|non-user-facing planning artifacts" \
+        "raspberry pi [0-9]+ estimate|planning range|[0-9]+x-[0-9]+x slower|desktop estimates for raspberry|desktop/orin|orin-style|internal planning notes|internal process notes|local process notes|non-user-facing planning artifacts" \
         README.md CHANGELOG.md docs || true
 )"
 

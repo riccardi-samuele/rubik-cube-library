@@ -218,9 +218,9 @@ Per-seed max elapsed:
 | 99 | 21,945 | 11,053 | 17,854,969 |
 | 888 | 20,319 | 9,522 | 14,947,024 |
 
-The 8-thread run is a desktop/Orin-style latency profile. It reduces wall time
-substantially, while sometimes expanding more nodes because parallel workers can
-continue until the winning branch stops the search.
+The 8-thread run is a high-throughput local latency profile. It reduces wall
+time substantially, while sometimes expanding more nodes because parallel
+workers can continue until the winning branch stops the search.
 
 This suite has no pass/fail latency gate yet. It is a measurement tool for
 finding and replaying frontier cases before promoting a new optimization into

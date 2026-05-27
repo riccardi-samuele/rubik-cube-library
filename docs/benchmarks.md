@@ -365,8 +365,8 @@ Profile selection:
   probe across public profiles with `--diagnose-optimal`. Timeout rows are kept
   in the summary so the suite can map the current search frontier.
 - `--suite optimal-large-local`: run the large local `LargeLocal/Optimal`
-  depth-15 probe across fixed seeds. This suite is intended for desktop/Orin
-  class validation and uses the public `large-local` profile.
+  depth-15 probe across fixed seeds. This suite is intended for high-throughput
+  local validation and uses the public `large-local` profile.
 - `--suite optimal-auto-tail`: replay the slowest known depth-15 local optimal
   seeds through `SolveProfile::Auto`. The CMake target uses automatic thread
   selection, prewarms the cache, and uses a 2 GiB memory budget to validate the
