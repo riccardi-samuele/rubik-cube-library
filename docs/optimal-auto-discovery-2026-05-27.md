@@ -94,3 +94,64 @@ Decision:
 The follow-up sweep did not exceed the promoted seed `1009` tail. No new gate
 case is added from this run. Seed `2016` is a useful candidate for future
 manual A/B experiments because both sampled cases landed above `9000 ms`.
+
+## Tail A/B Ordering Experiment
+
+The next experiment compared existing ordering variants on the promoted seed
+`1009` and the follow-up seed `2016`.
+
+Command shape:
+
+```sh
+RUBIK_TABLE_CACHE_DIR=/tmp/rubik_cube_library_optimal_auto_tail_cache \
+  out/release-native-lto/rubik-bench \
+  --mode optimal \
+  --profile auto \
+  --threads 0 \
+  --max-memory-mb 2048 \
+  --timeout-ms 30000 \
+  --max-depth 15 \
+  --case-set random \
+  --random-count 1 \
+  --random-depth 15 \
+  --random-seed SEED \
+  --slowest-count 1 \
+  --diagnose-optimal
+```
+
+Targeted result:
+
+| Seed | Variant | Elapsed ms | Nodes |
+| --- | --- | ---: | ---: |
+| 1009 | baseline | 10357 | 34676678 |
+| 1009 | strong ordering | 10094 | 33130102 |
+| 1009 | phase-2 ordering | 10421 | 34705363 |
+| 1009 | goal depth 6 | 13732 | 34713387 |
+| 2016 | baseline | 9791 | 24650997 |
+| 2016 | strong ordering | 5587 | 19641485 |
+| 2016 | phase-2 ordering | 9676 | 24612315 |
+| 2016 | goal depth 6 | 12882 | 24667363 |
+
+`strong ordering` is the only promising variant from this targeted run. It
+reduced seed `2016` substantially and slightly improved seed `1009`.
+`phase-2 ordering` was neutral to worse, and `goal depth 6` increased elapsed
+time on both cases.
+
+Full Auto tail check with `RUBIK_EXPERIMENTAL_STRONG_OPTIMAL_ORDERING=1`:
+
+| Seed | Strong elapsed ms | Strong nodes |
+| --- | ---: | ---: |
+| 987654321 | 7703 | 26219475 |
+| 424242 | 3134 | 10263374 |
+| 1009 | 10377 | 33183627 |
+| 666 | 1061 | 2804441 |
+| 555 | 3099 | 9501170 |
+| 99 | 3571 | 11404899 |
+| 888 | 4328 | 14244652 |
+
+Decision:
+
+Do not promote `strong ordering` globally yet. It improved several heavy tails,
+but it also made some previously fast tail cases slower. The next useful step is
+to design a selective policy, or gather more evidence about when strong ordering
+wins, before changing the default optimal search order.
