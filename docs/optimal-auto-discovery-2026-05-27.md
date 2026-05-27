@@ -53,3 +53,44 @@ The seed `1009` case is slower than the previous known Auto tail cases while
 remaining under the `12000 ms` gate. It is promoted into the repeatable
 `rubik-benchmark-optimal-auto-tail` suite and its gate so future changes cannot
 regress this tail silently.
+
+## Follow-up Sweep
+
+Command:
+
+```sh
+scripts/run_benchmark_suite.sh \
+  --suite optimal-auto-discovery \
+  --build-dir out/release-native-lto \
+  --cache-dir /tmp/rubik_cube_library_optimal_auto_discovery_smoke_cache \
+  --output-dir out/release-native-lto/benchmark-results/optimal-auto-discovery-wide-2 \
+  --seeds 2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016 \
+  --deep-opt15-count 2 \
+  --threads 0 \
+  --max-memory-mb 2048
+```
+
+Result:
+
+- Solved: `32/32`
+- Failed: `0`
+- Slowest case: seed `2016`, case `random_2016_1`
+- Slowest elapsed: `9800 ms`
+- Slowest nodes expanded: `24617212`
+- Slowest solution length: `15`
+
+Slowest follow-up cases:
+
+| Rank | Seed | Case | Elapsed ms | Nodes | Solution length |
+| --- | --- | --- | ---: | ---: | ---: |
+| 1 | 2016 | random_2016_1 | 9800 | 24617212 | 15 |
+| 2 | 2016 | random_2016_2 | 9088 | 27127250 | 15 |
+| 3 | 2014 | random_2014_1 | 7329 | 23836571 | 15 |
+| 4 | 2002 | random_2002_2 | 7282 | 24503462 | 15 |
+| 5 | 2011 | random_2011_2 | 7123 | 23694722 | 15 |
+
+Decision:
+
+The follow-up sweep did not exceed the promoted seed `1009` tail. No new gate
+case is added from this run. Seed `2016` is a useful candidate for future
+manual A/B experiments because both sampled cases landed above `9000 ms`.
