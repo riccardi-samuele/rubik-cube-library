@@ -523,6 +523,16 @@ add_custom_target(rubik-benchmark-optimal-auto-hardening-gates
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking Auto optimal hardening gates"
 )
+add_custom_target(rubik-benchmark-v3-auto-gates
+    DEPENDS
+        rubik-benchmark-auto-profile
+        rubik-benchmark-auto-profile-gates
+        rubik-benchmark-optimal-auto-tail
+        rubik-benchmark-optimal-auto-tail-gates
+        rubik-benchmark-optimal-auto-hardening
+        rubik-benchmark-optimal-auto-hardening-gates
+    COMMENT "Running V3 Auto optimal benchmark gates"
+)
 add_custom_target(rubik-benchmark-optimal-auto-discovery
     COMMAND rubik-cache-setup
         --profile auto
