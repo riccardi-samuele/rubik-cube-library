@@ -17,7 +17,7 @@
 - `scripts/run_v4_deep_split_ab.sh`: run baseline vs deep-split over the V4 corpus cases.
 - `tests/run_v4_deep_split_ab_rejects_missing_values.sh`: validate script argument handling.
 - `CMakeLists.txt`: register tests and optional benchmark target.
-- `docs/v4-deep-root-splitting-2026-05-28.md`: record measured results and decision.
+- `docs/v4-deep-root-splitting-results-2026-05-28.md`: record measured results and decision.
 
 ## Design Constraints
 
@@ -32,7 +32,7 @@
 **Files:**
 - Modify: `tests/rubik_tests.cpp`
 
-- [ ] **Step 1: Add test function**
+- [x] **Step 1: Add test function**
 
 Add a test near the existing root diagnostics tests:
 
@@ -62,7 +62,7 @@ void testExperimentalDeepRootSplitReportsDiagnostics()
 }
 ```
 
-- [ ] **Step 2: Register test call**
+- [x] **Step 2: Register test call**
 
 Add this call in `main()` with the other solver diagnostics tests:
 
@@ -70,7 +70,7 @@ Add this call in `main()` with the other solver diagnostics tests:
 testExperimentalDeepRootSplitReportsDiagnostics();
 ```
 
-- [ ] **Step 3: Run and verify failure**
+- [x] **Step 3: Run and verify failure**
 
 Run:
 
@@ -86,7 +86,7 @@ Expected: `rubik_tests` fails because `deep_root_split=enabled` is not reported 
 **Files:**
 - Modify: `src/solver.cpp`
 
-- [ ] **Step 1: Add flag reader**
+- [x] **Step 1: Add flag reader**
 
 Add a helper near the other environment-flag helpers:
 
@@ -97,7 +97,7 @@ bool experimentalDeepRootSplitEnabled()
 }
 ```
 
-- [ ] **Step 2: Thread flag into solve**
+- [x] **Step 2: Thread flag into solve**
 
 In `Solver::solve`, read:
 
@@ -107,7 +107,7 @@ const bool useDeepRootSplit = experimentalDeepRootSplitEnabled() && effectiveOpt
 
 Use this only to choose between the existing `parallelRootDfs` and the new experimental function added in Task 3.
 
-- [ ] **Step 3: Run compile check**
+- [x] **Step 3: Run compile check**
 
 Run:
 
@@ -122,7 +122,7 @@ Expected: build passes; test still fails until Task 3.
 **Files:**
 - Modify: `src/solver.cpp`
 
-- [ ] **Step 1: Add task type**
+- [x] **Step 1: Add task type**
 
 Add near `WorkerSearchProfileEntry`:
 
@@ -135,13 +135,13 @@ struct DeepRootTask {
 };
 ```
 
-- [ ] **Step 2: Build split tasks**
+- [x] **Step 2: Build split tasks**
 
 Add a helper that receives the already sorted root candidates and expands each root by one more legal move using `collectCandidateMoves`. For each accepted child, create a `DeepRootTask` with prefix `{rootMove, childMove}` and depth `2`.
 
 If a root has no depth-2 child tasks, add one fallback task with prefix `{rootMove}` and depth `1`. This preserves completeness when pruning removes all depth-2 children.
 
-- [ ] **Step 3: Add `parallelDeepRootDfs`**
+- [x] **Step 3: Add `parallelDeepRootDfs`**
 
 Implement a sibling of `parallelRootDfs` with this behavior:
 
@@ -159,7 +159,7 @@ Implement a sibling of `parallelRootDfs` with this behavior:
 ;deep_root_split=enabled;split_depth=2;split_tasks=<N>
 ```
 
-- [ ] **Step 4: Route experimental path**
+- [x] **Step 4: Route experimental path**
 
 In `Solver::solve`, use:
 
@@ -173,7 +173,7 @@ const SearchState result = effectiveOptions.threads > 1
 
 Expected: default path is byte-for-byte behaviorally unchanged unless the env var is set.
 
-- [ ] **Step 5: Run correctness tests**
+- [x] **Step 5: Run correctness tests**
 
 Run:
 
@@ -183,7 +183,7 @@ ctest --test-dir out/release-native-lto -R "rubik_tests|cli_solve_accepts_thread
 
 Expected: all pass.
 
-- [ ] **Step 6: Commit experimental scheduler**
+- [x] **Step 6: Commit experimental scheduler**
 
 Run:
 
@@ -201,7 +201,7 @@ Expected: commit succeeds only if tests pass.
 - Create: `tests/run_v4_deep_split_ab_rejects_missing_values.sh`
 - Modify: `CMakeLists.txt`
 
-- [ ] **Step 1: Add missing-value test**
+- [x] **Step 1: Add missing-value test**
 
 Create `tests/run_v4_deep_split_ab_rejects_missing_values.sh`:
 
@@ -219,7 +219,7 @@ script="${1:-scripts/run_v4_deep_split_ab.sh}"
 grep -q "Usage: scripts/run_v4_deep_split_ab.sh" /tmp/run_v4_deep_split_ab_missing_value.out
 ```
 
-- [ ] **Step 2: Create runner**
+- [x] **Step 2: Create runner**
 
 Create `scripts/run_v4_deep_split_ab.sh`. It should:
 
@@ -233,11 +233,11 @@ Expected output files:
 
 ```text
 <output-dir>/baseline/summary.csv
-<output-dir>/candidate/summary.csv
+<output-dir>/deep-split/summary.csv
 <output-dir>/comparison.csv
 ```
 
-- [ ] **Step 3: Register CTest**
+- [x] **Step 3: Register CTest**
 
 Add:
 
@@ -249,7 +249,7 @@ add_test(
 )
 ```
 
-- [ ] **Step 4: Validate script**
+- [x] **Step 4: Validate script**
 
 Run:
 
@@ -262,7 +262,7 @@ scripts/run_v4_deep_split_ab.sh --help
 
 Expected: CTest passes and help prints the usage line.
 
-- [ ] **Step 5: Commit runner**
+- [x] **Step 5: Commit runner**
 
 Run:
 
@@ -276,9 +276,9 @@ Expected: commit succeeds.
 ## Task 5: Run A/B On V4 Corpus
 
 **Files:**
-- Create: `docs/v4-deep-root-splitting-2026-05-28.md`
+- Create: `docs/v4-deep-root-splitting-results-2026-05-28.md`
 
-- [ ] **Step 1: Run benchmark**
+- [x] **Step 1: Run benchmark**
 
 Run:
 
@@ -295,7 +295,7 @@ scripts/run_v4_deep_split_ab.sh \
 
 Expected: all baseline and candidate cases solve optimally.
 
-- [ ] **Step 2: Inspect comparison**
+- [x] **Step 2: Inspect comparison**
 
 Run:
 
@@ -310,9 +310,9 @@ Acceptance target:
 - candidate does not regress average latency by more than `5%`;
 - every candidate row remains `Optimal,true`.
 
-- [ ] **Step 3: Document result**
+- [x] **Step 3: Document result**
 
-Create `docs/v4-deep-root-splitting-2026-05-28.md` with:
+Create `docs/v4-deep-root-splitting-results-2026-05-28.md` with:
 
 - command;
 - configuration;
@@ -320,7 +320,7 @@ Create `docs/v4-deep-root-splitting-2026-05-28.md` with:
 - decision: promote, keep experimental, or reject;
 - statement that no embedded hardware measurements are included.
 
-- [ ] **Step 4: Run validation**
+- [x] **Step 4: Run validation**
 
 Run:
 
@@ -330,12 +330,12 @@ ctest --test-dir out/release-native-lto -R "rubik_tests|run_v4|compare_v4|public
 
 Expected: all pass.
 
-- [ ] **Step 5: Commit result**
+- [x] **Step 5: Commit result**
 
 Run:
 
 ```bash
-git add docs/v4-deep-root-splitting-2026-05-28.md
+git add docs/v4-deep-root-splitting-results-2026-05-28.md
 git commit -m "Record V4 deep root splitting experiment"
 ```
 
@@ -345,17 +345,17 @@ Expected: commit succeeds.
 
 **Files:**
 - Modify if promoted: `src/solver.cpp`, `docs/v4-tail-corpus-2026-05-27.md`, `docs/roadmap.md`
-- Modify if rejected: `docs/v4-deep-root-splitting-2026-05-28.md`
+- Modify if rejected: `docs/v4-deep-root-splitting-results-2026-05-28.md`
 
-- [ ] **Step 1: If promoted**
+- [x] **Step 1: If promoted**
 
 Keep the feature behind `RUBIK_EXPERIMENTAL_DEEP_ROOT_SPLIT=1` unless the A/B result is clearly better on max and average latency. If clearly better, consider enabling it for `SolveProfile::Auto` only in desktop tail conditions.
 
-- [ ] **Step 2: If rejected**
+- [x] **Step 2: If rejected**
 
 Leave the code behind the experimental flag only if it is useful for future research and does not add runtime overhead to default solving. Otherwise remove the experimental code and keep only the documented negative result.
 
-- [ ] **Step 3: Final targeted validation**
+- [x] **Step 3: Final targeted validation**
 
 Run:
 
@@ -365,7 +365,7 @@ ctest --test-dir out/release-native-lto -R "rubik_tests|public_docs_no_unverifie
 
 Expected: all pass.
 
-- [ ] **Step 4: Commit decision**
+- [x] **Step 4: Commit decision**
 
 Run one of:
 
