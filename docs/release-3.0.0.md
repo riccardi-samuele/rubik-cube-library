@@ -64,11 +64,13 @@ Latest local V3 verification:
 - Result: passed.
 - Command: `cmake --build out/release-native-lto --target rubik-benchmark-v3-auto-gates`
 - Result: passed.
+- Command: `scripts/release_check.sh --profile quick --with-v3-auto`
+- Result: `release_check,status,passed`
 - Archive audit: source tarball regenerated, checked for generated artifacts,
   wrote a SHA-256 checksum, and verified required versioned release documents.
 - Archive contents: `149` paths.
 - Archive checksum:
-  `9f2aad917145d587cc5dbb8fe4af4c2fa6d55b3b4340e6e8aa1d1458f8ecd732  rubik_cube_library-3.0.0.tar.gz`
+  `eea3d2ecece8310a8b4a8cf8351621d0da258bbffcf9d1b36de65dba99d03077  rubik_cube_library-3.0.0.tar.gz`
 
 See [V3 Local Verification - 2026-05-27](v3-local-verification-2026-05-27.md).
 
@@ -86,9 +88,9 @@ See [V3 Local Verification - 2026-05-27](v3-local-verification-2026-05-27.md).
 - [x] Draft GitHub Release text and asset checklist for `v3.0.0`.
 - [x] Set project version to `3.0.0` in CMake package metadata.
 - [x] Regenerate and validate the `3.0.0` source archive.
-- [ ] Run final release validation with V3 Auto gates.
-- [ ] Confirm public docs contain no unverified hardware performance claims.
-- [ ] Confirm generated artifacts are not committed.
+- [x] Run final release validation with V3 Auto gates.
+- [x] Confirm public docs contain no unverified hardware performance claims.
+- [x] Confirm generated artifacts are not committed.
 - [ ] Create the local release tag.
 - [ ] Upload archive and checksum to the GitHub Release.
 
@@ -192,8 +194,7 @@ Experimental surface:
 
 Hard blockers:
 
-- Final release-candidate validation has not been run after setting the final
-  `3.0.0` version.
+- Local release tag has not been created yet.
 
 Soft blockers:
 
