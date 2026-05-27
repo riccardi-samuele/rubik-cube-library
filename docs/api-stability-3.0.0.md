@@ -29,4 +29,5 @@ used by the solve. Stable values are `base_bound`, `auto_strong_bound`,
 data for benchmark analysis. It is informational; consumers should treat it as a
 semicolon-separated key-value string rather than a fixed schema. Parallel
 optimal searches may include a `root_search` field with per-root outcome and
-expanded-node counts.
+expanded-node counts, and diagnostic runs may include `root_bound_diagnostics`
+with per-root pruning counters.

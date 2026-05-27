@@ -156,7 +156,8 @@ ordering used by that solve. Stable values are `base_bound`,
 root child-ordering signals used in benchmark analysis. It is informational and
 may grow with additional key-value fields. Parallel optimal searches also report
 `root_search`, the per-root search outcome and expanded-node count used for
-solver tuning.
+solver tuning. When diagnostics are collected, parallel optimal searches also
+report `root_bound_diagnostics` with per-root pruning counters.
 
 ## Cache Setup
 

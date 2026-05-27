@@ -1385,6 +1385,26 @@ void testParallelOptimalReportsRootSearchProfile()
     expect(thirdSeparator != std::string_view::npos);
 }
 
+void testParallelOptimalReportsRootBoundDiagnosticsWhenCollected()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R U F"));
+
+    const rubik::Solver solver;
+    const auto result = solver.solve(cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .maxDepth = 5,
+        .threads = 4,
+        .profile = rubik::SolveProfile::Default,
+        .collectDiagnostics = true,
+    });
+
+    expect(result.status == rubik::SolveStatus::Optimal);
+    expect(result.isOptimal);
+    expect(result.plan.rootOrderingProfile.find("root_bound_diagnostics=") != std::string::npos);
+    expect(result.plan.rootOrderingProfile.find(":found:") != std::string::npos);
+}
+
 void testSolveMemoryLimit()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -1557,6 +1577,7 @@ int main()
     testOptimalRootOrderingReportsSolutionRank();
     testExperimentalRootOrderingReverseTieChangesRootOrderOnly();
     testParallelOptimalReportsRootSearchProfile();
+    testParallelOptimalReportsRootBoundDiagnosticsWhenCollected();
     testSolveMemoryLimit();
     testFastTinyScramble();
     testPhase1TinyScramble();

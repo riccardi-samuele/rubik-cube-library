@@ -773,8 +773,10 @@ struct RootSearchProfileEntry {
     Move move = Move::U;
     std::uint64_t nodesExpanded = 0;
     std::uint64_t elapsedMs = 0;
+    SolveBoundDiagnostics diagnostics;
     SearchState state = SearchState::NotFound;
     bool visited = false;
+    bool hasDiagnostics = false;
 };
 
 struct RootOrderingProfile {
@@ -1270,6 +1272,40 @@ std::string formatRootSearchProfile(const std::vector<RootSearchProfileEntry>& e
     return out.str();
 }
 
+std::string formatRootBoundDiagnostics(const std::vector<RootSearchProfileEntry>& entries)
+{
+    const bool hasAnyDiagnostics = std::any_of(
+        entries.begin(),
+        entries.end(),
+        [](const RootSearchProfileEntry& entry) {
+            return entry.hasDiagnostics;
+        });
+    if (!hasAnyDiagnostics) {
+        return {};
+    }
+
+    std::ostringstream out;
+    out << ";root_bound_diagnostics=";
+    for (std::size_t i = 0; i < entries.size(); ++i) {
+        if (i > 0) {
+            out << '|';
+        }
+        const RootSearchProfileEntry& entry = entries[i];
+        const SolveBoundDiagnostics diagnostics = entry.hasDiagnostics
+            ? entry.diagnostics
+            : SolveBoundDiagnostics{};
+        out << toString(entry.move) << ':'
+            << (entry.visited ? searchStateToken(entry.state) : "unvisited") << ':'
+            << diagnostics.cheapNodePrunes << ':'
+            << diagnostics.threePhaseNodeChecks << ':'
+            << diagnostics.threePhaseNodePrunes << ':'
+            << diagnostics.cheapCandidatePrunes << ':'
+            << diagnostics.threePhaseCandidateChecks << ':'
+            << diagnostics.threePhaseCandidatePrunes;
+    }
+    return out.str();
+}
+
 template <typename BoundGetter>
 std::string rootBoundHistogram(
     const std::array<RootMoveProfile, move_count>& moves,
@@ -1538,6 +1574,20 @@ void mergeDiagnostics(SolveBoundDiagnostics& target, const SolveBoundDiagnostics
     target.threePhaseCandidatePrunes += source.threePhaseCandidatePrunes;
 }
 
+SolveBoundDiagnostics diffDiagnostics(
+    const SolveBoundDiagnostics& after,
+    const SolveBoundDiagnostics& before)
+{
+    return {
+        .cheapNodePrunes = after.cheapNodePrunes - before.cheapNodePrunes,
+        .threePhaseNodeChecks = after.threePhaseNodeChecks - before.threePhaseNodeChecks,
+        .threePhaseNodePrunes = after.threePhaseNodePrunes - before.threePhaseNodePrunes,
+        .cheapCandidatePrunes = after.cheapCandidatePrunes - before.cheapCandidatePrunes,
+        .threePhaseCandidateChecks = after.threePhaseCandidateChecks - before.threePhaseCandidateChecks,
+        .threePhaseCandidatePrunes = after.threePhaseCandidatePrunes - before.threePhaseCandidatePrunes,
+    };
+}
+
 SearchState parallelRootDfs(
     const SearchNode& root,
     int limit,
@@ -1602,8 +1652,10 @@ SearchState parallelRootDfs(
                 .move = candidates[static_cast<std::size_t>(i)].move,
                 .nodesExpanded = 0,
                 .elapsedMs = 0,
+                .diagnostics = {},
                 .state = SearchState::NotFound,
                 .visited = false,
+                .hasDiagnostics = false,
             });
         }
     }
@@ -1632,6 +1684,7 @@ SearchState parallelRootDfs(
                 }
 
                 const std::uint64_t nodesBeforeCandidate = localNodes;
+                const SolveBoundDiagnostics diagnosticsBeforeCandidate = localDiagnostics;
                 const auto candidateStartedAt = std::chrono::steady_clock::now();
                 std::vector<Move> path{candidates[index].move};
                 std::vector<Move> localSolution;
@@ -1661,6 +1714,10 @@ SearchState parallelRootDfs(
                     RootSearchProfileEntry& entry = (*rootSearchProfile)[static_cast<std::size_t>(index)];
                     entry.nodesExpanded = localNodes - nodesBeforeCandidate;
                     entry.elapsedMs = static_cast<std::uint64_t>(candidateElapsed.count());
+                    if (diagnostics != nullptr) {
+                        entry.diagnostics = diffDiagnostics(localDiagnostics, diagnosticsBeforeCandidate);
+                        entry.hasDiagnostics = true;
+                    }
                     entry.state = state;
                     entry.visited = true;
                 }
@@ -2186,6 +2243,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                 rootOrderingMode,
                 solution);
             plan.publicPlan.rootOrderingProfile += formatRootSearchProfile(rootSearchProfile);
+            plan.publicPlan.rootOrderingProfile += formatRootBoundDiagnostics(rootSearchProfile);
             return withPlan({
                 .status = SolveStatus::Optimal,
                 .moves = solution,

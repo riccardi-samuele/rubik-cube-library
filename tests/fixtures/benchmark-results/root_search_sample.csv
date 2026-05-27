@@ -2,4 +2,4 @@ benchmark,name,root_search_fixture
 benchmark,mode,optimal
 benchmark,profile,large-local
 case,case_depth,scramble,status,optimal,moves,initial_lower_bound,elapsed_ms,nodes_expanded,nodes_per_ms,max_depth,timeout_ms,nodes_by_depth,solution,optimal_move_ordering,root_ordering_profile
-random_1009_1,15,"D R F'",Optimal,true,15,9,9846,33238809,3375.87,15,30000,"5|107|30144269","D B2 D2",auto_strong_bound,"lb=9;solution_rank=3;root_candidate_count=4;root_ordering_mode=default;root_order=U/8|B/8|D/9|L/9;root_search=U:not_found:1962759:612|B:not_found:1685684:544|D:found:2004969:701|L:unvisited:0:0"
+random_1009_1,15,"D R F'",Optimal,true,15,9,9846,33238809,3375.87,15,30000,"5|107|30144269","D B2 D2",auto_strong_bound,"lb=9;solution_rank=3;root_candidate_count=4;root_ordering_mode=default;root_order=U/8|B/8|D/9|L/9;root_search=U:not_found:1962759:612|B:not_found:1685684:544|D:found:2004969:701|L:unvisited:0:0;root_bound_diagnostics=U:not_found:100:200:300:400:500:600|B:not_found:101:201:301:401:501:601|D:found:102:202:302:402:502:602|L:unvisited:0:0:0:0:0:0"

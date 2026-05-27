@@ -78,6 +78,27 @@ def parse_root_search(profile):
     return entries
 
 
+def parse_root_bound_diagnostics(profile):
+    root_bound_diagnostics = profile_value(profile, "root_bound_diagnostics")
+    if not root_bound_diagnostics:
+        return {}
+
+    entries = {}
+    for index, token in enumerate(root_bound_diagnostics.split("|"), start=1):
+        pieces = token.split(":")
+        if len(pieces) != 8:
+            continue
+        entries[index] = {
+            "cheap_node_prunes": pieces[2],
+            "three_phase_node_checks": pieces[3],
+            "three_phase_node_prunes": pieces[4],
+            "cheap_candidate_prunes": pieces[5],
+            "three_phase_candidate_checks": pieces[6],
+            "three_phase_candidate_prunes": pieces[7],
+        }
+    return entries
+
+
 def case_rows(path):
     benchmark = ""
     with path.open(newline="") as handle:
@@ -91,8 +112,10 @@ def case_rows(path):
             root_rows = parse_root_search(profile)
             if not root_rows:
                 continue
+            root_bound_diagnostics = parse_root_bound_diagnostics(profile)
             solution_rank = profile_value(profile, "solution_rank")
             for root_rank, move, outcome, nodes, elapsed_ms in root_rows:
+                diagnostics = root_bound_diagnostics.get(root_rank, {})
                 yield {
                     "source_file": path.name,
                     "benchmark": benchmark,
@@ -105,6 +128,12 @@ def case_rows(path):
                     "outcome": outcome,
                     "nodes_expanded": nodes,
                     "root_elapsed_ms": elapsed_ms,
+                    "cheap_node_prunes": diagnostics.get("cheap_node_prunes", ""),
+                    "three_phase_node_checks": diagnostics.get("three_phase_node_checks", ""),
+                    "three_phase_node_prunes": diagnostics.get("three_phase_node_prunes", ""),
+                    "cheap_candidate_prunes": diagnostics.get("cheap_candidate_prunes", ""),
+                    "three_phase_candidate_checks": diagnostics.get("three_phase_candidate_checks", ""),
+                    "three_phase_candidate_prunes": diagnostics.get("three_phase_candidate_prunes", ""),
                     "before_solution": "true" if solution_rank and root_rank < int(solution_rank) else "false",
                 }
 
@@ -133,6 +162,12 @@ def emit(rows, output):
         "outcome",
         "nodes_expanded",
         "root_elapsed_ms",
+        "cheap_node_prunes",
+        "three_phase_node_checks",
+        "three_phase_node_prunes",
+        "cheap_candidate_prunes",
+        "three_phase_candidate_checks",
+        "three_phase_candidate_prunes",
         "before_solution",
     ]
     if output is None:
