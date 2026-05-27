@@ -6,6 +6,39 @@ This project uses semantic versioning for public releases. The main
 `rubik::Solver` API is treated as stable, while explicitly experimental APIs
 can still change between minor releases.
 
+## 3.0.0 - Unreleased
+
+Third stable release scope:
+
+- Make `SolveProfile::Auto` the recommended optimal profile for adaptive local
+  HTM optimal solving.
+- Keep the V2 certified optimality contract: `SolveStatus::Optimal` means the
+  returned HTM solution is proven minimal for the requested options.
+- Add `SolvePlan` reporting so callers can inspect the effective profile,
+  cache policy, thread count, memory budget, and optimal move-ordering policy
+  selected for a solve.
+- Add cache preparation support through `prepareCache()` and the
+  `rubik-cache-setup` CLI.
+- Add repeatable V3 Auto benchmark gates for shallow Auto solves, fixed
+  depth-15 Auto tail cases, and Auto hardening cases.
+- Promote selective Auto optimal move ordering for measured tail cases while
+  keeping environment-variable overrides available for experiments.
+- Document V3 local verification results from the development desktop.
+- Keep Raspberry Pi, Jetson Nano, and Jetson Orin performance claims out of
+  public release notes until direct hardware measurements are available.
+
+Known 3.0 limits:
+
+- QTM is not implemented.
+- `SolveMode::Fast` does not guarantee optimality.
+- Raspberry Pi, Jetson Nano, and Jetson Orin latency claims are pending real
+  hardware tests.
+- `SolveProfile::LargeLocal` and Auto large-local selections have a high memory
+  footprint and are not guaranteed to fit every local target.
+- GPU acceleration is not implemented.
+- Experimental APIs and environment-variable tuning flags may change in future
+  releases.
+
 ## 2.0.0 - 2026-05-26
 
 Second stable release scope:

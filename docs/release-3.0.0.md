@@ -77,7 +77,7 @@ See [V3 Local Verification - 2026-05-27](v3-local-verification-2026-05-27.md).
 - [x] Add repeatable V3 Auto benchmark gates.
 - [x] Record local V3 verification without unmeasured hardware claims.
 - [ ] Finalize the `3.0.0` API stability document by removing draft wording.
-- [ ] Add changelog entry for `3.0.0`.
+- [x] Add changelog entry for `3.0.0`.
 - [ ] Draft GitHub Release text and asset checklist for `v3.0.0`.
 - [ ] Set project version to `3.0.0` in CMake package metadata.
 - [ ] Regenerate and validate the `3.0.0` source archive.
