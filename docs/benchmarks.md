@@ -29,6 +29,7 @@ cmake --build build --target rubik-benchmark-optimal-auto-tail
 cmake --build build --target rubik-benchmark-optimal-auto-tail-gates
 cmake --build build --target rubik-benchmark-optimal-auto-tail-ordering-ab
 cmake --build build --target rubik-benchmark-optimal-auto-hardening
+cmake --build build --target rubik-benchmark-optimal-auto-hardening-gates
 cmake --build build --target rubik-benchmark-optimal-auto-discovery
 cmake --build build --target rubik-benchmark-embedded-multiseed
 cmake --build build --target rubik-benchmark-embedded-multiseed-gates
@@ -63,6 +64,7 @@ scripts/run_benchmark_suite.sh --suite optimal-large-local --seeds 12345,2026052
 scripts/run_benchmark_suite.sh --suite optimal-auto-tail --seeds 987654321,424242,1009,666,555,99,888 --threads 0 --max-memory-mb 2048 --deep-opt15-count 1
 scripts/run_auto_tail_ordering_ab.sh --build-dir out/release-native-lto --cache-dir /tmp/rubik_cube_library_optimal_auto_tail_cache --output-dir out/release-native-lto/benchmark-results/optimal-auto-tail-ordering-ab --seeds 987654321,424242,1009,2016,666,555,99,888 --threads 0 --max-memory-mb 2048
 scripts/run_benchmark_suite.sh --suite optimal-auto-hardening --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525 --threads 0 --max-memory-mb 2048 --deep-opt14-count 2 --deep-opt15-count 1
+scripts/check_benchmark_gates.sh --summary-file out/release-native-lto/benchmark-results/optimal-auto-hardening/warm_optimal_auto_hardening_summary.csv --gate auto,optimal,random_seed_987654321_depth_15_count_1,1,12000,12000,12000
 scripts/run_benchmark_suite.sh --suite optimal-auto-discovery --seeds 101,202,303,404,505,606,707,808 --threads 0 --max-memory-mb 2048 --deep-opt15-count 2
 scripts/run_benchmark_suite.sh --suite embedded-multiseed --seeds 12345,20260525,42 --realistic-fast-count 100 --fast-max-depth 28 --realistic-opt13-count 10
 scripts/check_benchmark_gates.sh --summary-file benchmark-results/warm_embedded_multiseed_summary.csv --gate embedded,fast,random_seed_20260525_depth_20_count_100,100,350,500,700
@@ -299,6 +301,7 @@ For V3 performance hardening, use the longer Auto diagnostic suite:
 
 ```sh
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening
+cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening-gates
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-discovery
 ```
 

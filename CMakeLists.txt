@@ -491,6 +491,36 @@ add_custom_target(rubik-benchmark-optimal-auto-hardening
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running Auto optimal hardening benchmark suite"
 )
+add_custom_target(rubik-benchmark-optimal-auto-hardening-gates
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_benchmark_gates.sh
+        --summary-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-auto-hardening/warm_optimal_auto_hardening_summary.csv
+        --gate auto,optimal,random_seed_12345_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_12345_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_20260525_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_20260525_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_42_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_42_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_314159_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_314159_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_271828_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_271828_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_987654321_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_987654321_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_7_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_7_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_99_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_99_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_123456789_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_123456789_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_424242_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_424242_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_8675309_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_8675309_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_20240525_depth_14_count_2,2,4000,4000,4000
+        --gate auto,optimal,random_seed_20240525_depth_15_count_1,1,12000,12000,12000
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Checking Auto optimal hardening gates"
+)
 add_custom_target(rubik-benchmark-optimal-auto-discovery
     COMMAND rubik-cache-setup
         --profile auto

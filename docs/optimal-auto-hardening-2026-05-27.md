@@ -7,6 +7,7 @@ Command:
 
 ```sh
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening
+cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening-gates
 ```
 
 Configuration:
@@ -83,8 +84,14 @@ confirmed that the `strong_min_count <= 6` guard avoids at least one additional
 regression pattern: seed `42` has `first_diff=1`, but its strong minimum-bound
 bucket is too wide and forced strong is slower.
 
+Gate:
+
+The repeatable `rubik-benchmark-optimal-auto-hardening-gates` target checks the
+summary CSV produced by this suite. It requires every configured case to solve,
+with `4000 ms` thresholds for depth-14 rows and `12000 ms` thresholds for
+depth-15 rows. The depth-15 threshold is intentionally conservative because the
+current slowest case is `7539 ms`.
+
 Next useful work:
 
-- Add a repeatable hardening gate for this suite, using a conservative threshold
-  derived from the current slowest case.
 - Continue discovery for slow LB `8` base cases before expanding the policy.
