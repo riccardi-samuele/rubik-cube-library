@@ -197,6 +197,7 @@ def summarize_rows(rows):
             "before_solution_roots": 0,
             "total_root_nodes": 0,
             "total_root_elapsed_ms": 0,
+            "solver_elapsed_ms": "",
             "wall_elapsed_ms": "",
             "cheap_candidate_prunes": 0,
             "three_phase_candidate_checks": 0,
@@ -213,6 +214,8 @@ def summarize_rows(rows):
         group["before_solution_roots"] += 1 if row["before_solution"] == "true" else 0
         group["total_root_nodes"] += nodes
         group["total_root_elapsed_ms"] += elapsed
+        if not group["solver_elapsed_ms"]:
+            group["solver_elapsed_ms"] = row["elapsed_ms"]
         if not group["wall_elapsed_ms"]:
             group["wall_elapsed_ms"] = row["wall_elapsed_ms"]
         group["cheap_candidate_prunes"] += cheap_prunes
@@ -226,11 +229,13 @@ def summarize_rows(rows):
     for group in groups.values():
         total_nodes = str(group["total_root_nodes"])
         total_elapsed = str(group["total_root_elapsed_ms"])
+        solver_elapsed = group["solver_elapsed_ms"]
+        solver_elapsed_value = int_value(solver_elapsed)
         wall_elapsed = group["wall_elapsed_ms"]
         wall_elapsed_value = int_value(wall_elapsed)
         wall_overhead = ""
-        if wall_elapsed_value is not None:
-            wall_overhead = str(wall_elapsed_value - group["total_root_elapsed_ms"])
+        if wall_elapsed_value is not None and solver_elapsed_value is not None:
+            wall_overhead = str(wall_elapsed_value - solver_elapsed_value)
         three_phase_checks = str(group["three_phase_candidate_checks"])
         result.append({
             "source_file": group["source_file"],
@@ -240,6 +245,7 @@ def summarize_rows(rows):
             "before_solution_roots": str(group["before_solution_roots"]),
             "total_root_nodes": total_nodes,
             "total_root_elapsed_ms": total_elapsed,
+            "solver_elapsed_ms": solver_elapsed,
             "wall_elapsed_ms": wall_elapsed,
             "wall_overhead_ms": wall_overhead,
             "root_nodes_per_ms": integer_ratio(total_nodes, total_elapsed),
@@ -305,6 +311,7 @@ def emit_summary(rows, output):
         "before_solution_roots",
         "total_root_nodes",
         "total_root_elapsed_ms",
+        "solver_elapsed_ms",
         "wall_elapsed_ms",
         "wall_overhead_ms",
         "root_nodes_per_ms",

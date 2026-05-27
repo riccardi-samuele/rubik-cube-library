@@ -892,7 +892,7 @@ add_test(
         --summary
 )
 set_tests_properties(analyze_root_search_profile_summary PROPERTIES
-    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,roots,before_solution_roots,total_root_nodes,total_root_elapsed_ms,wall_elapsed_ms,wall_overhead_ms,root_nodes_per_ms,cheap_candidate_prunes_per_node_ppm,three_phase_candidate_prune_rate_ppm,solution_root_elapsed_ms,max_root_elapsed_ms.*root_search_sample.csv,root_search_fixture,random_1009_1,4,2,5653412,1857,10123,8266,3044,212,1199600,701,701"
+    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,roots,before_solution_roots,total_root_nodes,total_root_elapsed_ms,solver_elapsed_ms,wall_elapsed_ms,wall_overhead_ms,root_nodes_per_ms,cheap_candidate_prunes_per_node_ppm,three_phase_candidate_prune_rate_ppm,solution_root_elapsed_ms,max_root_elapsed_ms.*root_search_sample.csv,root_search_fixture,random_1009_1,4,2,5653412,1857,9846,10123,277,3044,212,1199600,701,701"
 )
 add_test(
     NAME run_optimal_tail_experiments_rejects_missing_values
