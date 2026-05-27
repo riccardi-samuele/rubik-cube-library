@@ -134,6 +134,18 @@ single descending list by elapsed time. Use it after stress, tail, or deep-probe
 runs to capture replay candidates before changing optimal-mode pruning or
 search policy.
 
+Parallel root-search extraction:
+
+```sh
+scripts/analyze_root_search_profile.py \
+  --input-dir out/release-native-lto/benchmark-results/optimal-auto-tail \
+  --output out/release-native-lto/benchmark-results/optimal-auto-tail/root-search.csv
+```
+
+The root-search analyzer expands `root_search` diagnostics from benchmark CSV
+output into one row per root candidate. Use it to identify how much work is
+spent before the solution root in parallel optimal searches.
+
 V2 optimal baseline:
 
 ```sh

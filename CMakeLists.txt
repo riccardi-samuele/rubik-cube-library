@@ -873,6 +873,19 @@ add_test(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/extract_slowest_cases_rejects_missing_values.sh
 )
 add_test(
+    NAME analyze_root_search_profile
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/analyze_root_search_profile.py
+        --input-dir ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results
+        --limit 4
+)
+set_tests_properties(analyze_root_search_profile PROPERTIES
+    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,elapsed_ms,total_nodes,solution_rank,root_rank,move,outcome,nodes_expanded,before_solution.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,1,U,not_found,1962759,true.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,3,D,found,2004969,false"
+)
+add_test(
+    NAME analyze_root_search_profile_rejects_missing_values
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/analyze_root_search_profile_rejects_missing_values.sh
+)
+add_test(
     NAME run_optimal_tail_experiments_rejects_missing_values
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_optimal_tail_experiments_rejects_missing_values.sh
 )
