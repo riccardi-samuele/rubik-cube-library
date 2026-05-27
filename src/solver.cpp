@@ -438,6 +438,11 @@ bool phase2OptimalMoveOrderingEnabled()
     return environmentFlagEnabled("RUBIK_EXPERIMENTAL_PHASE2_OPTIMAL_ORDERING");
 }
 
+bool experimentalDeepRootSplitEnabled()
+{
+    return environmentFlagEnabled("RUBIK_EXPERIMENTAL_DEEP_ROOT_SPLIT");
+}
+
 enum class RootOrderingMode {
     Default,
     ReverseTie,
@@ -783,6 +788,13 @@ struct WorkerSearchProfileEntry {
     std::uint64_t rootsVisited = 0;
     std::uint64_t nodesExpanded = 0;
     std::uint64_t elapsedMs = 0;
+};
+
+struct DeepRootTask {
+    int rootIndex = 0;
+    Move rootMove = Move::U;
+    SearchNode node;
+    std::vector<Move> prefix;
 };
 
 struct RootOrderingProfile {
@@ -1324,6 +1336,13 @@ std::string formatWorkerSearchProfile(const std::vector<WorkerSearchProfileEntry
     return out.str();
 }
 
+std::string formatDeepRootSplitProfile(std::size_t taskCount)
+{
+    std::ostringstream out;
+    out << ";deep_root_split=enabled;split_depth=2;split_tasks=" << taskCount;
+    return out.str();
+}
+
 std::string formatRootBoundDiagnostics(const std::vector<RootSearchProfileEntry>& entries)
 {
     const bool hasAnyDiagnostics = std::any_of(
@@ -1842,6 +1861,270 @@ SearchState parallelRootDfs(
     return SearchState::NotFound;
 }
 
+SearchState parallelDeepRootDfs(
+    const SearchNode& root,
+    int limit,
+    const Deadline& deadline,
+    SolveProfile profile,
+    bool includeExperimentalSymmetryBounds,
+    bool includeExperimentalCornerStateBounds,
+    bool includeExperimentalCornerUpEdgeBounds,
+    bool includeExperimentalCornerDownEdgeBounds,
+    bool includeThreePhase1Bounds,
+    bool useStrongMoveOrdering,
+    bool usePhase2MoveOrdering,
+    RootOrderingMode rootOrderingMode,
+    const GoalTable* exactGoalTable,
+    unsigned int threadCount,
+    std::vector<Move>& solution,
+    std::uint64_t& nodesExpanded,
+    SolveBoundDiagnostics* diagnostics,
+    std::vector<RootSearchProfileEntry>* rootSearchProfile,
+    std::vector<WorkerSearchProfileEntry>* workerSearchProfile,
+    std::size_t* splitTaskCount)
+{
+    ++nodesExpanded;
+    if (deadline.expired()) {
+        return SearchState::Timeout;
+    }
+    if (root.cube.isSolved()) {
+        solution.clear();
+        return SearchState::Found;
+    }
+
+    std::array<CandidateMove, move_count> candidates{};
+    const int candidateCount = collectCandidateMoves(
+        root,
+        0,
+        limit,
+        profile,
+        includeExperimentalSymmetryBounds,
+        includeExperimentalCornerStateBounds,
+        includeExperimentalCornerUpEdgeBounds,
+        includeExperimentalCornerDownEdgeBounds,
+        includeThreePhase1Bounds,
+        useStrongMoveOrdering,
+        usePhase2MoveOrdering || rootOrderingMode == RootOrderingMode::Phase2TieBreak,
+        nullptr,
+        candidates,
+        diagnostics);
+    std::sort(
+        candidates.begin(),
+        candidates.begin() + candidateCount,
+        [rootOrderingMode](const CandidateMove& lhs, const CandidateMove& rhs) {
+            return candidateMoveLess(lhs, rhs, rootOrderingMode);
+        });
+
+    if (candidateCount == 0) {
+        return SearchState::NotFound;
+    }
+
+    if (rootSearchProfile != nullptr) {
+        rootSearchProfile->clear();
+        rootSearchProfile->reserve(static_cast<std::size_t>(candidateCount));
+        for (int i = 0; i < candidateCount; ++i) {
+            rootSearchProfile->push_back({
+                .move = candidates[static_cast<std::size_t>(i)].move,
+                .nodesExpanded = 0,
+                .elapsedMs = 0,
+                .diagnostics = {},
+                .state = SearchState::NotFound,
+                .visited = false,
+                .hasDiagnostics = false,
+            });
+        }
+    }
+
+    std::vector<DeepRootTask> tasks;
+    tasks.reserve(static_cast<std::size_t>(candidateCount) * move_count);
+    for (int rootIndex = 0; rootIndex < candidateCount; ++rootIndex) {
+        const Move rootMove = candidates[static_cast<std::size_t>(rootIndex)].move;
+        std::array<CandidateMove, move_count> children{};
+        const int childCount = collectCandidateMoves(
+            candidates[static_cast<std::size_t>(rootIndex)].node,
+            1,
+            limit,
+            profile,
+            includeExperimentalSymmetryBounds,
+            includeExperimentalCornerStateBounds,
+            includeExperimentalCornerUpEdgeBounds,
+            includeExperimentalCornerDownEdgeBounds,
+            includeThreePhase1Bounds,
+            useStrongMoveOrdering,
+            usePhase2MoveOrdering,
+            &rootMove,
+            children,
+            diagnostics);
+        std::sort(
+            children.begin(),
+            children.begin() + childCount,
+            [](const CandidateMove& lhs, const CandidateMove& rhs) {
+                return candidateMoveLess(lhs, rhs, RootOrderingMode::Default);
+            });
+
+        if (childCount == 0) {
+            tasks.push_back({
+                .rootIndex = rootIndex,
+                .rootMove = rootMove,
+                .node = candidates[static_cast<std::size_t>(rootIndex)].node,
+                .prefix = {rootMove},
+            });
+            continue;
+        }
+
+        for (int childIndex = 0; childIndex < childCount; ++childIndex) {
+            tasks.push_back({
+                .rootIndex = rootIndex,
+                .rootMove = rootMove,
+                .node = children[static_cast<std::size_t>(childIndex)].node,
+                .prefix = {rootMove, children[static_cast<std::size_t>(childIndex)].move},
+            });
+        }
+    }
+    if (splitTaskCount != nullptr) {
+        *splitTaskCount = tasks.size();
+    }
+    if (tasks.empty()) {
+        return SearchState::NotFound;
+    }
+
+    std::atomic_int nextTask{0};
+    std::atomic_bool stopRequested{false};
+    std::atomic_bool timedOut{false};
+    std::mutex resultMutex;
+    std::vector<Move> foundSolution;
+    std::uint64_t totalWorkerNodes = 0;
+    SolveBoundDiagnostics workerDiagnostics;
+
+    const unsigned int workers = std::max(1u, std::min(threadCount, static_cast<unsigned int>(tasks.size())));
+    if (workerSearchProfile != nullptr) {
+        workerSearchProfile->clear();
+        workerSearchProfile->reserve(workers);
+        for (unsigned int worker = 0; worker < workers; ++worker) {
+            workerSearchProfile->push_back({
+                .workerIndex = worker,
+                .rootsVisited = 0,
+                .nodesExpanded = 0,
+                .elapsedMs = 0,
+            });
+        }
+    }
+
+    std::vector<std::thread> threads;
+    threads.reserve(workers);
+
+    for (unsigned int worker = 0; worker < workers; ++worker) {
+        threads.emplace_back([&, worker] {
+            std::uint64_t localNodes = 0;
+            std::uint64_t localTasksVisited = 0;
+            std::uint64_t localElapsedMs = 0;
+            SolveBoundDiagnostics localDiagnostics;
+            while (!stopRequested.load(std::memory_order_relaxed)) {
+                const int taskIndex = nextTask.fetch_add(1, std::memory_order_relaxed);
+                if (taskIndex >= static_cast<int>(tasks.size())) {
+                    break;
+                }
+
+                const DeepRootTask& task = tasks[static_cast<std::size_t>(taskIndex)];
+                const std::uint64_t nodesBeforeTask = localNodes;
+                const SolveBoundDiagnostics diagnosticsBeforeTask = localDiagnostics;
+                const auto taskStartedAt = std::chrono::steady_clock::now();
+                std::vector<Move> path = task.prefix;
+                std::vector<Move> localSolution;
+                const SearchState state = dfs(
+                    task.node,
+                    static_cast<int>(task.prefix.size()),
+                    limit,
+                    deadline,
+                    profile,
+                    includeExperimentalSymmetryBounds,
+                    includeExperimentalCornerStateBounds,
+                    includeExperimentalCornerUpEdgeBounds,
+                    includeExperimentalCornerDownEdgeBounds,
+                    includeThreePhase1Bounds,
+                    useStrongMoveOrdering,
+                    usePhase2MoveOrdering,
+                    exactGoalTable,
+                    &stopRequested,
+                    path,
+                    localSolution,
+                    localNodes,
+                    diagnostics == nullptr ? nullptr : &localDiagnostics);
+                const auto taskElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::steady_clock::now() - taskStartedAt);
+                const std::uint64_t taskElapsedMs = static_cast<std::uint64_t>(taskElapsed.count());
+                ++localTasksVisited;
+                localElapsedMs += taskElapsedMs;
+
+                if (rootSearchProfile != nullptr) {
+                    std::scoped_lock lock(resultMutex);
+                    RootSearchProfileEntry& entry =
+                        (*rootSearchProfile)[static_cast<std::size_t>(task.rootIndex)];
+                    entry.nodesExpanded += localNodes - nodesBeforeTask;
+                    entry.elapsedMs += taskElapsedMs;
+                    entry.workerIndex = worker;
+                    if (diagnostics != nullptr) {
+                        mergeDiagnostics(
+                            entry.diagnostics,
+                            diffDiagnostics(localDiagnostics, diagnosticsBeforeTask));
+                        entry.hasDiagnostics = true;
+                    }
+                    if (state == SearchState::Found ||
+                        (state == SearchState::Timeout && entry.state != SearchState::Found)) {
+                        entry.state = state;
+                    }
+                    entry.visited = true;
+                }
+
+                if (state == SearchState::Found) {
+                    {
+                        std::scoped_lock lock(resultMutex);
+                        if (foundSolution.empty()) {
+                            foundSolution = std::move(localSolution);
+                        }
+                    }
+                    stopRequested.store(true, std::memory_order_relaxed);
+                    break;
+                }
+                if (state == SearchState::Timeout) {
+                    timedOut.store(true, std::memory_order_relaxed);
+                    stopRequested.store(true, std::memory_order_relaxed);
+                    break;
+                }
+            }
+
+            std::scoped_lock lock(resultMutex);
+            totalWorkerNodes += localNodes;
+            if (diagnostics != nullptr) {
+                mergeDiagnostics(workerDiagnostics, localDiagnostics);
+            }
+            if (workerSearchProfile != nullptr) {
+                WorkerSearchProfileEntry& entry = (*workerSearchProfile)[worker];
+                entry.rootsVisited = localTasksVisited;
+                entry.nodesExpanded = localNodes;
+                entry.elapsedMs = localElapsedMs;
+            }
+        });
+    }
+
+    for (std::thread& thread : threads) {
+        thread.join();
+    }
+
+    nodesExpanded += totalWorkerNodes;
+    if (diagnostics != nullptr) {
+        mergeDiagnostics(*diagnostics, workerDiagnostics);
+    }
+    if (!foundSolution.empty()) {
+        solution = std::move(foundSolution);
+        return SearchState::Found;
+    }
+    if (timedOut.load(std::memory_order_relaxed)) {
+        return SearchState::Timeout;
+    }
+    return SearchState::NotFound;
+}
+
 } // namespace
 
 SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
@@ -2058,6 +2341,9 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
     const GoalTable* exactGoalTable = goalTableDepth > 0
         ? &goalTable(goalTableDepth)
         : nullptr;
+    const bool useDeepRootSplit = effectiveOptions.mode == SolveMode::Optimal &&
+        effectiveOptions.threads > 1 &&
+        experimentalDeepRootSplitEnabled();
 
     if (effectiveOptions.mode == SolveMode::Fast) {
         const auto remainingTimeout = [&]() {
@@ -2264,9 +2550,32 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         std::vector<Move> solution;
         std::vector<RootSearchProfileEntry> rootSearchProfile;
         std::vector<WorkerSearchProfileEntry> workerSearchProfile;
+        std::size_t splitTaskCount = 0;
         const std::uint64_t nodesBeforeDepth = nodesExpanded;
 
-        const SearchState result = effectiveOptions.threads > 1
+        const SearchState result = useDeepRootSplit
+            ? parallelDeepRootDfs(
+                  root,
+                  limit,
+                  deadline,
+                  effectiveOptions.profile,
+                  includeExperimentalSymmetryBounds,
+                  includeExperimentalCornerStateBounds,
+                  includeExperimentalCornerUpEdgeBounds,
+                  includeExperimentalCornerDownEdgeBounds,
+                  includeThreePhase1Bounds,
+                  useStrongMoveOrdering,
+                  usePhase2MoveOrdering,
+                  rootOrderingMode,
+                  exactGoalTable,
+                  effectiveOptions.threads,
+                  solution,
+                  nodesExpanded,
+                  boundDiagnosticsPtr,
+                  &rootSearchProfile,
+                  &workerSearchProfile,
+                  &splitTaskCount)
+            : effectiveOptions.threads > 1
             ? parallelRootDfs(
                   root,
                   limit,
@@ -2321,6 +2630,9 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                 usePhase2MoveOrdering,
                 rootOrderingMode,
                 solution);
+            if (useDeepRootSplit) {
+                plan.publicPlan.rootOrderingProfile += formatDeepRootSplitProfile(splitTaskCount);
+            }
             plan.publicPlan.rootOrderingProfile += formatRootSearchProfile(rootSearchProfile);
             plan.publicPlan.rootOrderingProfile += formatRootWorkerProfile(rootSearchProfile);
             plan.publicPlan.rootOrderingProfile += formatWorkerSearchProfile(workerSearchProfile);

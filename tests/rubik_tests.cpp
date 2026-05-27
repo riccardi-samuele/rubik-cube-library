@@ -1407,6 +1407,30 @@ void testParallelOptimalReportsRootBoundDiagnosticsWhenCollected()
     expect(result.plan.rootOrderingProfile.find(":found:") != std::string::npos);
 }
 
+void testExperimentalDeepRootSplitReportsDiagnostics()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R U F D"));
+
+    const rubik::Solver solver;
+    setenv("RUBIK_EXPERIMENTAL_DEEP_ROOT_SPLIT", "1", 1);
+    const auto result = solver.solve(cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .maxDepth = 8,
+        .threads = 4,
+        .profile = rubik::SolveProfile::Default,
+        .collectDiagnostics = true,
+    });
+    unsetenv("RUBIK_EXPERIMENTAL_DEEP_ROOT_SPLIT");
+
+    expect(result.status == rubik::SolveStatus::Optimal);
+    expect(result.isOptimal);
+    expect(result.moveCount == 4);
+    expect(result.plan.rootOrderingProfile.find("deep_root_split=enabled") != std::string::npos);
+    expect(result.plan.rootOrderingProfile.find("split_tasks=") != std::string::npos);
+    expect(result.plan.rootOrderingProfile.find("worker_search=") != std::string::npos);
+}
+
 void testSolveMemoryLimit()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -1580,6 +1604,7 @@ int main()
     testExperimentalRootOrderingReverseTieChangesRootOrderOnly();
     testParallelOptimalReportsRootSearchProfile();
     testParallelOptimalReportsRootBoundDiagnosticsWhenCollected();
+    testExperimentalDeepRootSplitReportsDiagnostics();
     testSolveMemoryLimit();
     testFastTinyScramble();
     testPhase1TinyScramble();
