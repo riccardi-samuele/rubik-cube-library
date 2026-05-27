@@ -17,17 +17,27 @@ Options:
 USAGE
 }
 
+require_value() {
+    if [[ $# -lt 2 ]]; then
+        usage >&2
+        exit 2
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --input-dir)
+            require_value "$@"
             input_dir="$2"
             shift 2
             ;;
         --output)
+            require_value "$@"
             output_file="$2"
             shift 2
             ;;
         --limit)
+            require_value "$@"
             limit="$2"
             shift 2
             ;;
