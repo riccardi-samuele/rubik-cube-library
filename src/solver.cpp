@@ -771,10 +771,18 @@ struct RootSearchProfileEntry {
     Move move = Move::U;
     std::uint64_t nodesExpanded = 0;
     std::uint64_t elapsedMs = 0;
+    unsigned int workerIndex = 0;
     SolveBoundDiagnostics diagnostics;
     SearchState state = SearchState::NotFound;
     bool visited = false;
     bool hasDiagnostics = false;
+};
+
+struct WorkerSearchProfileEntry {
+    unsigned int workerIndex = 0;
+    std::uint64_t rootsVisited = 0;
+    std::uint64_t nodesExpanded = 0;
+    std::uint64_t elapsedMs = 0;
 };
 
 struct RootOrderingProfile {
@@ -1272,6 +1280,50 @@ std::string formatRootSearchProfile(const std::vector<RootSearchProfileEntry>& e
     return out.str();
 }
 
+std::string formatRootWorkerProfile(const std::vector<RootSearchProfileEntry>& entries)
+{
+    if (entries.empty()) {
+        return {};
+    }
+
+    std::ostringstream out;
+    out << ";root_workers=";
+    for (std::size_t i = 0; i < entries.size(); ++i) {
+        if (i > 0) {
+            out << '|';
+        }
+        const RootSearchProfileEntry& entry = entries[i];
+        out << toString(entry.move) << ':';
+        if (entry.visited) {
+            out << entry.workerIndex;
+        } else {
+            out << "unvisited";
+        }
+    }
+    return out.str();
+}
+
+std::string formatWorkerSearchProfile(const std::vector<WorkerSearchProfileEntry>& entries)
+{
+    if (entries.empty()) {
+        return {};
+    }
+
+    std::ostringstream out;
+    out << ";worker_search=";
+    for (std::size_t i = 0; i < entries.size(); ++i) {
+        if (i > 0) {
+            out << '|';
+        }
+        const WorkerSearchProfileEntry& entry = entries[i];
+        out << entry.workerIndex << ':'
+            << entry.rootsVisited << ':'
+            << entry.nodesExpanded << ':'
+            << entry.elapsedMs;
+    }
+    return out.str();
+}
+
 std::string formatRootBoundDiagnostics(const std::vector<RootSearchProfileEntry>& entries)
 {
     const bool hasAnyDiagnostics = std::any_of(
@@ -1606,7 +1658,8 @@ SearchState parallelRootDfs(
     std::vector<Move>& solution,
     std::uint64_t& nodesExpanded,
     SolveBoundDiagnostics* diagnostics,
-    std::vector<RootSearchProfileEntry>* rootSearchProfile)
+    std::vector<RootSearchProfileEntry>* rootSearchProfile,
+    std::vector<WorkerSearchProfileEntry>* workerSearchProfile)
 {
     ++nodesExpanded;
     if (deadline.expired()) {
@@ -1669,13 +1722,27 @@ SearchState parallelRootDfs(
     SolveBoundDiagnostics workerDiagnostics;
 
     const unsigned int workers = std::max(1u, std::min(threadCount, static_cast<unsigned int>(candidateCount)));
+    if (workerSearchProfile != nullptr) {
+        workerSearchProfile->clear();
+        workerSearchProfile->reserve(workers);
+        for (unsigned int worker = 0; worker < workers; ++worker) {
+            workerSearchProfile->push_back({
+                .workerIndex = worker,
+                .rootsVisited = 0,
+                .nodesExpanded = 0,
+                .elapsedMs = 0,
+            });
+        }
+    }
+
     std::vector<std::thread> threads;
     threads.reserve(workers);
 
     for (unsigned int worker = 0; worker < workers; ++worker) {
         threads.emplace_back([&, worker] {
-            (void)worker;
             std::uint64_t localNodes = 0;
+            std::uint64_t localRootsVisited = 0;
+            std::uint64_t localElapsedMs = 0;
             SolveBoundDiagnostics localDiagnostics;
             while (!stopRequested.load(std::memory_order_relaxed)) {
                 const int index = nextCandidate.fetch_add(1, std::memory_order_relaxed);
@@ -1709,11 +1776,15 @@ SearchState parallelRootDfs(
                     diagnostics == nullptr ? nullptr : &localDiagnostics);
                 const auto candidateElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::steady_clock::now() - candidateStartedAt);
+                const std::uint64_t candidateElapsedMs = static_cast<std::uint64_t>(candidateElapsed.count());
+                ++localRootsVisited;
+                localElapsedMs += candidateElapsedMs;
                 if (rootSearchProfile != nullptr) {
                     std::scoped_lock lock(resultMutex);
                     RootSearchProfileEntry& entry = (*rootSearchProfile)[static_cast<std::size_t>(index)];
                     entry.nodesExpanded = localNodes - nodesBeforeCandidate;
-                    entry.elapsedMs = static_cast<std::uint64_t>(candidateElapsed.count());
+                    entry.elapsedMs = candidateElapsedMs;
+                    entry.workerIndex = worker;
                     if (diagnostics != nullptr) {
                         entry.diagnostics = diffDiagnostics(localDiagnostics, diagnosticsBeforeCandidate);
                         entry.hasDiagnostics = true;
@@ -1743,6 +1814,12 @@ SearchState parallelRootDfs(
             totalWorkerNodes += localNodes;
             if (diagnostics != nullptr) {
                 mergeDiagnostics(workerDiagnostics, localDiagnostics);
+            }
+            if (workerSearchProfile != nullptr) {
+                WorkerSearchProfileEntry& entry = (*workerSearchProfile)[worker];
+                entry.rootsVisited = localRootsVisited;
+                entry.nodesExpanded = localNodes;
+                entry.elapsedMs = localElapsedMs;
             }
         });
     }
@@ -2186,6 +2263,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         std::vector<Move> path;
         std::vector<Move> solution;
         std::vector<RootSearchProfileEntry> rootSearchProfile;
+        std::vector<WorkerSearchProfileEntry> workerSearchProfile;
         const std::uint64_t nodesBeforeDepth = nodesExpanded;
 
         const SearchState result = effectiveOptions.threads > 1
@@ -2207,7 +2285,8 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                   solution,
                   nodesExpanded,
                   boundDiagnosticsPtr,
-                  &rootSearchProfile)
+                  &rootSearchProfile,
+                  &workerSearchProfile)
             : dfs(
                   root,
                   0,
@@ -2243,6 +2322,8 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                 rootOrderingMode,
                 solution);
             plan.publicPlan.rootOrderingProfile += formatRootSearchProfile(rootSearchProfile);
+            plan.publicPlan.rootOrderingProfile += formatRootWorkerProfile(rootSearchProfile);
+            plan.publicPlan.rootOrderingProfile += formatWorkerSearchProfile(workerSearchProfile);
             plan.publicPlan.rootOrderingProfile += formatRootBoundDiagnostics(rootSearchProfile);
             return withPlan({
                 .status = SolveStatus::Optimal,

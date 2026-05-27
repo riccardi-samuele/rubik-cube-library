@@ -42,48 +42,51 @@ scripts/run_v4_tail_corpus.sh \
 
 - Cases: `11/11` solved
 - Failed cases: `0`
-- Slowest solver elapsed time: `9257 ms`
-- Slowest wall elapsed time: `9966 ms`
+- Slowest solver elapsed time: `9270 ms`
+- Slowest wall elapsed time: `9900 ms`
 - Slowest seed: `1009`
 
 ## Corpus Rows
 
 | Seed | Solver ms | Nodes | Wall ms |
 | --- | ---: | ---: | ---: |
-| `1009` | 9257 | 33116693 | 9966 |
-| `987654321` | 7608 | 26268147 | 8247 |
-| `2016` | 5318 | 19696742 | 5968 |
-| `8675309` | 4896 | 18154517 | 5549 |
-| `12345` | 4801 | 17395459 | 5446 |
-| `555` | 2901 | 9544701 | 3557 |
-| `424242` | 2894 | 10083737 | 3548 |
-| `99` | 2045 | 6168043 | 2695 |
-| `888` | 1897 | 5597292 | 2542 |
-| `666` | 971 | 2806840 | 1619 |
-| `20260525` | 101 | 142691 | 749 |
+| `1009` | 9270 | 33191519 | 9900 |
+| `987654321` | 7564 | 26169805 | 8208 |
+| `2016` | 5321 | 19685916 | 5971 |
+| `8675309` | 4970 | 18530747 | 5621 |
+| `12345` | 4834 | 17570138 | 5483 |
+| `424242` | 2950 | 10324023 | 3606 |
+| `555` | 2898 | 9565082 | 3555 |
+| `99` | 2034 | 6151114 | 2694 |
+| `888` | 1890 | 5617792 | 2547 |
+| `666` | 971 | 2812550 | 1619 |
+| `20260525` | 100 | 142003 | 750 |
 
 ## Root Diagnostics
 
-| Seed | Solution root ms | Max root ms | Roots before solution |
-| --- | ---: | ---: | ---: |
-| `1009` | 8061 | 8062 | 11 |
-| `987654321` | 6655 | 6655 | 13 |
-| `2016` | 4578 | 4579 | 10 |
-| `12345` | 4035 | 4035 | 3 |
-| `8675309` | 4008 | 4008 | 3 |
-| `424242` | 2143 | 2144 | 13 |
-| `555` | 1875 | 1875 | 6 |
-| `888` | 1066 | 1066 | 15 |
-| `99` | 1049 | 1049 | 12 |
-| `666` | 134 | 134 | 12 |
-| `20260525` | 33 | 33 | 6 |
+| Seed | Solution root ms | Max root ms | Roots before solution | Worker roots min/max | Worker imbalance ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `1009` | 8066 | 8066 | 11 | 1/2 | 1745 |
+| `987654321` | 6615 | 6615 | 13 | 1/2 | 696 |
+| `2016` | 4572 | 4572 | 10 | 1/2 | 1 |
+| `12345` | 4070 | 4070 | 3 | 1/1 | 0 |
+| `8675309` | 4090 | 4090 | 3 | 1/1 | 0 |
+| `424242` | 2203 | 2203 | 13 | 1/1 | 0 |
+| `555` | 1870 | 1870 | 6 | 1/1 | 0 |
+| `888` | 1064 | 1064 | 15 | 1/1 | 0 |
+| `99` | 1037 | 1038 | 12 | 1/1 | 1 |
+| `666` | 131 | 131 | 12 | 1/1 | 0 |
+| `20260525` | 33 | 33 | 6 | 1/2 | 8 |
 
 ## Interpretation
 
 The corpus gives V4 a deterministic CPU-only target set for optimization. The
 largest current issue is still seed `1009`, where the solution root itself costs
-about `8061 ms` and appears after `11` roots before the solution. This points to
-root ordering and root scheduling as the first CPU optimization areas to test.
+about `8066 ms` and appears after `11` roots before the solution. Worker
+diagnostics show that the worst case is dominated by one expensive root rather
+than by a broad worker distribution problem. This points toward either more
+selective root ordering or deeper task splitting as the next CPU optimization
+areas to test.
 
 No Raspberry Pi, Jetson, Orin, or other embedded hardware measurements are
 included in this document.

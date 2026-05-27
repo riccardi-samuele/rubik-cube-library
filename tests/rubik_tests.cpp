@@ -1367,6 +1367,8 @@ void testParallelOptimalReportsRootSearchProfile()
     expect(result.status == rubik::SolveStatus::Optimal);
     expect(result.isOptimal);
     expect(result.plan.rootOrderingProfile.find("root_search=") != std::string::npos);
+    expect(result.plan.rootOrderingProfile.find("root_workers=") != std::string::npos);
+    expect(result.plan.rootOrderingProfile.find("worker_search=") != std::string::npos);
     expect(result.plan.rootOrderingProfile.find(":found:") != std::string::npos);
 
     const std::string_view profile(result.plan.rootOrderingProfile);

@@ -101,6 +101,20 @@ def parse_root_bound_diagnostics(profile):
     return entries
 
 
+def parse_root_workers(profile):
+    root_workers = profile_value(profile, "root_workers")
+    if not root_workers:
+        return {}
+
+    entries = {}
+    for index, token in enumerate(root_workers.split("|"), start=1):
+        pieces = token.split(":")
+        if len(pieces) != 2:
+            continue
+        entries[index] = pieces[1]
+    return entries
+
+
 def int_value(value):
     try:
         return int(value)
@@ -151,6 +165,7 @@ def case_rows(path):
             if not root_rows:
                 continue
             root_bound_diagnostics = parse_root_bound_diagnostics(profile)
+            root_workers = parse_root_workers(profile)
             solution_rank = profile_value(profile, "solution_rank")
             for root_rank, move, outcome, nodes, elapsed_ms in root_rows:
                 diagnostics = root_bound_diagnostics.get(root_rank, {})
@@ -163,6 +178,7 @@ def case_rows(path):
                     "total_nodes": row[8],
                     "solution_rank": solution_rank,
                     "root_rank": str(root_rank),
+                    "worker_index": root_workers.get(root_rank, ""),
                     "move": move,
                     "outcome": outcome,
                     "nodes_expanded": nodes,
@@ -224,9 +240,12 @@ def summarize_rows(rows):
             "three_phase_candidate_prunes": 0,
             "solution_root_elapsed_ms": "",
             "max_root_elapsed_ms": 0,
+            "worker_roots": {},
+            "worker_elapsed_ms": {},
         })
         nodes = int_value(row["nodes_expanded"]) or 0
         elapsed = int_value(row["root_elapsed_ms"]) or 0
+        worker_index = row["worker_index"]
         cheap_prunes = int_value(row["cheap_candidate_prunes"]) or 0
         three_phase_checks = int_value(row["three_phase_candidate_checks"]) or 0
         three_phase_prunes = int_value(row["three_phase_candidate_prunes"]) or 0
@@ -248,6 +267,9 @@ def summarize_rows(rows):
         group["three_phase_candidate_checks"] += three_phase_checks
         group["three_phase_candidate_prunes"] += three_phase_prunes
         group["max_root_elapsed_ms"] = max(group["max_root_elapsed_ms"], elapsed)
+        if worker_index.isdigit():
+            group["worker_roots"][worker_index] = group["worker_roots"].get(worker_index, 0) + 1
+            group["worker_elapsed_ms"][worker_index] = group["worker_elapsed_ms"].get(worker_index, 0) + elapsed
         if row["outcome"] == "found":
             group["solution_root_elapsed_ms"] = row["root_elapsed_ms"]
 
@@ -263,6 +285,16 @@ def summarize_rows(rows):
         if wall_elapsed_value is not None and solver_elapsed_value is not None:
             wall_overhead = str(wall_elapsed_value - solver_elapsed_value)
         three_phase_checks = str(group["three_phase_candidate_checks"])
+        worker_root_counts = list(group["worker_roots"].values())
+        worker_elapsed_values = list(group["worker_elapsed_ms"].values())
+        worker_roots_min = min(worker_root_counts) if worker_root_counts else 0
+        worker_roots_max = max(worker_root_counts) if worker_root_counts else 0
+        max_worker_elapsed = max(worker_elapsed_values) if worker_elapsed_values else 0
+        worker_elapsed_imbalance = (
+            max_worker_elapsed - min(worker_elapsed_values)
+            if worker_elapsed_values
+            else 0
+        )
         result.append({
             "source_file": group["source_file"],
             "benchmark": group["benchmark"],
@@ -288,6 +320,10 @@ def summarize_rows(rows):
                 1_000_000),
             "solution_root_elapsed_ms": group["solution_root_elapsed_ms"],
             "max_root_elapsed_ms": str(group["max_root_elapsed_ms"]),
+            "worker_roots_min": str(worker_roots_min),
+            "worker_roots_max": str(worker_roots_max),
+            "max_worker_elapsed_ms": str(max_worker_elapsed),
+            "worker_elapsed_imbalance_ms": str(worker_elapsed_imbalance),
         })
     return result
 
@@ -319,6 +355,7 @@ def emit(rows, output):
         "cheap_candidate_prunes_per_node_ppm",
         "three_phase_candidate_prune_rate_ppm",
         "before_solution",
+        "worker_index",
     ]
     if output is None:
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")
@@ -354,6 +391,10 @@ def emit_summary(rows, output):
         "three_phase_candidate_prune_rate_ppm",
         "solution_root_elapsed_ms",
         "max_root_elapsed_ms",
+        "worker_roots_min",
+        "worker_roots_max",
+        "max_worker_elapsed_ms",
+        "worker_elapsed_imbalance_ms",
     ]
     if output is None:
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")
