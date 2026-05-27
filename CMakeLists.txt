@@ -425,7 +425,7 @@ add_custom_target(rubik-benchmark-optimal-auto-tail
         --build-dir ${CMAKE_CURRENT_BINARY_DIR}
         --cache-dir /tmp/rubik_cube_library_optimal_auto_tail_cache
         --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-auto-tail
-        --seeds 987654321,424242,666,555,99,888
+        --seeds 987654321,424242,1009,666,555,99,888
         --deep-opt15-count 1
         --threads 0
         --max-memory-mb 2048
@@ -438,6 +438,7 @@ add_custom_target(rubik-benchmark-optimal-auto-tail-gates
         --summary-file ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-auto-tail/warm_optimal_auto_tail_summary.csv
         --gate auto,optimal,random_seed_987654321_depth_15_count_1,1,12000,12000,12000
         --gate auto,optimal,random_seed_424242_depth_15_count_1,1,12000,12000,12000
+        --gate auto,optimal,random_seed_1009_depth_15_count_1,1,12000,12000,12000
         --gate auto,optimal,random_seed_666_depth_15_count_1,1,12000,12000,12000
         --gate auto,optimal,random_seed_555_depth_15_count_1,1,12000,12000,12000
         --gate auto,optimal,random_seed_99_depth_15_count_1,1,12000,12000,12000

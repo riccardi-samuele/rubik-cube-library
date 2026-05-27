@@ -59,7 +59,7 @@ scripts/run_benchmark_suite.sh --suite optimal-stress --seeds 12345,20260525,42 
 scripts/run_benchmark_suite.sh --suite optimal-tail-cases
 scripts/run_benchmark_suite.sh --suite optimal-deep-probe --seeds 12345 --deep-opt14-count 2 --deep-opt15-count 1
 scripts/run_benchmark_suite.sh --suite optimal-large-local --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525,111,222,333,444,555,666,777,888,999,13579,24680,112358 --threads 4 --max-memory-mb 2048 --deep-opt15-count 1
-scripts/run_benchmark_suite.sh --suite optimal-auto-tail --seeds 987654321,424242,666,555,99,888 --threads 0 --max-memory-mb 2048 --deep-opt15-count 1
+scripts/run_benchmark_suite.sh --suite optimal-auto-tail --seeds 987654321,424242,1009,666,555,99,888 --threads 0 --max-memory-mb 2048 --deep-opt15-count 1
 scripts/run_benchmark_suite.sh --suite optimal-auto-hardening --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525 --threads 0 --max-memory-mb 2048 --deep-opt14-count 2 --deep-opt15-count 1
 scripts/run_benchmark_suite.sh --suite optimal-auto-discovery --seeds 101,202,303,404,505,606,707,808 --threads 0 --max-memory-mb 2048 --deep-opt15-count 2
 scripts/run_benchmark_suite.sh --suite embedded-multiseed --seeds 12345,20260525,42 --realistic-fast-count 100 --fast-max-depth 28 --realistic-opt13-count 10
@@ -86,6 +86,7 @@ than 24 moves.
 
 Current profile comparison:
 
+- [Auto Optimal Discovery - 2026-05-27](optimal-auto-discovery-2026-05-27.md)
 - [V2 Optimal Baseline - 2026-05-26](v2-optimal-baseline-2026-05-26.md)
 - [V2 Corner-State Validation - 2026-05-26](v2-corner-state-validation-2026-05-26.md)
 - [V2 Depth-15 Large-Local Validation - 2026-05-26](v2-depth15-large-local-2026-05-26.md)
