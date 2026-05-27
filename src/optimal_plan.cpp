@@ -2,6 +2,7 @@
 
 #include "rubik/coordinates.hpp"
 #include "rubik/detail/auto_plan.hpp"
+#include "rubik/detail/cache_status.hpp"
 #include "rubik/detail/table_profiles.hpp"
 
 #include <vector>
@@ -65,13 +66,12 @@ OptimalPlan makeOptimalPlan(const SolveOptions& options)
     plan.publicPlan.requestedMaxMemoryBytes = options.maxMemoryBytes;
     plan.publicPlan.requestedThreads = options.threads;
     plan.publicPlan.cachePolicy = options.cachePolicy;
+    plan.publicPlan.diskCacheEnabled = options.cachePolicy != CachePolicy::Disabled;
 
     if (options.profile == SolveProfile::Auto) {
-        const AutoPlanDecision autoPlan = makeAutoPlan(options);
-        if (!autoPlan.supported) {
-            plan.supported = false;
-            plan.status = autoPlan.status;
-            return plan;
+        AutoPlanDecision autoPlan = makeAutoPlan(options);
+        if (autoPlan.supported && options.cachePolicy == CachePolicy::RequireWarm) {
+            autoPlan = makeAutoPlan(options, profileCacheWarm(autoPlan.effectiveProfile));
         }
 
         plan.effectiveOptions.profile = autoPlan.effectiveProfile;
@@ -84,6 +84,13 @@ OptimalPlan makeOptimalPlan(const SolveOptions& options)
         plan.publicPlan.estimatedTablePayloadBytes = autoPlan.estimatedTablePayloadBytes;
         plan.publicPlan.boundsUsed = autoPlan.boundsUsed;
         plan.publicPlan.strategyName = autoPlan.strategyName;
+        plan.publicPlan.diskCacheWarm = autoPlan.supported && options.cachePolicy == CachePolicy::RequireWarm;
+
+        if (!autoPlan.supported) {
+            plan.supported = false;
+            plan.status = autoPlan.status;
+            return plan;
+        }
     } else {
         plan.effectiveOptions.profile = options.profile;
         plan.effectiveOptions.maxMemoryBytes = options.maxMemoryBytes;
@@ -96,8 +103,6 @@ OptimalPlan makeOptimalPlan(const SolveOptions& options)
         plan.publicPlan.boundsUsed = boundsForProfile(options.profile);
         plan.publicPlan.strategyName = "manual_profile";
     }
-    plan.publicPlan.diskCacheEnabled = options.cachePolicy != CachePolicy::Disabled;
-
     plan.supported = true;
     plan.status = SolveStatus::Found;
     return plan;

@@ -1,6 +1,6 @@
 #include "rubik/cache.hpp"
 
-#include "rubik/coordinates.hpp"
+#include "rubik/detail/cache_status.hpp"
 #include "rubik/detail/optimal_plan.hpp"
 #include "rubik/detail/table_profiles.hpp"
 #include "rubik/pruning_tables.hpp"
@@ -74,40 +74,6 @@ std::filesystem::path selectedCacheDirectory(const CacheSetupOptions& options)
     return pruning_tables::cacheDirectory();
 }
 
-std::size_t missingCacheBytes(const std::filesystem::path& directory, SolveProfile profile)
-{
-    std::size_t missing = 0;
-    for (const detail::TableProfileEntry& entry : detail::optimalTableProfile(profile)) {
-        if (!pruning_tables::cacheEntryReady(directory, entry.name, entry.entries)) {
-            missing += entry.entries;
-        }
-    }
-    const std::size_t cornerStateEntries =
-        static_cast<std::size_t>(coordinates::corner_orientation_count) *
-        static_cast<std::size_t>(coordinates::corner_permutation_count);
-    if (!pruning_tables::cacheEntryReady(directory, "corner_orientation_permutation", cornerStateEntries)) {
-        missing += cornerStateEntries;
-    }
-    if (profile == SolveProfile::LargeLocal) {
-        const std::size_t cornerEdgeGroupEntries =
-            static_cast<std::size_t>(coordinates::corner_permutation_count) *
-            static_cast<std::size_t>(coordinates::edge_group_permutation_count);
-        if (!pruning_tables::cacheEntryReady(
-                directory,
-                "corner_permutation_up_edge_permutation",
-                cornerEdgeGroupEntries)) {
-            missing += cornerEdgeGroupEntries;
-        }
-        if (!pruning_tables::cacheEntryReady(
-                directory,
-                "corner_permutation_down_edge_permutation",
-                cornerEdgeGroupEntries)) {
-            missing += cornerEdgeGroupEntries;
-        }
-    }
-    return missing;
-}
-
 void warmCacheTables(SolveProfile profile)
 {
     for (const detail::TableProfileEntry& entry : detail::optimalTableProfile(profile)) {
@@ -131,7 +97,9 @@ CacheSetupResult prepareCache(const CacheSetupOptions& options)
     solveOptions.mode = SolveMode::Optimal;
     solveOptions.metric = Metric::HTM;
     solveOptions.profile = options.profile;
-    solveOptions.cachePolicy = options.cachePolicy;
+    solveOptions.cachePolicy = options.cachePolicy == CachePolicy::RequireWarm ?
+        CachePolicy::AllowBuild :
+        options.cachePolicy;
     solveOptions.maxMemoryBytes = options.maxMemoryBytes;
     solveOptions.threads = options.threads;
 
@@ -139,13 +107,15 @@ CacheSetupResult prepareCache(const CacheSetupOptions& options)
 
     CacheSetupResult result;
     result.plan = plan.publicPlan;
+    result.plan.cachePolicy = options.cachePolicy;
+    result.plan.diskCacheEnabled = options.cachePolicy != CachePolicy::Disabled;
     if (!plan.supported) {
         result.ready = false;
         result.message = "unsupported cache setup options";
     } else {
         const std::filesystem::path cacheDirectory = selectedCacheDirectory(options);
         result.bytesMissing = result.plan.diskCacheEnabled ?
-            missingCacheBytes(cacheDirectory, plan.publicPlan.effectiveProfile) :
+            detail::missingCacheBytes(cacheDirectory, plan.publicPlan.effectiveProfile) :
             0;
         result.cacheWarm = result.plan.diskCacheEnabled && result.bytesMissing == 0;
         result.plan.diskCacheWarm = result.cacheWarm;
@@ -169,7 +139,7 @@ CacheSetupResult prepareCache(const CacheSetupOptions& options)
     } else {
         warmCacheTables(plan.publicPlan.effectiveProfile);
         const std::filesystem::path cacheDirectory = selectedCacheDirectory(options);
-        result.bytesMissing = missingCacheBytes(cacheDirectory, plan.publicPlan.effectiveProfile);
+        result.bytesMissing = detail::missingCacheBytes(cacheDirectory, plan.publicPlan.effectiveProfile);
         result.cacheWarm = result.bytesMissing == 0;
         result.plan.diskCacheWarm = result.cacheWarm;
         result.ready = true;

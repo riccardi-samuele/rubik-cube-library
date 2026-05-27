@@ -36,6 +36,7 @@ endif()
 add_library(rubik
     src/auto_plan.cpp
     src/cache.cpp
+    src/cache_status.cpp
     src/coordinates.cpp
     src/cubie_cube.cpp
     src/cube.cpp

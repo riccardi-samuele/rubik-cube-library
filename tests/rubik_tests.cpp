@@ -189,6 +189,35 @@ void testAutoPlannerReportsColdLargeLocalRequirement()
     expect(decision.status == rubik::SolveStatus::CacheNotReady);
 }
 
+void testAutoOptimalPlanUsesRealCacheWarmth()
+{
+    const std::filesystem::path cacheDirectory =
+        std::filesystem::temp_directory_path() / "rubik_auto_plan_uses_real_cache_warmth";
+    std::error_code error;
+    std::filesystem::remove_all(cacheDirectory, error);
+    setenv("RUBIK_TABLE_CACHE_DIR", cacheDirectory.string().c_str(), 1);
+
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 15;
+    options.cachePolicy = rubik::CachePolicy::RequireWarm;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+
+    const auto plan = rubik::detail::makeOptimalPlan(options);
+    expect(!plan.supported);
+    expect(plan.status == rubik::SolveStatus::CacheNotReady);
+    expect(plan.publicPlan.effectiveProfile == rubik::SolveProfile::LargeLocal);
+    expect(plan.publicPlan.strategyName == "auto_desktop_tail");
+    expect(plan.publicPlan.diskCacheEnabled);
+    expect(!plan.publicPlan.diskCacheWarm);
+
+    unsetenv("RUBIK_TABLE_CACHE_DIR");
+    std::filesystem::remove_all(cacheDirectory, error);
+}
+
 void testAutoPlannerReportsFullTailPayload()
 {
     rubik::SolveOptions options;
@@ -301,6 +330,30 @@ void testPrepareCacheDryRunReportsColdCache()
     expect(result.ready);
     expect(!result.cacheWarm);
     expect(!result.plan.diskCacheWarm);
+    expect(result.bytesPrepared == 0);
+    expect(result.bytesMissing == result.plan.estimatedTablePayloadBytes);
+    expect(result.message.find("cache cold") != std::string::npos);
+
+    std::filesystem::remove_all(cacheDirectory, error);
+}
+
+void testPrepareCacheRequireWarmReportsColdCache()
+{
+    const std::filesystem::path cacheDirectory =
+        std::filesystem::temp_directory_path() / "rubik_cache_require_warm_reports_cold_cache";
+    std::error_code error;
+    std::filesystem::remove_all(cacheDirectory, error);
+
+    rubik::CacheSetupOptions options;
+    options.profile = rubik::SolveProfile::Auto;
+    options.cachePolicy = rubik::CachePolicy::RequireWarm;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+    options.cacheDirectory = cacheDirectory;
+
+    const rubik::CacheSetupResult result = rubik::prepareCache(options);
+    expect(!result.ready);
+    expect(!result.cacheWarm);
     expect(result.bytesPrepared == 0);
     expect(result.bytesMissing == result.plan.estimatedTablePayloadBytes);
     expect(result.message.find("cache cold") != std::string::npos);
@@ -1330,12 +1383,14 @@ int main()
     testAutoPlannerFallsBackWhenLargeLocalMemoryIsTooSmall();
     testAutoPlannerRejectsWhenMemoryIsTooSmallForAuto();
     testAutoPlannerReportsColdLargeLocalRequirement();
+    testAutoOptimalPlanUsesRealCacheWarmth();
     testAutoPlannerReportsFullTailPayload();
     testAutoStrongMoveOrderingPolicy();
     testAutoSolveReportsPlan();
     testAutoFastSolveIsUnsupported();
     testPrepareCacheDryRun();
     testPrepareCacheDryRunReportsColdCache();
+    testPrepareCacheRequireWarmReportsColdCache();
     testRequireWarmSolveRejectsColdCache();
     testSolvedCube();
     testStructuredStickerInput();

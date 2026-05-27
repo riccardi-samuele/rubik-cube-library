@@ -2,6 +2,7 @@
 
 #include "rubik/coordinates.hpp"
 #include "rubik/cubie_cube.hpp"
+#include "rubik/detail/cache_status.hpp"
 #include "rubik/detail/optimal_plan.hpp"
 #include "rubik/detail/symmetry_coordinates.hpp"
 #include "rubik/detail/symmetry_pruning.hpp"
@@ -482,40 +483,6 @@ std::size_t experimentalCornerEdgeGroupPayloadBytes()
 {
     return static_cast<std::size_t>(coordinates::corner_permutation_count) *
         static_cast<std::size_t>(coordinates::edge_group_permutation_count);
-}
-
-std::size_t missingCacheBytes(SolveProfile profile)
-{
-    const std::filesystem::path cacheDirectory = pruning_tables::cacheDirectory();
-    std::size_t missing = 0;
-    for (const detail::TableProfileEntry& entry : detail::optimalTableProfile(profile)) {
-        if (!pruning_tables::cacheEntryReady(cacheDirectory, entry.name, entry.entries)) {
-            missing += entry.entries;
-        }
-    }
-    const std::size_t cornerStateEntries = experimentalCornerStatePayloadBytes();
-    if (!pruning_tables::cacheEntryReady(
-            cacheDirectory,
-            "corner_orientation_permutation",
-            cornerStateEntries)) {
-        missing += cornerStateEntries;
-    }
-    if (profile == SolveProfile::LargeLocal) {
-        const std::size_t cornerEdgeGroupEntries = experimentalCornerEdgeGroupPayloadBytes();
-        if (!pruning_tables::cacheEntryReady(
-                cacheDirectory,
-                "corner_permutation_up_edge_permutation",
-                cornerEdgeGroupEntries)) {
-            missing += cornerEdgeGroupEntries;
-        }
-        if (!pruning_tables::cacheEntryReady(
-                cacheDirectory,
-                "corner_permutation_down_edge_permutation",
-                cornerEdgeGroupEntries)) {
-            missing += cornerEdgeGroupEntries;
-        }
-    }
-    return missing;
 }
 
 std::size_t phase2OrderingPayloadBytes()
@@ -1636,7 +1603,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
     }
 
     if (effectiveOptions.cachePolicy == CachePolicy::RequireWarm && plan.publicPlan.diskCacheEnabled) {
-        plan.publicPlan.diskCacheWarm = missingCacheBytes(effectiveOptions.profile) == 0;
+        plan.publicPlan.diskCacheWarm = detail::profileCacheWarm(effectiveOptions.profile);
         if (!plan.publicPlan.diskCacheWarm) {
             return withPlan({
                 .status = SolveStatus::CacheNotReady,
