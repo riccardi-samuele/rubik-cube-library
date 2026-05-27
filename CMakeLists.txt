@@ -844,6 +844,10 @@ add_test(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_benchmark_gates_rejects_missing_values.sh
 )
 add_test(
+    NAME run_benchmark_suite_rejects_missing_values
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_benchmark_suite_rejects_missing_values.sh
+)
+add_test(
     NAME extract_slowest_cases
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_slowest_cases.sh
         --input-dir ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results

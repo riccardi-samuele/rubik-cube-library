@@ -47,77 +47,102 @@ Options:
 USAGE
 }
 
+require_value() {
+    if [[ $# -lt 2 ]]; then
+        usage >&2
+        exit 2
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --suite)
+            require_value "$@"
             suite="$2"
             shift 2
             ;;
         --build-dir)
+            require_value "$@"
             build_dir="$2"
             shift 2
             ;;
         --cache-dir)
+            require_value "$@"
             cache_dir="$2"
             shift 2
             ;;
         --cache-mode)
+            require_value "$@"
             cache_mode="$2"
             shift 2
             ;;
         --output-dir)
+            require_value "$@"
             output_dir="$2"
             shift 2
             ;;
         --profile)
+            require_value "$@"
             profile="$2"
             shift 2
             ;;
         --seed)
+            require_value "$@"
             seed="$2"
             shift 2
             ;;
         --seeds)
+            require_value "$@"
             seeds="$2"
             shift 2
             ;;
         --fast-timeout-ms)
+            require_value "$@"
             fast_timeout_ms="$2"
             shift 2
             ;;
         --fast-max-depth)
+            require_value "$@"
             fast_max_depth="$2"
             shift 2
             ;;
         --optimal-timeout-ms)
+            require_value "$@"
             optimal_timeout_ms="$2"
             shift 2
             ;;
         --realistic-fast-count)
+            require_value "$@"
             realistic_fast_count="$2"
             shift 2
             ;;
         --realistic-opt12-count)
+            require_value "$@"
             realistic_optimal_depth12_count="$2"
             shift 2
             ;;
         --realistic-opt13-count)
+            require_value "$@"
             realistic_optimal_depth13_count="$2"
             shift 2
             ;;
         --deep-opt14-count)
+            require_value "$@"
             deep_optimal_depth14_count="$2"
             shift 2
             ;;
         --deep-opt15-count)
+            require_value "$@"
             deep_optimal_depth15_count="$2"
             shift 2
             ;;
         --threads)
+            require_value "$@"
             benchmark_threads="$2"
             shift 2
             ;;
         --max-memory-mb)
+            require_value "$@"
             benchmark_max_memory_mb="$2"
             shift 2
             ;;
