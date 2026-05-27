@@ -54,3 +54,38 @@ the `1009` tail case:
 The next optimization work should focus on reducing the cost of the candidate
 loop itself or increasing pruning strength without disrupting the current
 linear hot path.
+
+## Candidate Order Bound Probe
+
+A targeted optimization skipped the duplicate `nodeBaseLowerBound()` call used
+only for base ordering when strong move ordering is active. In `auto_strong_bound`
+cases the actual ordering bound is the already-computed candidate lower bound,
+so the base ordering value is not needed.
+
+Command:
+
+```sh
+scripts/benchmark_root_ordering_experiments.sh \
+  --cache-dir /tmp/rubik_cube_library_v3_tail_probe_cache \
+  --output-dir out/release-native-lto/benchmark-results/skip-unused-order-bound-tail \
+  --seeds 987654321,424242,1009,2016,666,555,99,888 \
+  --variants default \
+  --timeout-ms 30000 \
+  --max-depth 15 \
+  --random-depth 15
+```
+
+| Seed | Baseline ms | Optimized ms | Delta ms |
+| ---: | ---: | ---: | ---: |
+| 1009 | 11694 | 10956 | -738 |
+| 2016 | 6582 | 6334 | -248 |
+| 424242 | 3554 | 3398 | -156 |
+| 555 | 3525 | 3409 | -116 |
+| 666 | 1176 | 1102 | -74 |
+| 987654321 | 8868 | 8885 | +17 |
+| 99 | 2351 | 2353 | +2 |
+| 888 | 2171 | 2203 | +32 |
+
+This probe is a net improvement on the current tail set and keeps the hot path
+linear. It avoids one redundant lower-bound computation when strong move
+ordering is active.

@@ -1101,7 +1101,9 @@ int collectCandidateMoves(
             includeExperimentalCornerStateBounds,
             includeExperimentalCornerUpEdgeBounds,
             includeExperimentalCornerDownEdgeBounds);
-        const int candidateOrderBound = nodeBaseLowerBound(next);
+        const int candidateOrderBound = useStrongMoveOrdering
+            ? -1
+            : nodeBaseLowerBound(next);
         const int candidatePhase2OrderBound = usePhase2MoveOrdering
             ? nodePhase2OrderingLowerBound(next)
             : -1;
