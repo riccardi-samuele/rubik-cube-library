@@ -92,6 +92,10 @@ tar \
     --exclude='./install' \
     --exclude='./Testing' \
     --exclude='./.cache' \
+    --exclude='./docs/superpowers' \
+    --exclude='./docs/superpowers/*' \
+    --exclude='docs/superpowers' \
+    --exclude='docs/superpowers/*' \
     --exclude='./cmake-build-*' \
     --exclude='.idea' \
     --exclude='.vscode' \
@@ -124,7 +128,8 @@ for forbidden in \
     "${prefix}dist/" \
     "${prefix}install/" \
     "${prefix}Testing/" \
-    "${prefix}.cache/"
+    "${prefix}.cache/" \
+    "${prefix}docs/superpowers/"
 do
     if grep -q "^${forbidden}" "${contents_file}"; then
         echo "release archive check failed: included generated path ${forbidden}" >&2

@@ -11,6 +11,7 @@ mkdir -p \
     "${test_repo}/apps" \
     "${test_repo}/cmake" \
     "${test_repo}/docs" \
+    "${test_repo}/docs/superpowers/plans" \
     "${test_repo}/examples" \
     "${test_repo}/include/rubik" \
     "${test_repo}/scripts" \
@@ -38,6 +39,7 @@ touch \
     "${test_repo}/docs/release-candidate-2026-05-26.md" \
     "${test_repo}/docs/github-release-v9.8.7.md" \
     "${test_repo}/docs/benchmarks.md" \
+    "${test_repo}/docs/superpowers/plans/internal-plan.md" \
     "${test_repo}/include/rubik/solver.hpp" \
     "${test_repo}/src/solver.cpp" \
     "${test_repo}/tests/fixtures/benchmark-results/sample_a.csv" \
@@ -51,6 +53,12 @@ touch \
 if ! grep -q "release_archive,status,passed" "${tmp_dir}/archive.log"; then
     echo "check_release_archive versioned docs test failed" >&2
     cat "${tmp_dir}/archive.log" >&2
+    exit 1
+fi
+
+if tar -tzf "${tmp_dir}/dist/rubik_cube_library-9.8.7.tar.gz" | grep -q "docs/superpowers/"; then
+    echo "check_release_archive internal docs test failed: docs/superpowers was archived" >&2
+    tar -tzf "${tmp_dir}/dist/rubik_cube_library-9.8.7.tar.gz" | grep "docs/superpowers/" >&2
     exit 1
 fi
 
