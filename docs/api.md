@@ -146,6 +146,12 @@ cacheOptions.cachePolicy = rubik::CachePolicy::AllowBuild;
 rubik::CacheSetupResult cacheResult = rubik::prepareCache(cacheOptions);
 ```
 
+`CacheSetupResult::ready` reports whether the setup command completed.
+`CacheSetupResult::cacheWarm` reports whether all cache files required by the
+selected effective profile are present. In dry-run mode, no tables are built;
+`bytesMissing` can be used to decide whether to run a real setup before
+latency-sensitive solving.
+
 `rubik-cache-setup` exposes the same workflow for command-line deployments.
 
 Runtime thread-safety expectations are documented in

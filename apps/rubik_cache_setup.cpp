@@ -30,6 +30,23 @@ std::optional<rubik::SolveProfile> parseProfile(const std::string& value)
     return std::nullopt;
 }
 
+const char* profileName(rubik::SolveProfile profile)
+{
+    switch (profile) {
+    case rubik::SolveProfile::Embedded:
+        return "embedded";
+    case rubik::SolveProfile::Default:
+        return "default";
+    case rubik::SolveProfile::Performance:
+        return "performance";
+    case rubik::SolveProfile::LargeLocal:
+        return "large-local";
+    case rubik::SolveProfile::Auto:
+        return "auto";
+    }
+    return "unknown";
+}
+
 std::optional<unsigned long long> parseUnsigned(const std::string& value)
 {
     if (value.empty() || value[0] == '-') {
@@ -109,10 +126,14 @@ int main(int argc, char** argv)
 
     const rubik::CacheSetupResult result = rubik::prepareCache(options);
     std::cout << "status: " << (result.ready ? "Ready" : "Failed") << "\n";
-    std::cout << "profile: " << static_cast<int>(result.plan.effectiveProfile) << "\n";
+    std::cout << "requested-profile: " << profileName(result.plan.requestedProfile) << "\n";
+    std::cout << "effective-profile: " << profileName(result.plan.effectiveProfile) << "\n";
     std::cout << "threads: " << result.plan.effectiveThreads << "\n";
     std::cout << "memory-bytes: " << result.plan.effectiveMaxMemoryBytes << "\n";
     std::cout << "payload-bytes: " << result.plan.estimatedTablePayloadBytes << "\n";
+    std::cout << "cache-warm: " << (result.cacheWarm ? "true" : "false") << "\n";
+    std::cout << "bytes-prepared: " << result.bytesPrepared << "\n";
+    std::cout << "bytes-missing: " << result.bytesMissing << "\n";
     std::cout << "message: " << result.message << "\n";
     return result.ready ? 0 : 1;
 }

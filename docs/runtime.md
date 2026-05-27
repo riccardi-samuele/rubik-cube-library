@@ -96,3 +96,7 @@ Benchmark reports must state whether they are cold-cache or warm-cache runs.
 `CachePolicy::Auto` uses compatible warm cache data when available. It may avoid
 building heavy cache data during a short solve. Use `rubik-cache-setup` or
 `prepareCache()` to prepare cache before latency-sensitive solving.
+
+`rubik-cache-setup --dry-run` checks the selected plan without building tables.
+Its output includes `cache-warm` and `bytes-missing` so applications can detect
+whether the next optimal solve may pay cold-cache setup cost.

@@ -37,6 +37,33 @@ std::filesystem::path cachePath(const std::string& name)
     return cacheDirectoryPath() / (name + ".rpt");
 }
 
+std::filesystem::path cachePath(const std::filesystem::path& directory, const std::string& name)
+{
+    return directory / (name + ".rpt");
+}
+
+bool cacheEntryReadyAtPath(const std::filesystem::path& path, std::size_t expectedSize)
+{
+    std::ifstream input(path, std::ios::binary);
+    if (!input) {
+        return false;
+    }
+
+    CacheHeader header;
+    input.read(reinterpret_cast<char*>(&header), sizeof(header));
+    return input &&
+        header.magic == cache_magic &&
+        header.version == cache_version &&
+        header.size == expectedSize;
+}
+
+bool cacheHeaderValid(const CacheHeader& header, std::size_t expectedSize)
+{
+    return header.magic == cache_magic &&
+        header.version == cache_version &&
+        header.size == expectedSize;
+}
+
 bool loadFromCache(const std::string& name, std::size_t expectedSize, PruningTable& table)
 {
     std::ifstream input(cachePath(name), std::ios::binary);
@@ -46,10 +73,7 @@ bool loadFromCache(const std::string& name, std::size_t expectedSize, PruningTab
 
     CacheHeader header;
     input.read(reinterpret_cast<char*>(&header), sizeof(header));
-    if (!input ||
-        header.magic != cache_magic ||
-        header.version != cache_version ||
-        header.size != expectedSize) {
+    if (!input || !cacheHeaderValid(header, expectedSize)) {
         return false;
     }
 
@@ -239,6 +263,14 @@ PruningTable cachedPruningTable(const std::string& name, std::size_t expectedSiz
 std::string cacheDirectory()
 {
     return cacheDirectoryPath().string();
+}
+
+bool cacheEntryReady(
+    const std::filesystem::path& directory,
+    const std::string& name,
+    std::size_t expectedSize)
+{
+    return cacheEntryReadyAtPath(cachePath(directory, name), expectedSize);
 }
 
 const PruningTable& cornerOrientation()

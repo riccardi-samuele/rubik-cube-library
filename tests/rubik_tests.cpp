@@ -16,6 +16,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <queue>
 #include <span>
@@ -96,6 +97,20 @@ void testAutoPlannerDesktopDefaults()
     expect(!plan.publicPlan.boundsUsed.empty());
 }
 
+void testAutoPlannerReportsFullTailPayload()
+{
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+
+    const auto plan = rubik::detail::makeOptimalPlan(options);
+    expect(plan.supported);
+    expect(plan.publicPlan.estimatedTablePayloadBytes > 1024ull * 1024ull * 1024ull);
+}
+
 void testAutoSolveReportsPlan()
 {
     rubik::Solver solver;
@@ -143,6 +158,32 @@ void testPrepareCacheDryRun()
     expect(result.plan.effectiveProfile == rubik::SolveProfile::LargeLocal);
     expect(result.bytesPrepared == 0);
     expect(!result.message.empty());
+}
+
+void testPrepareCacheDryRunReportsColdCache()
+{
+    const std::filesystem::path cacheDirectory =
+        std::filesystem::temp_directory_path() / "rubik_cache_dry_run_reports_cold_cache";
+    std::error_code error;
+    std::filesystem::remove_all(cacheDirectory, error);
+
+    rubik::CacheSetupOptions options;
+    options.profile = rubik::SolveProfile::Auto;
+    options.cachePolicy = rubik::CachePolicy::AllowBuild;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+    options.cacheDirectory = cacheDirectory;
+    options.dryRun = true;
+
+    const rubik::CacheSetupResult result = rubik::prepareCache(options);
+    expect(result.ready);
+    expect(!result.cacheWarm);
+    expect(!result.plan.diskCacheWarm);
+    expect(result.bytesPrepared == 0);
+    expect(result.bytesMissing == result.plan.estimatedTablePayloadBytes);
+    expect(result.message.find("cache cold") != std::string::npos);
+
+    std::filesystem::remove_all(cacheDirectory, error);
 }
 
 std::vector<std::uint8_t> buildCornerEdgeOrientationPruningForTest()
@@ -1132,9 +1173,11 @@ int main()
     testV3AdaptiveApiDefaults();
     testAutoPlannerRejectsFastMode();
     testAutoPlannerDesktopDefaults();
+    testAutoPlannerReportsFullTailPayload();
     testAutoSolveReportsPlan();
     testAutoFastSolveIsUnsupported();
     testPrepareCacheDryRun();
+    testPrepareCacheDryRunReportsColdCache();
     testSolvedCube();
     testStructuredStickerInput();
     testPhysicalValidation();

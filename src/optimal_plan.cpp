@@ -1,5 +1,6 @@
 #include "rubik/detail/optimal_plan.hpp"
 
+#include "rubik/coordinates.hpp"
 #include "rubik/detail/table_profiles.hpp"
 
 #include <algorithm>
@@ -26,7 +27,15 @@ std::vector<std::string> boundsForProfile(SolveProfile profile)
 
 std::size_t estimatedPayloadForProfile(SolveProfile profile)
 {
-    return optimalTablePayloadBytes(profile);
+    std::size_t bytes = optimalTablePayloadBytes(profile);
+    bytes += static_cast<std::size_t>(coordinates::corner_orientation_count) *
+        static_cast<std::size_t>(coordinates::corner_permutation_count);
+    if (profile == SolveProfile::LargeLocal) {
+        bytes += 2ull *
+            static_cast<std::size_t>(coordinates::corner_permutation_count) *
+            static_cast<std::size_t>(coordinates::edge_group_permutation_count);
+    }
+    return bytes;
 }
 
 } // namespace

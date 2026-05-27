@@ -20,8 +20,10 @@ struct CacheSetupOptions {
 
 struct CacheSetupResult {
     bool ready = false;
+    bool cacheWarm = false;
     SolvePlan plan;
     std::size_t bytesPrepared = 0;
+    std::size_t bytesMissing = 0;
     std::chrono::milliseconds elapsed{0};
     std::string message;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -11,6 +12,10 @@ namespace pruning_tables {
 using PruningTable = std::vector<std::uint8_t>;
 
 std::string cacheDirectory();
+bool cacheEntryReady(
+    const std::filesystem::path& directory,
+    const std::string& name,
+    std::size_t expectedSize);
 
 const PruningTable& cornerOrientation();
 const PruningTable& edgeOrientation();
