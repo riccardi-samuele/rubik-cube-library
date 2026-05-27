@@ -35,29 +35,42 @@ Options:
 USAGE
 }
 
+require_value() {
+    if [[ $# -lt 2 ]]; then
+        usage >&2
+        exit 2
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --build-dir)
+            require_value "$@"
             build_dir="$2"
             shift 2
             ;;
         --cache-dir)
+            require_value "$@"
             cache_dir="$2"
             shift 2
             ;;
         --output-dir)
+            require_value "$@"
             output_dir="$2"
             shift 2
             ;;
         --seeds)
+            require_value "$@"
             seeds="$2"
             shift 2
             ;;
         --timeout-ms)
+            require_value "$@"
             optimal_timeout_ms="$2"
             shift 2
             ;;
         --opt13-count)
+            require_value "$@"
             optimal_depth13_count="$2"
             shift 2
             ;;
@@ -66,22 +79,27 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --deep-opt14-count)
+            require_value "$@"
             deep_opt14_count="$2"
             shift 2
             ;;
         --deep-opt15-count)
+            require_value "$@"
             deep_opt15_count="$2"
             shift 2
             ;;
         --threads)
+            require_value "$@"
             threads="$2"
             shift 2
             ;;
         --max-memory-mb)
+            require_value "$@"
             max_memory_mb="$2"
             shift 2
             ;;
         --slowest-limit)
+            require_value "$@"
             slowest_limit="$2"
             shift 2
             ;;

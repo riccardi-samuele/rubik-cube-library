@@ -869,6 +869,10 @@ add_test(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_optimal_ab_rejects_missing_values.sh
 )
 add_test(
+    NAME run_v2_optimal_baseline_rejects_missing_values
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v2_optimal_baseline_rejects_missing_values.sh
+)
+add_test(
     NAME auto_tail_ordering_ab_help
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_auto_tail_ordering_ab.sh --help
 )
