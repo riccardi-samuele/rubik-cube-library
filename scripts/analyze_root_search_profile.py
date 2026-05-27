@@ -116,8 +116,17 @@ def integer_ratio(numerator, denominator, scale=1):
     return str((numerator_value * scale) // denominator_value)
 
 
+def file_wall_elapsed_ms(path):
+    with path.open(newline="") as handle:
+        for row in csv.reader(handle):
+            if len(row) >= 3 and row[0] == "benchmark" and row[1] == "wall_elapsed_ms":
+                return row[2]
+    return ""
+
+
 def case_rows(path):
     benchmark = ""
+    wall_elapsed_ms = file_wall_elapsed_ms(path)
     with path.open(newline="") as handle:
         for row in csv.reader(handle):
             if len(row) >= 3 and row[0] == "benchmark" and row[1] == "name":
@@ -138,6 +147,7 @@ def case_rows(path):
                     "benchmark": benchmark,
                     "case_name": row[0],
                     "elapsed_ms": row[7],
+                    "wall_elapsed_ms": wall_elapsed_ms,
                     "total_nodes": row[8],
                     "solution_rank": solution_rank,
                     "root_rank": str(root_rank),
@@ -187,6 +197,7 @@ def summarize_rows(rows):
             "before_solution_roots": 0,
             "total_root_nodes": 0,
             "total_root_elapsed_ms": 0,
+            "wall_elapsed_ms": "",
             "cheap_candidate_prunes": 0,
             "three_phase_candidate_checks": 0,
             "three_phase_candidate_prunes": 0,
@@ -202,6 +213,8 @@ def summarize_rows(rows):
         group["before_solution_roots"] += 1 if row["before_solution"] == "true" else 0
         group["total_root_nodes"] += nodes
         group["total_root_elapsed_ms"] += elapsed
+        if not group["wall_elapsed_ms"]:
+            group["wall_elapsed_ms"] = row["wall_elapsed_ms"]
         group["cheap_candidate_prunes"] += cheap_prunes
         group["three_phase_candidate_checks"] += three_phase_checks
         group["three_phase_candidate_prunes"] += three_phase_prunes
@@ -213,6 +226,11 @@ def summarize_rows(rows):
     for group in groups.values():
         total_nodes = str(group["total_root_nodes"])
         total_elapsed = str(group["total_root_elapsed_ms"])
+        wall_elapsed = group["wall_elapsed_ms"]
+        wall_elapsed_value = int_value(wall_elapsed)
+        wall_overhead = ""
+        if wall_elapsed_value is not None:
+            wall_overhead = str(wall_elapsed_value - group["total_root_elapsed_ms"])
         three_phase_checks = str(group["three_phase_candidate_checks"])
         result.append({
             "source_file": group["source_file"],
@@ -222,6 +240,8 @@ def summarize_rows(rows):
             "before_solution_roots": str(group["before_solution_roots"]),
             "total_root_nodes": total_nodes,
             "total_root_elapsed_ms": total_elapsed,
+            "wall_elapsed_ms": wall_elapsed,
+            "wall_overhead_ms": wall_overhead,
             "root_nodes_per_ms": integer_ratio(total_nodes, total_elapsed),
             "cheap_candidate_prunes_per_node_ppm": integer_ratio(
                 str(group["cheap_candidate_prunes"]),
@@ -243,6 +263,7 @@ def emit(rows, output):
         "benchmark",
         "case_name",
         "elapsed_ms",
+        "wall_elapsed_ms",
         "total_nodes",
         "solution_rank",
         "root_rank",
@@ -284,6 +305,8 @@ def emit_summary(rows, output):
         "before_solution_roots",
         "total_root_nodes",
         "total_root_elapsed_ms",
+        "wall_elapsed_ms",
+        "wall_overhead_ms",
         "root_nodes_per_ms",
         "cheap_candidate_prunes_per_node_ppm",
         "three_phase_candidate_prune_rate_ppm",

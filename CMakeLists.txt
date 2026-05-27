@@ -879,7 +879,7 @@ add_test(
         --limit 4
 )
 set_tests_properties(analyze_root_search_profile PROPERTIES
-    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,elapsed_ms,total_nodes,solution_rank,root_rank,move,outcome,nodes_expanded,root_elapsed_ms,root_nodes_per_ms,cheap_node_prunes,three_phase_node_checks,three_phase_node_prunes,cheap_candidate_prunes,three_phase_candidate_checks,three_phase_candidate_prunes,cheap_candidate_prunes_per_node_ppm,three_phase_candidate_prune_rate_ppm,before_solution.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,1,U,not_found,1962759,612,3207,100,200,300,400,500,600,203,1200000,true.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,3,D,found,2004969,701,2860,102,202,302,402,502,602,200,1199203,false"
+    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,elapsed_ms,wall_elapsed_ms,total_nodes,solution_rank,root_rank,move,outcome,nodes_expanded,root_elapsed_ms,root_nodes_per_ms,cheap_node_prunes,three_phase_node_checks,three_phase_node_prunes,cheap_candidate_prunes,three_phase_candidate_checks,three_phase_candidate_prunes,cheap_candidate_prunes_per_node_ppm,three_phase_candidate_prune_rate_ppm,before_solution.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,10123,33238809,3,1,U,not_found,1962759,612,3207,100,200,300,400,500,600,203,1200000,true.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,10123,33238809,3,3,D,found,2004969,701,2860,102,202,302,402,502,602,200,1199203,false"
 )
 add_test(
     NAME analyze_root_search_profile_rejects_missing_values
@@ -892,7 +892,7 @@ add_test(
         --summary
 )
 set_tests_properties(analyze_root_search_profile_summary PROPERTIES
-    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,roots,before_solution_roots,total_root_nodes,total_root_elapsed_ms,root_nodes_per_ms,cheap_candidate_prunes_per_node_ppm,three_phase_candidate_prune_rate_ppm,solution_root_elapsed_ms,max_root_elapsed_ms.*root_search_sample.csv,root_search_fixture,random_1009_1,4,2,5653412,1857,3044,212,1199600,701,701"
+    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,roots,before_solution_roots,total_root_nodes,total_root_elapsed_ms,wall_elapsed_ms,wall_overhead_ms,root_nodes_per_ms,cheap_candidate_prunes_per_node_ppm,three_phase_candidate_prune_rate_ppm,solution_root_elapsed_ms,max_root_elapsed_ms.*root_search_sample.csv,root_search_fixture,random_1009_1,4,2,5653412,1857,10123,8266,3044,212,1199600,701,701"
 )
 add_test(
     NAME run_optimal_tail_experiments_rejects_missing_values
