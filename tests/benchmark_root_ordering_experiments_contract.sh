@@ -18,3 +18,13 @@ if ! grep -q 'date +%s%3N' "${script}"; then
     echo "benchmark_root_ordering_experiments.sh must measure wall elapsed in milliseconds" >&2
     exit 1
 fi
+
+if ! grep -q 'cache_mode' "${script}"; then
+    echo "benchmark_root_ordering_experiments.sh must report cache mode" >&2
+    exit 1
+fi
+
+if ! grep -q 'rubik-cache-setup' "${script}"; then
+    echo "benchmark_root_ordering_experiments.sh must prepare warm cache before timed cases" >&2
+    exit 1
+fi

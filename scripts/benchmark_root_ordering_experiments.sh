@@ -3,6 +3,7 @@ set -euo pipefail
 
 build_dir="out/release-native-lto"
 cache_dir="${RUBIK_TABLE_CACHE_DIR:-/tmp/rubik_cube_library_root_ordering_cache}"
+cache_mode="warm"
 output_dir="benchmark-results/root-ordering-experiments"
 seeds="987654321,424242,1009,2016,666,555,99,888"
 timeout_ms="30000"
@@ -20,6 +21,7 @@ Usage: scripts/benchmark_root_ordering_experiments.sh [options]
 Options:
   --build-dir DIR       CMake build directory, default: out/release-native-lto
   --cache-dir DIR       pruning table cache directory
+  --cache-mode MODE     warm|cold|reuse, default: warm
   --output-dir DIR      output directory, default: benchmark-results/root-ordering-experiments
   --seeds LIST          comma-separated random seeds, default: 987654321,424242,1009,2016,666,555,99,888
   --timeout-ms N        per-case timeout, default: 30000
@@ -50,6 +52,11 @@ while [[ $# -gt 0 ]]; do
         --cache-dir)
             require_value "$@"
             cache_dir="$2"
+            shift 2
+            ;;
+        --cache-mode)
+            require_value "$@"
+            cache_mode="$2"
             shift 2
             ;;
         --output-dir)
@@ -127,6 +134,11 @@ if (( timeout_ms < 1 || max_depth < 1 || random_depth < 1 || max_memory_mb < 1 )
     exit 2
 fi
 
+if [[ "${cache_mode}" != "warm" && "${cache_mode}" != "cold" && "${cache_mode}" != "reuse" ]]; then
+    usage >&2
+    exit 2
+fi
+
 IFS=',' read -r -a seed_list <<< "${seeds}"
 for seed in "${seed_list[@]}"; do
     if [[ -z "${seed}" || ! "${seed}" =~ ^[0-9]+$ ]]; then
@@ -147,15 +159,31 @@ for variant in "${variant_list[@]}"; do
     esac
 done
 
-cmake --build "${build_dir}" --target rubik-bench
+cmake --build "${build_dir}" --target rubik-bench rubik-cache-setup
 
 bench="${build_dir}/rubik-bench"
 if [[ ! -x "${bench}" ]]; then
     echo "rubik-bench not found or not executable: ${bench}" >&2
     exit 1
 fi
+cache_setup="${build_dir}/rubik-cache-setup"
+if [[ ! -x "${cache_setup}" ]]; then
+    echo "rubik-cache-setup not found or not executable: ${cache_setup}" >&2
+    exit 1
+fi
 
 mkdir -p "${cache_dir}" "${output_dir}"
+if [[ "${cache_mode}" == "cold" ]]; then
+    rm -rf "${cache_dir}"
+    mkdir -p "${cache_dir}"
+fi
+if [[ "${cache_mode}" == "warm" || "${cache_mode}" == "cold" ]]; then
+    "${cache_setup}" \
+        --profile auto \
+        --threads "${threads}" \
+        --max-memory-mb "${max_memory_mb}" \
+        --cache-dir "${cache_dir}"
+fi
 
 summary_file="${output_dir}/summary.csv"
 comparison_file="${output_dir}/comparison.csv"
@@ -166,6 +194,7 @@ manifest_file="${output_dir}/manifest.csv"
     echo "git_revision,$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
     echo "build_dir,${build_dir}"
     echo "cache_dir,${cache_dir}"
+    echo "cache_mode,${cache_mode}"
     echo "output_dir,${output_dir}"
     echo "seeds,${seeds}"
     echo "timeout_ms,${timeout_ms}"

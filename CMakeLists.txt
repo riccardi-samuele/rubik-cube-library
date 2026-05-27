@@ -833,6 +833,13 @@ set_tests_properties(cli_bench_optimal_diagnostics_smoke PROPERTIES
     PASS_REGULAR_EXPRESSION "diagnostic_optimal_bounds"
 )
 add_test(
+    NAME cli_bench_warmup_diagnostics_smoke
+    COMMAND rubik-bench --mode optimal --profile embedded --timeout-ms 1000 --max-depth 1 --max-case-depth 1 --diagnose-warmup
+)
+set_tests_properties(cli_bench_warmup_diagnostics_smoke PROPERTIES
+    PASS_REGULAR_EXPRESSION "warmup_table,corner_orientation,[0-9]+,[0-9]+"
+)
+add_test(
     NAME benchmark_gates_pass
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_benchmark_gates.sh
         --summary-file ${CMAKE_CURRENT_SOURCE_DIR}/tests/benchmark_gate_summary.csv

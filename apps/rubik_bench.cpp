@@ -57,6 +57,12 @@ struct FastAttemptOptions {
     std::chrono::milliseconds phase2Timeout{0};
 };
 
+struct WarmupTableTiming {
+    const char* name = "";
+    std::size_t entries = 0;
+    std::int64_t elapsedMs = 0;
+};
+
 enum class CaseSet {
     Deterministic,
     Random,
@@ -449,7 +455,7 @@ void printUsage(const char* program)
         << " [--cache-policy auto|require-warm|allow-build|disabled]"
         << " [--case-set deterministic|random|both] [--random-count N]"
         << " [--random-depth N] [--random-seed N] [--random-start-index N]"
-        << " [--slowest-count N] [--diagnose-fast] [--diagnose-optimal]"
+        << " [--slowest-count N] [--diagnose-fast] [--diagnose-optimal] [--diagnose-warmup]"
         << " [--report-symmetry] [--report-cache] [--report-memory] [--report-policy]"
         << " [--benchmark-lower-bound] [--lower-bound-iterations N]\n";
 }
@@ -1109,36 +1115,83 @@ void printMemoryReport()
     printMemoryProfileRows("fast_two_phase", fastTwoPhase);
 }
 
-std::chrono::milliseconds warmUpTables(const rubik::SolveOptions& options)
+void warmUpTable(
+    const char* name,
+    std::size_t entries,
+    const rubik::pruning_tables::PruningTable& (*table)(),
+    std::vector<WarmupTableTiming>* timings)
+{
+    const auto startedAt = std::chrono::steady_clock::now();
+    (void)table();
+    if (timings == nullptr) {
+        return;
+    }
+    const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - startedAt);
+    timings->push_back(WarmupTableTiming{
+        .name = name,
+        .entries = entries,
+        .elapsedMs = elapsed.count(),
+    });
+}
+
+void warmUpProfile(
+    std::span<const rubik::detail::TableProfileEntry> profile,
+    std::vector<WarmupTableTiming>* timings)
+{
+    for (const rubik::detail::TableProfileEntry& entry : profile) {
+        warmUpTable(entry.name, entry.entries, entry.table, timings);
+    }
+}
+
+std::chrono::milliseconds warmUpTables(
+    const rubik::SolveOptions& options,
+    std::vector<WarmupTableTiming>* timings = nullptr)
 {
     const auto startedAt = std::chrono::steady_clock::now();
 
-    for (const rubik::detail::TableProfileEntry& entry : rubik::detail::optimalTableProfile(options.profile)) {
-        (void)entry.table();
-    }
+    warmUpProfile(rubik::detail::optimalTableProfile(options.profile), timings);
     if (cornerStateBoundsEnabled()) {
-        (void)rubik::pruning_tables::cornerOrientationPermutation();
+        warmUpTable(
+            "corner_orientation_permutation",
+            rubik::coordinates::corner_orientation_count * rubik::coordinates::corner_permutation_count,
+            rubik::pruning_tables::cornerOrientationPermutation,
+            timings);
     }
     if (cornerUpEdgeBoundsEnabled(options)) {
-        (void)rubik::pruning_tables::cornerPermutationUpEdgePermutation();
+        warmUpTable(
+            "corner_permutation_up_edge_permutation",
+            rubik::coordinates::corner_permutation_count * rubik::coordinates::edge_group_permutation_count,
+            rubik::pruning_tables::cornerPermutationUpEdgePermutation,
+            timings);
     }
     if (cornerDownEdgeBoundsEnabled(options)) {
-        (void)rubik::pruning_tables::cornerPermutationDownEdgePermutation();
+        warmUpTable(
+            "corner_permutation_down_edge_permutation",
+            rubik::coordinates::corner_permutation_count * rubik::coordinates::edge_group_permutation_count,
+            rubik::pruning_tables::cornerPermutationDownEdgePermutation,
+            timings);
     }
     if (options.mode == rubik::SolveMode::Optimal &&
         environmentFlagEnabled("RUBIK_EXPERIMENTAL_PHASE2_OPTIMAL_ORDERING")) {
-        for (const rubik::detail::TableProfileEntry& entry : rubik::detail::phase2TableProfile()) {
-            (void)entry.table();
-        }
+        warmUpProfile(rubik::detail::phase2TableProfile(), timings);
     }
     if (options.mode == rubik::SolveMode::Fast) {
-        for (const rubik::detail::TableProfileEntry& entry : rubik::detail::phase2TableProfile()) {
-            (void)entry.table();
-        }
+        warmUpProfile(rubik::detail::phase2TableProfile(), timings);
     }
 
     return std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - startedAt);
+}
+
+void printWarmupTimings(const std::vector<WarmupTableTiming>& timings)
+{
+    for (const WarmupTableTiming& timing : timings) {
+        std::cout << "warmup_table,"
+                  << timing.name << ","
+                  << timing.entries << ","
+                  << timing.elapsedMs << "\n";
+    }
 }
 
 std::size_t warmUpTablePayloadBytes(const rubik::SolveOptions& options)
@@ -1244,6 +1297,7 @@ int main(int argc, char** argv)
     int lowerBoundIterations = 10000;
     bool diagnoseFast = false;
     bool diagnoseOptimal = false;
+    bool diagnoseWarmup = false;
     bool reportSymmetry = false;
     bool reportCache = false;
     bool reportMemory = false;
@@ -1451,6 +1505,8 @@ int main(int argc, char** argv)
             diagnoseFast = true;
         } else if (arg == "--diagnose-optimal") {
             diagnoseOptimal = true;
+        } else if (arg == "--diagnose-warmup") {
+            diagnoseWarmup = true;
         } else if (arg == "--report-symmetry") {
             reportSymmetry = true;
         } else if (arg == "--report-cache") {
@@ -1527,9 +1583,15 @@ int main(int argc, char** argv)
     std::cout << "benchmark,requested_profile," << profileName(requestedProfile) << "\n";
     std::cout << "benchmark,adaptive_strategy," << plan.publicPlan.strategyName << "\n";
     printBenchmarkPolicyRows(options, false, requestedProfile);
-    const std::chrono::milliseconds warmupElapsed = warmUpTables(options);
+    std::vector<WarmupTableTiming> warmupTimings;
+    const std::chrono::milliseconds warmupElapsed = warmUpTables(
+        options,
+        diagnoseWarmup ? &warmupTimings : nullptr);
     std::cout << "benchmark,warmup_table_payload_bytes," << warmUpTablePayloadBytes(options) << "\n";
     std::cout << "benchmark,warmup_elapsed_ms," << warmupElapsed.count() << "\n";
+    if (diagnoseWarmup) {
+        printWarmupTimings(warmupTimings);
+    }
     std::cout << "case,case_depth,scramble,status,optimal,moves,initial_lower_bound,elapsed_ms,nodes_expanded,nodes_per_ms,max_depth,timeout_ms,nodes_by_depth,solution,optimal_move_ordering,root_ordering_profile\n";
     std::cout.flush();
 
