@@ -33,13 +33,22 @@ read_project_version() {
     printf '%s\n' "${project_version}"
 }
 
+require_value() {
+    if [[ $# -lt 2 ]]; then
+        usage >&2
+        exit 2
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --version)
+            require_value "$@"
             version="$2"
             shift 2
             ;;
         --output-dir)
+            require_value "$@"
             output_dir="$2"
             shift 2
             ;;
