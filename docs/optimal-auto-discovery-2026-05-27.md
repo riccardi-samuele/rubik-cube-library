@@ -195,31 +195,36 @@ tests that prove both paths remain reachable.
 
 ## Selective Auto Ordering Policy
 
-`SolveProfile::Auto` now enables strong optimal child ordering only when the
-initial lower bound is `9`, the requested mode is optimal HTM, and Auto resolved
-to the large-local profile. Environment overrides keep precedence:
+`SolveProfile::Auto` now enables strong optimal child ordering when the
+requested mode is optimal HTM, Auto resolved to the large-local profile, and one
+of these root conditions is true:
+
+- initial lower bound is `9`;
+- initial lower bound is `8`, base and strong choose different first root
+  children, and the strong minimum-bound bucket has at most six children.
+
+Environment overrides keep precedence:
 `RUBIK_EXPERIMENTAL_STRONG_OPTIMAL_ORDERING=1` still forces strong ordering,
 while `RUBIK_EXPERIMENTAL_PHASE2_OPTIMAL_ORDERING=1` keeps using the phase-2
 tiebreak variant for experiments. `RUBIK_DISABLE_AUTO_STRONG_OPTIMAL_ORDERING=1`
 disables the Auto promotion path for baseline A/B measurements.
 
-This policy promotes the cases that were consistently improved by the A/B run
-without applying strong ordering to known slower lower-bound `8` and `10`
-tails. Seed `666` remains a known exception where strong ordering helped at
-lower bound `8`; it is not promoted yet because the same lower-bound bucket also
-contains a regression on seed `987654321`.
+This policy promotes the cases that were consistently improved by the A/B run,
+plus the lower-bound `8` seed `666`, without applying strong ordering to known
+slower lower-bound `8` and `10` tails such as seeds `99`, `987654321`, and
+`888`.
 
 Selective Auto tail result:
 
 | Seed | Initial lower bound | Elapsed ms | Nodes |
 | --- | ---: | ---: | ---: |
-| 987654321 | 8 | 7096 | 26322725 |
-| 424242 | 9 | 2893 | 10215997 |
-| 1009 | 9 | 9401 | 33385543 |
-| 666 | 8 | 1523 | 4992548 |
-| 555 | 9 | 2880 | 9548004 |
-| 99 | 8 | 1909 | 6124256 |
-| 888 | 10 | 1784 | 5595349 |
+| 987654321 | 8 | 7492 | 26273557 |
+| 424242 | 9 | 3081 | 10268689 |
+| 1009 | 9 | 9948 | 33223072 |
+| 666 | 8 | 1003 | 2806435 |
+| 555 | 9 | 3035 | 9533401 |
+| 99 | 8 | 2015 | 6129624 |
+| 888 | 10 | 1901 | 5661078 |
 
 All fixed Auto tail gates passed with the `12000 ms` threshold after the policy
 was promoted.
@@ -234,9 +239,10 @@ Initial lower-bound `8` examples:
 
 | Seed | Ordering used | Elapsed ms | Nodes | Root ordering profile |
 | --- | --- | ---: | ---: | --- |
-| 666 | base_bound | 1595 | 5038297 | `lb=8;children=18;base_min=6;base_max=7;strong_min=8;strong_max=9;base_first=B;strong_first=U;first_diff=1;base_hist=6x1|7x17;strong_hist=8x6|9x12` |
-| 987654321 | base_bound | 7437 | 26229318 | `lb=8;children=18;base_min=7;base_max=8;strong_min=8;strong_max=9;base_first=U;strong_first=U;first_diff=0;base_hist=7x10|8x8;strong_hist=8x7|9x11` |
+| 666 | auto_strong_bound | 1003 | 2806435 | `lb=8;children=18;base_min=6;base_max=7;strong_min=8;strong_min_count=6;strong_max=9;base_first=B;strong_first=U;first_diff=1;base_hist=6x1|7x17;strong_hist=8x6|9x12` |
+| 99 | base_bound | 2015 | 6129624 | `lb=8;children=18;base_min=6;base_max=7;strong_min=8;strong_min_count=7;strong_max=9;base_first=L;strong_first=U;first_diff=1;base_hist=6x1|7x17;strong_hist=8x7|9x11` |
+| 987654321 | base_bound | 7492 | 26273557 | `lb=8;children=18;base_min=7;base_max=8;strong_min=8;strong_min_count=7;strong_max=9;base_first=U;strong_first=U;first_diff=0;base_hist=7x10|8x8;strong_hist=8x7|9x11` |
 
-This gives a concrete next hypothesis for LB `8`: `first_diff=1` and the base
-histogram shape may identify cases where strong ordering is worth testing,
-while `first_diff=0` should likely stay on the base ordering path.
+The promoted LB `8` rule is intentionally narrow: `first_diff=1` alone also
+matches seed `99`, which regressed under strong ordering, so the
+`strong_min_count <= 6` guard keeps that case on the base path.

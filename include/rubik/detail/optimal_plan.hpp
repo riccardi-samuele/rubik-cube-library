@@ -19,7 +19,9 @@ bool autoStrongMoveOrderingEnabled(
     const SolveOptions& requestedOptions,
     const SolveOptions& effectiveOptions,
     int initialLowerBound,
-    bool autoOrderingAllowed = true);
+    bool autoOrderingAllowed = true,
+    bool rootFirstMoveDiffers = false,
+    int rootStrongMinCount = 0);
 OptimalPlan makeOptimalPlan(const SolveOptions& options);
 
 } // namespace rubik::detail

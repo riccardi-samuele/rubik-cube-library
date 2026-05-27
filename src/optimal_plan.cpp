@@ -65,14 +65,17 @@ bool autoStrongMoveOrderingEnabled(
     const SolveOptions& requestedOptions,
     const SolveOptions& effectiveOptions,
     int initialLowerBound,
-    bool autoOrderingAllowed)
+    bool autoOrderingAllowed,
+    bool rootFirstMoveDiffers,
+    int rootStrongMinCount)
 {
     return autoOrderingAllowed &&
         requestedOptions.mode == SolveMode::Optimal &&
         requestedOptions.metric == Metric::HTM &&
         requestedOptions.profile == SolveProfile::Auto &&
         effectiveOptions.profile == SolveProfile::LargeLocal &&
-        initialLowerBound == 9;
+        (initialLowerBound == 9 ||
+         (initialLowerBound == 8 && rootFirstMoveDiffers && rootStrongMinCount <= 6));
 }
 
 OptimalPlan makeOptimalPlan(const SolveOptions& options)

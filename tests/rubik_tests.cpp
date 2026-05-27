@@ -126,6 +126,9 @@ void testAutoStrongMoveOrderingPolicy()
     expect(rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 9));
     expect(!rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 9, false));
     expect(!rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 8));
+    expect(rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 8, true, true, 6));
+    expect(!rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 8, true, true, 7));
+    expect(!rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 8, true, false, 6));
     expect(!rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 10));
 
     rubik::SolveOptions manual = requested;

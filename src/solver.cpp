@@ -778,6 +778,12 @@ struct RootMoveProfile {
     int order = 0;
 };
 
+struct RootOrderingProfile {
+    std::string description;
+    bool firstMoveDiffers = false;
+    int strongMinCount = 0;
+};
+
 struct FastSearchResult {
     SolveStatus status = SolveStatus::DepthLimitExceeded;
     std::vector<Move> moves;
@@ -1179,7 +1185,7 @@ std::string rootBoundHistogram(
     return out.str();
 }
 
-std::string describeRootOrderingProfile(
+RootOrderingProfile describeRootOrderingProfile(
     const SearchNode& root,
     int initialLowerBound,
     SolveProfile profile,
@@ -1234,6 +1240,15 @@ std::string describeRootOrderingProfile(
     std::sort(baseMoves.begin(), baseMoves.begin() + count, baseLess);
     std::sort(strongMoves.begin(), strongMoves.begin() + count, strongLess);
 
+    const bool firstMoveDiffers = baseMoves.front().move != strongMoves.front().move;
+    const int strongMin = strongMoves.front().strongBound;
+    const int strongMinCount = static_cast<int>(std::count_if(
+        strongMoves.begin(),
+        strongMoves.begin() + count,
+        [strongMin](const RootMoveProfile& move) {
+            return move.strongBound == strongMin;
+        }));
+
     std::ostringstream out;
     out << "lb=" << initialLowerBound
         << ";children=" << count
@@ -1242,14 +1257,15 @@ std::string describeRootOrderingProfile(
                baseMoves.begin(),
                baseMoves.begin() + count,
                baseLess)->baseBound
-        << ";strong_min=" << strongMoves.front().strongBound
+        << ";strong_min=" << strongMin
+        << ";strong_min_count=" << strongMinCount
         << ";strong_max=" << std::max_element(
                strongMoves.begin(),
                strongMoves.begin() + count,
                strongLess)->strongBound
         << ";base_first=" << toString(baseMoves.front().move)
         << ";strong_first=" << toString(strongMoves.front().move)
-        << ";first_diff=" << (baseMoves.front().move == strongMoves.front().move ? 0 : 1)
+        << ";first_diff=" << (firstMoveDiffers ? 1 : 0)
         << ";base_hist=" << rootBoundHistogram(
                moves,
                count,
@@ -1258,7 +1274,11 @@ std::string describeRootOrderingProfile(
                moves,
                count,
                [](const RootMoveProfile& move) { return move.strongBound; });
-    return out.str();
+    return {
+        .description = out.str(),
+        .firstMoveDiffers = firstMoveDiffers,
+        .strongMinCount = strongMinCount,
+    };
 }
 
 SearchState dfs(
@@ -1709,18 +1729,9 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         includeExperimentalCornerUpEdgeBounds,
         includeExperimentalCornerDownEdgeBounds,
         includeThreePhase1Bounds);
-    const bool forcedStrongMoveOrdering = strongOptimalMoveOrderingEnabled();
-    const bool allowAutoStrongMoveOrdering =
-        !environmentFlagEnabled("RUBIK_DISABLE_AUTO_STRONG_OPTIMAL_ORDERING");
-    const bool useAutoStrongMoveOrdering = !forcedStrongMoveOrdering && !usePhase2MoveOrdering &&
-        detail::autoStrongMoveOrderingEnabled(
-            options,
-            effectiveOptions,
-            initialLowerBound,
-            allowAutoStrongMoveOrdering);
-    const bool useStrongMoveOrdering = forcedStrongMoveOrdering || useAutoStrongMoveOrdering;
+    RootOrderingProfile rootOrderingProfile;
     if (effectiveOptions.mode == SolveMode::Optimal) {
-        plan.publicPlan.rootOrderingProfile = describeRootOrderingProfile(
+        rootOrderingProfile = describeRootOrderingProfile(
             root,
             initialLowerBound,
             effectiveOptions.profile,
@@ -1729,7 +1740,20 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
             includeExperimentalCornerUpEdgeBounds,
             includeExperimentalCornerDownEdgeBounds,
             includeThreePhase1Bounds);
+        plan.publicPlan.rootOrderingProfile = rootOrderingProfile.description;
     }
+    const bool forcedStrongMoveOrdering = strongOptimalMoveOrderingEnabled();
+    const bool allowAutoStrongMoveOrdering =
+        !environmentFlagEnabled("RUBIK_DISABLE_AUTO_STRONG_OPTIMAL_ORDERING");
+    const bool useAutoStrongMoveOrdering = !forcedStrongMoveOrdering && !usePhase2MoveOrdering &&
+        detail::autoStrongMoveOrderingEnabled(
+            options,
+            effectiveOptions,
+            initialLowerBound,
+            allowAutoStrongMoveOrdering,
+            rootOrderingProfile.firstMoveDiffers,
+            rootOrderingProfile.strongMinCount);
+    const bool useStrongMoveOrdering = forcedStrongMoveOrdering || useAutoStrongMoveOrdering;
     if (useStrongMoveOrdering) {
         plan.publicPlan.optimalMoveOrdering = forcedStrongMoveOrdering
             ? "forced_strong_bound"
