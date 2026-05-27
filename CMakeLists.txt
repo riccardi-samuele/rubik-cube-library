@@ -113,6 +113,19 @@ add_test(
 set_tests_properties(cli_solve_accepts_cache_policy PROPERTIES
     PASS_REGULAR_EXPRESSION "status: Solved"
 )
+add_test(
+    NAME cli_solve_require_warm_rejects_cold_cache
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error_empty_cache.sh
+        "status: CacheNotReady"
+        ${CMAKE_CURRENT_BINARY_DIR}/test-cache/require-warm-cold
+        $<TARGET_FILE:rubik-solve>
+        UUBUUBUUBRRRRRRRRRFFUFFUFFUDDFDDFDDFLLLLLLLLLDBBDBBDBB
+        --profile auto
+        --cache-policy require-warm
+        --threads 0
+        --max-depth 1
+        --timeout-ms 1000
+)
 
 add_executable(rubik-bench
     apps/rubik_bench.cpp
