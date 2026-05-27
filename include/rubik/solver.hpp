@@ -66,6 +66,7 @@ struct SolvePlan {
     bool builtCacheDuringSolve = false;
     std::vector<std::string> boundsUsed;
     std::string strategyName;
+    std::string optimalMoveOrdering = "base_bound";
 };
 
 struct SolveOptions {

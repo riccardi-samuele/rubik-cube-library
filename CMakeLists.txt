@@ -86,6 +86,13 @@ set_tests_properties(cli_solve_solved PROPERTIES
     PASS_REGULAR_EXPRESSION "status: Solved"
 )
 add_test(
+    NAME cli_solve_reports_optimal_move_ordering
+    COMMAND rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --timeout-ms 1000
+)
+set_tests_properties(cli_solve_reports_optimal_move_ordering PROPERTIES
+    PASS_REGULAR_EXPRESSION "optimal-move-ordering: base_bound"
+)
+add_test(
     NAME cli_solve_invalid
     COMMAND rubik-solve not-a-cube
 )
@@ -588,6 +595,13 @@ add_test(
 )
 set_tests_properties(cli_bench_deterministic_smoke PROPERTIES
     PASS_REGULAR_EXPRESSION "benchmark,three_phase1_effective,true"
+)
+add_test(
+    NAME cli_bench_reports_case_optimal_move_ordering
+    COMMAND rubik-bench --mode optimal --timeout-ms 1000 --max-depth 1 --max-case-depth 1
+)
+set_tests_properties(cli_bench_reports_case_optimal_move_ordering PROPERTIES
+    PASS_REGULAR_EXPRESSION "case,case_depth,scramble,status,optimal,moves,initial_lower_bound,elapsed_ms,nodes_expanded,nodes_per_ms,max_depth,timeout_ms,nodes_by_depth,solution,optimal_move_ordering"
 )
 add_test(
     NAME cli_bench_random_smoke

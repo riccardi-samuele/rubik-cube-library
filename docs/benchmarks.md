@@ -838,6 +838,7 @@ Important columns:
 - `nodes_expanded`: number of expanded search nodes.
 - `nodes_by_depth`: `|`-separated expansion counts per attempted depth/budget.
 - `solution`: returned move sequence.
+- `optimal_move_ordering`: actual optimal DFS child ordering used by that case.
 
 Additional report rows:
 

@@ -60,6 +60,7 @@ void testV3AdaptiveApiDefaults()
     expect(!plan.diskCacheWarm);
     expect(!plan.builtCacheDuringSolve);
     expect(plan.strategyName.empty());
+    expect(plan.optimalMoveOrdering == "base_bound");
     expect(plan.boundsUsed.empty());
 
     rubik::SolveResult result;
@@ -94,6 +95,7 @@ void testAutoPlannerDesktopDefaults()
     expect(plan.publicPlan.effectiveThreads >= 1);
     expect(plan.publicPlan.effectiveThreads <= 16);
     expect(plan.publicPlan.strategyName == "auto_desktop_tail");
+    expect(plan.publicPlan.optimalMoveOrdering == "base_bound");
     expect(!plan.publicPlan.boundsUsed.empty());
 }
 
@@ -152,6 +154,7 @@ void testAutoSolveReportsPlan()
     expect(result.plan.effectiveThreads >= 1);
     expect(result.plan.effectiveMaxMemoryBytes == 2ull * 1024ull * 1024ull * 1024ull);
     expect(result.plan.strategyName == "auto_desktop_tail");
+    expect(result.plan.optimalMoveOrdering == "base_bound");
 }
 
 void testAutoFastSolveIsUnsupported()

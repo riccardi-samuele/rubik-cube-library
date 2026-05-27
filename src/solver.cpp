@@ -1600,6 +1600,15 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
             initialLowerBound,
             allowAutoStrongMoveOrdering);
     const bool useStrongMoveOrdering = forcedStrongMoveOrdering || useAutoStrongMoveOrdering;
+    if (useStrongMoveOrdering) {
+        plan.publicPlan.optimalMoveOrdering = forcedStrongMoveOrdering
+            ? "forced_strong_bound"
+            : "auto_strong_bound";
+    } else if (usePhase2MoveOrdering) {
+        plan.publicPlan.optimalMoveOrdering = "phase2_tiebreak";
+    } else {
+        plan.publicPlan.optimalMoveOrdering = "base_bound";
+    }
     const GoalTable* exactGoalTable = goalTableDepth > 0
         ? &goalTable(goalTableDepth)
         : nullptr;

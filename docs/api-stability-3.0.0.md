@@ -20,3 +20,7 @@ missing, `Solver::solve()` returns `SolveStatus::CacheNotReady`.
 The exact internal table set selected by `Auto` is not stable. The public
 contract is that the selected plan respects user limits and is reported through
 `SolvePlan`.
+
+`SolvePlan::optimalMoveOrdering` reports the actual optimal DFS child ordering
+used by the solve. Stable values are `base_bound`, `auto_strong_bound`,
+`forced_strong_bound`, and `phase2_tiebreak`.

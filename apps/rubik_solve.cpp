@@ -276,6 +276,7 @@ int main(int argc, char** argv)
     std::cout << "effective-threads: " << result.plan.effectiveThreads << "\n";
     std::cout << "effective-memory-bytes: " << result.plan.effectiveMaxMemoryBytes << "\n";
     std::cout << "strategy: " << result.plan.strategyName << "\n";
+    std::cout << "optimal-move-ordering: " << result.plan.optimalMoveOrdering << "\n";
 
     return result.status == rubik::SolveStatus::Optimal ||
             result.status == rubik::SolveStatus::Found ||

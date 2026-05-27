@@ -134,6 +134,10 @@ benchmarked on the actual hardware.
 With `SolveProfile::Auto`, `threads = 0` lets the planner choose an effective
 thread count and report it through `SolvePlan::effectiveThreads`.
 
+`SolveResult::plan.optimalMoveOrdering` reports the actual optimal DFS child
+ordering used by that solve. Stable values are `base_bound`,
+`auto_strong_bound`, `forced_strong_bound`, and `phase2_tiebreak`.
+
 ## Cache Setup
 
 Applications can prepare cache data explicitly:

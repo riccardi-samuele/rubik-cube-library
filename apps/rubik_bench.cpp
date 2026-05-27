@@ -45,6 +45,7 @@ struct BenchmarkRow {
     double nodesPerMs = 0.0;
     std::string nodesByDepth;
     std::string solution;
+    std::string optimalMoveOrdering;
 };
 
 struct FastAttemptOptions {
@@ -533,7 +534,8 @@ void printCaseRow(const BenchmarkRow& row, const rubik::SolveOptions& options)
         << options.maxDepth << ','
         << options.timeout.count() << ','
         << '"' << row.nodesByDepth << '"' << ','
-        << '"' << row.solution << '"'
+        << '"' << row.solution << '"' << ','
+        << row.optimalMoveOrdering
         << "\n";
 }
 
@@ -1526,7 +1528,7 @@ int main(int argc, char** argv)
     const std::chrono::milliseconds warmupElapsed = warmUpTables(options);
     std::cout << "benchmark,warmup_table_payload_bytes," << warmUpTablePayloadBytes(options) << "\n";
     std::cout << "benchmark,warmup_elapsed_ms," << warmupElapsed.count() << "\n";
-    std::cout << "case,case_depth,scramble,status,optimal,moves,initial_lower_bound,elapsed_ms,nodes_expanded,nodes_per_ms,max_depth,timeout_ms,nodes_by_depth,solution\n";
+    std::cout << "case,case_depth,scramble,status,optimal,moves,initial_lower_bound,elapsed_ms,nodes_expanded,nodes_per_ms,max_depth,timeout_ms,nodes_by_depth,solution,optimal_move_ordering\n";
     std::cout.flush();
 
     for (const Case& item : cases) {
@@ -1558,6 +1560,7 @@ int main(int argc, char** argv)
             .nodesPerMs = nodesPerMs,
             .nodesByDepth = formatNodesByDepth(result.nodesByDepth),
             .solution = rubik::formatMoves(result.moves),
+            .optimalMoveOrdering = result.plan.optimalMoveOrdering,
         };
 
         totalNodes += result.nodesExpanded;
