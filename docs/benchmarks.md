@@ -274,6 +274,10 @@ thread count. Benchmark output reports both `requested_profile` and the
 effective `profile`, plus `adaptive_strategy`, `threads`,
 `warmup_table_payload_bytes`, and `warmup_elapsed_ms`.
 
+`Auto` is depth-aware for optimal HTM. The repeatable depth-12/depth-13 Auto
+profile benchmark resolves to `Performance`; depth-15 Auto tail benchmarks
+resolve to `LargeLocal`.
+
 Use `rubik-cache-setup --profile auto` or `prepareCache()` before
 latency-sensitive benchmark runs when cold-cache setup should be separated from
 solve latency. The Auto benchmark targets use warm cache mode and still print

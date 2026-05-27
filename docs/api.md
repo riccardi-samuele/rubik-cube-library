@@ -106,7 +106,9 @@ HTM solution for every profile.
 `SolveProfile::Auto` is the recommended adaptive profile for certified HTM
 optimal solving. It selects an effective local profile, memory budget, thread
 count, and table strategy, then reports that selection through
-`SolveResult::plan`.
+`SolveResult::plan`. For shallow optimal searches through depth 13, `Auto`
+selects the `Performance` profile to avoid the large-local warm-up cost. For
+deeper optimal searches it selects `LargeLocal`.
 
 `SolveProfile::Default` is the normal desktop/server profile.
 `SolveProfile::Performance` may use larger or more expensive internal search

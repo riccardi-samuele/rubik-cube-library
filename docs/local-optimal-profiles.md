@@ -89,6 +89,18 @@ corner/edge-group admissible bounds. It does not require
 high-memory optimal solving and for repeatable depth-15 validation on
 the directly benchmarked host.
 
+### `SolveProfile::Auto`
+
+`Auto` keeps the optimal correctness contract while selecting a local strategy
+from the request shape. For optimal HTM searches through depth 13, it resolves
+to `Performance` to avoid preparing the larger `LargeLocal` tables for shallow
+work. For deeper optimal searches, it resolves to `LargeLocal` and enables the
+larger admissible bounds.
+
+`SolveResult::plan` reports the requested profile, effective profile, selected
+thread count, memory budget, estimated table payload, and strategy name. Use
+those fields when logging or benchmarking adaptive runs.
+
 ## Non-Goals For Public Profiles
 
 Do not add a new public profile until there is a measured reason. Experimental

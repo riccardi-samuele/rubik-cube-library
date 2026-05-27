@@ -79,12 +79,35 @@ void testAutoPlannerRejectsFastMode()
     expect(plan.status == rubik::SolveStatus::UnsupportedOptions);
 }
 
-void testAutoPlannerDesktopDefaults()
+void testAutoPlannerUsesPerformanceForShallowOptimal()
 {
     rubik::SolveOptions options;
     options.mode = rubik::SolveMode::Optimal;
     options.metric = rubik::Metric::HTM;
     options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 13;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+
+    const auto plan = rubik::detail::makeOptimalPlan(options);
+    expect(plan.supported);
+    expect(plan.publicPlan.requestedProfile == rubik::SolveProfile::Auto);
+    expect(plan.publicPlan.effectiveProfile == rubik::SolveProfile::Performance);
+    expect(plan.publicPlan.effectiveMaxMemoryBytes == 2ull * 1024ull * 1024ull * 1024ull);
+    expect(plan.publicPlan.effectiveThreads >= 1);
+    expect(plan.publicPlan.effectiveThreads <= 16);
+    expect(plan.publicPlan.strategyName == "auto_shallow_optimal");
+    expect(plan.publicPlan.optimalMoveOrdering == "base_bound");
+    expect(!plan.publicPlan.boundsUsed.empty());
+}
+
+void testAutoPlannerUsesLargeLocalForDeepOptimal()
+{
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 15;
     options.maxMemoryBytes = 0;
     options.threads = 0;
 
@@ -92,12 +115,7 @@ void testAutoPlannerDesktopDefaults()
     expect(plan.supported);
     expect(plan.publicPlan.requestedProfile == rubik::SolveProfile::Auto);
     expect(plan.publicPlan.effectiveProfile == rubik::SolveProfile::LargeLocal);
-    expect(plan.publicPlan.effectiveMaxMemoryBytes == 2ull * 1024ull * 1024ull * 1024ull);
-    expect(plan.publicPlan.effectiveThreads >= 1);
-    expect(plan.publicPlan.effectiveThreads <= 16);
     expect(plan.publicPlan.strategyName == "auto_desktop_tail");
-    expect(plan.publicPlan.optimalMoveOrdering == "base_bound");
-    expect(!plan.publicPlan.boundsUsed.empty());
 }
 
 void testAutoPlannerReportsFullTailPayload()
@@ -106,6 +124,7 @@ void testAutoPlannerReportsFullTailPayload()
     options.mode = rubik::SolveMode::Optimal;
     options.metric = rubik::Metric::HTM;
     options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 15;
     options.maxMemoryBytes = 0;
     options.threads = 0;
 
@@ -120,6 +139,7 @@ void testAutoStrongMoveOrderingPolicy()
     requested.mode = rubik::SolveMode::Optimal;
     requested.metric = rubik::Metric::HTM;
     requested.profile = rubik::SolveProfile::Auto;
+    requested.maxDepth = 15;
 
     const auto plan = rubik::detail::makeOptimalPlan(requested);
     expect(plan.supported);
@@ -154,10 +174,10 @@ void testAutoSolveReportsPlan()
     const rubik::SolveResult result = solver.solve(rubik::Cube::solved(), options);
     expect(result.status == rubik::SolveStatus::Solved);
     expect(result.plan.requestedProfile == rubik::SolveProfile::Auto);
-    expect(result.plan.effectiveProfile == rubik::SolveProfile::LargeLocal);
+    expect(result.plan.effectiveProfile == rubik::SolveProfile::Performance);
     expect(result.plan.effectiveThreads >= 1);
     expect(result.plan.effectiveMaxMemoryBytes == 2ull * 1024ull * 1024ull * 1024ull);
-    expect(result.plan.strategyName == "auto_desktop_tail");
+    expect(result.plan.strategyName == "auto_shallow_optimal");
     expect(result.plan.optimalMoveOrdering == "base_bound");
     expect(result.plan.rootOrderingProfile.empty());
 }
@@ -1233,7 +1253,8 @@ int main()
     testVersionMetadata();
     testV3AdaptiveApiDefaults();
     testAutoPlannerRejectsFastMode();
-    testAutoPlannerDesktopDefaults();
+    testAutoPlannerUsesPerformanceForShallowOptimal();
+    testAutoPlannerUsesLargeLocalForDeepOptimal();
     testAutoPlannerReportsFullTailPayload();
     testAutoStrongMoveOrderingPolicy();
     testAutoSolveReportsPlan();

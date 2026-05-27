@@ -38,6 +38,21 @@ std::size_t estimatedPayloadForProfile(SolveProfile profile)
     return bytes;
 }
 
+SolveProfile autoEffectiveProfile(const SolveOptions& options)
+{
+    if (options.maxDepth <= 13) {
+        return SolveProfile::Performance;
+    }
+    return SolveProfile::LargeLocal;
+}
+
+const char* autoStrategyName(SolveProfile effectiveProfile)
+{
+    return effectiveProfile == SolveProfile::LargeLocal
+        ? "auto_desktop_tail"
+        : "auto_shallow_optimal";
+}
+
 } // namespace
 
 std::size_t autoMemoryBudgetBytes(const SolveOptions& options)
@@ -99,7 +114,7 @@ OptimalPlan makeOptimalPlan(const SolveOptions& options)
     }
 
     const SolveProfile effectiveProfile =
-        options.profile == SolveProfile::Auto ? SolveProfile::LargeLocal : options.profile;
+        options.profile == SolveProfile::Auto ? autoEffectiveProfile(options) : options.profile;
     const std::size_t effectiveMemory =
         options.profile == SolveProfile::Auto ? autoMemoryBudgetBytes(options) : options.maxMemoryBytes;
     const unsigned int effectiveThreads =
@@ -115,7 +130,7 @@ OptimalPlan makeOptimalPlan(const SolveOptions& options)
     plan.publicPlan.estimatedTablePayloadBytes = estimatedPayloadForProfile(effectiveProfile);
     plan.publicPlan.boundsUsed = boundsForProfile(effectiveProfile);
     plan.publicPlan.strategyName =
-        options.profile == SolveProfile::Auto ? "auto_desktop_tail" : "manual_profile";
+        options.profile == SolveProfile::Auto ? autoStrategyName(effectiveProfile) : "manual_profile";
     plan.publicPlan.diskCacheEnabled = options.cachePolicy != CachePolicy::Disabled;
 
     plan.supported = true;
