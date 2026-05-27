@@ -148,6 +148,7 @@ how much work is spent before the solution root in parallel optimal searches and
 which pruning counters dominate that work. It also reports derived integer
 metrics such as root nodes per millisecond, cheap candidate prunes per node in
 parts per million, and three-phase candidate prune rate in parts per million.
+Add `--summary` to emit one aggregate row per benchmark case.
 
 V2 optimal baseline:
 

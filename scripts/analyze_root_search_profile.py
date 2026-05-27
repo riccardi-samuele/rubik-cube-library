@@ -24,6 +24,7 @@ def parse_args():
     parser.add_argument("--input-dir", default="benchmark-results")
     parser.add_argument("--output", default="")
     parser.add_argument("--limit", default="0")
+    parser.add_argument("--summary", action="store_true")
     parser.add_argument("-h", "--help", action="store_true")
 
     args, unknown = parser.parse_known_args()
@@ -34,6 +35,7 @@ def parse_args():
             "  --input-dir DIR    directory containing rubik-bench CSV output, default: benchmark-results\n"
             "  --output FILE      write CSV output to FILE instead of stdout\n"
             "  --limit N          maximum number of root rows to emit, default: all\n"
+            "  --summary          emit one aggregate row per benchmark case\n"
             "  -h, --help         show this help"
         )
         sys.exit(0)
@@ -51,7 +53,7 @@ def parse_args():
     if limit < 0:
         print(USAGE, file=sys.stderr)
         sys.exit(2)
-    return Path(args.input_dir), Path(args.output) if args.output else None, limit
+    return Path(args.input_dir), Path(args.output) if args.output else None, limit, args.summary
 
 
 def profile_value(profile, key):
@@ -173,6 +175,68 @@ def collect_rows(input_dir):
     return rows
 
 
+def summarize_rows(rows):
+    groups = {}
+    for row in rows:
+        key = (row["source_file"], row["benchmark"], row["case_name"])
+        group = groups.setdefault(key, {
+            "source_file": row["source_file"],
+            "benchmark": row["benchmark"],
+            "case_name": row["case_name"],
+            "roots": 0,
+            "before_solution_roots": 0,
+            "total_root_nodes": 0,
+            "total_root_elapsed_ms": 0,
+            "cheap_candidate_prunes": 0,
+            "three_phase_candidate_checks": 0,
+            "three_phase_candidate_prunes": 0,
+            "solution_root_elapsed_ms": "",
+            "max_root_elapsed_ms": 0,
+        })
+        nodes = int_value(row["nodes_expanded"]) or 0
+        elapsed = int_value(row["root_elapsed_ms"]) or 0
+        cheap_prunes = int_value(row["cheap_candidate_prunes"]) or 0
+        three_phase_checks = int_value(row["three_phase_candidate_checks"]) or 0
+        three_phase_prunes = int_value(row["three_phase_candidate_prunes"]) or 0
+        group["roots"] += 1
+        group["before_solution_roots"] += 1 if row["before_solution"] == "true" else 0
+        group["total_root_nodes"] += nodes
+        group["total_root_elapsed_ms"] += elapsed
+        group["cheap_candidate_prunes"] += cheap_prunes
+        group["three_phase_candidate_checks"] += three_phase_checks
+        group["three_phase_candidate_prunes"] += three_phase_prunes
+        group["max_root_elapsed_ms"] = max(group["max_root_elapsed_ms"], elapsed)
+        if row["outcome"] == "found":
+            group["solution_root_elapsed_ms"] = row["root_elapsed_ms"]
+
+    result = []
+    for group in groups.values():
+        total_nodes = str(group["total_root_nodes"])
+        total_elapsed = str(group["total_root_elapsed_ms"])
+        three_phase_checks = str(group["three_phase_candidate_checks"])
+        result.append({
+            "source_file": group["source_file"],
+            "benchmark": group["benchmark"],
+            "case_name": group["case_name"],
+            "roots": str(group["roots"]),
+            "before_solution_roots": str(group["before_solution_roots"]),
+            "total_root_nodes": total_nodes,
+            "total_root_elapsed_ms": total_elapsed,
+            "root_nodes_per_ms": integer_ratio(total_nodes, total_elapsed),
+            "cheap_candidate_prunes_per_node_ppm": integer_ratio(
+                str(group["cheap_candidate_prunes"]),
+                total_nodes,
+                1_000_000),
+            "three_phase_candidate_prune_rate_ppm": integer_ratio(
+                str(group["three_phase_candidate_prunes"]),
+                three_phase_checks,
+                1_000_000),
+            "solution_root_elapsed_ms": group["solution_root_elapsed_ms"],
+            "max_root_elapsed_ms": str(group["max_root_elapsed_ms"]),
+        })
+    return result
+
+
 def emit(rows, output):
     fieldnames = [
         "source_file",
@@ -211,12 +275,46 @@ def emit(rows, output):
     print(f"root search analysis: {output}")
 
 
+def emit_summary(rows, output):
+    fieldnames = [
+        "source_file",
+        "benchmark",
+        "case_name",
+        "roots",
+        "before_solution_roots",
+        "total_root_nodes",
+        "total_root_elapsed_ms",
+        "root_nodes_per_ms",
+        "cheap_candidate_prunes_per_node_ppm",
+        "three_phase_candidate_prune_rate_ppm",
+        "solution_root_elapsed_ms",
+        "max_root_elapsed_ms",
+    ]
+    if output is None:
+        writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+        return
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"root search summary: {output}")
+
+
 def main():
-    input_dir, output, limit = parse_args()
+    input_dir, output, limit, summary = parse_args()
     rows = collect_rows(input_dir)
+    if summary:
+        rows = summarize_rows(rows)
     if limit:
         rows = rows[:limit]
-    emit(rows, output)
+    if summary:
+        emit_summary(rows, output)
+    else:
+        emit(rows, output)
 
 
 if __name__ == "__main__":
