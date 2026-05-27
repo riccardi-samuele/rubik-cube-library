@@ -22,6 +22,7 @@
 #include <queue>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace {
@@ -1367,6 +1368,21 @@ void testParallelOptimalReportsRootSearchProfile()
     expect(result.isOptimal);
     expect(result.plan.rootOrderingProfile.find("root_search=") != std::string::npos);
     expect(result.plan.rootOrderingProfile.find(":found:") != std::string::npos);
+
+    const std::string_view profile(result.plan.rootOrderingProfile);
+    const std::size_t rootSearchStart = profile.find("root_search=");
+    expect(rootSearchStart != std::string_view::npos);
+    const std::size_t firstEntryStart = rootSearchStart + std::string_view("root_search=").size();
+    const std::size_t firstEntryEnd = profile.find('|', firstEntryStart);
+    const std::string_view firstEntry = firstEntryEnd == std::string_view::npos
+        ? profile.substr(firstEntryStart)
+        : profile.substr(firstEntryStart, firstEntryEnd - firstEntryStart);
+    expect(firstEntry.find(':') != std::string_view::npos);
+    const std::size_t firstSeparator = firstEntry.find(':');
+    const std::size_t secondSeparator = firstEntry.find(':', firstSeparator + 1);
+    expect(secondSeparator != std::string_view::npos);
+    const std::size_t thirdSeparator = firstEntry.find(':', secondSeparator + 1);
+    expect(thirdSeparator != std::string_view::npos);
 }
 
 void testSolveMemoryLimit()

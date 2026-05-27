@@ -772,6 +772,7 @@ struct RootMoveProfile {
 struct RootSearchProfileEntry {
     Move move = Move::U;
     std::uint64_t nodesExpanded = 0;
+    std::uint64_t elapsedMs = 0;
     SearchState state = SearchState::NotFound;
     bool visited = false;
 };
@@ -1261,9 +1262,9 @@ std::string formatRootSearchProfile(const std::vector<RootSearchProfileEntry>& e
         const RootSearchProfileEntry& entry = entries[i];
         out << toString(entry.move) << ':';
         if (entry.visited) {
-            out << searchStateToken(entry.state) << ':' << entry.nodesExpanded;
+            out << searchStateToken(entry.state) << ':' << entry.nodesExpanded << ':' << entry.elapsedMs;
         } else {
-            out << "unvisited:0";
+            out << "unvisited:0:0";
         }
     }
     return out.str();
@@ -1600,6 +1601,7 @@ SearchState parallelRootDfs(
             rootSearchProfile->push_back({
                 .move = candidates[static_cast<std::size_t>(i)].move,
                 .nodesExpanded = 0,
+                .elapsedMs = 0,
                 .state = SearchState::NotFound,
                 .visited = false,
             });
@@ -1630,6 +1632,7 @@ SearchState parallelRootDfs(
                 }
 
                 const std::uint64_t nodesBeforeCandidate = localNodes;
+                const auto candidateStartedAt = std::chrono::steady_clock::now();
                 std::vector<Move> path{candidates[index].move};
                 std::vector<Move> localSolution;
                 const SearchState state = dfs(
@@ -1651,10 +1654,13 @@ SearchState parallelRootDfs(
                     localSolution,
                     localNodes,
                     diagnostics == nullptr ? nullptr : &localDiagnostics);
+                const auto candidateElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::steady_clock::now() - candidateStartedAt);
                 if (rootSearchProfile != nullptr) {
                     std::scoped_lock lock(resultMutex);
                     RootSearchProfileEntry& entry = (*rootSearchProfile)[static_cast<std::size_t>(index)];
                     entry.nodesExpanded = localNodes - nodesBeforeCandidate;
+                    entry.elapsedMs = static_cast<std::uint64_t>(candidateElapsed.count());
                     entry.state = state;
                     entry.visited = true;
                 }

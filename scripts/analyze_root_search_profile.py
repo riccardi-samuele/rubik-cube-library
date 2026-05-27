@@ -70,10 +70,11 @@ def parse_root_search(profile):
     entries = []
     for index, token in enumerate(root_search.split("|"), start=1):
         pieces = token.split(":")
-        if len(pieces) != 3:
+        if len(pieces) not in {3, 4}:
             continue
-        move, outcome, nodes = pieces
-        entries.append((index, move, outcome, nodes))
+        move, outcome, nodes = pieces[:3]
+        elapsed_ms = pieces[3] if len(pieces) == 4 else ""
+        entries.append((index, move, outcome, nodes, elapsed_ms))
     return entries
 
 
@@ -91,7 +92,7 @@ def case_rows(path):
             if not root_rows:
                 continue
             solution_rank = profile_value(profile, "solution_rank")
-            for root_rank, move, outcome, nodes in root_rows:
+            for root_rank, move, outcome, nodes, elapsed_ms in root_rows:
                 yield {
                     "source_file": path.name,
                     "benchmark": benchmark,
@@ -103,6 +104,7 @@ def case_rows(path):
                     "move": move,
                     "outcome": outcome,
                     "nodes_expanded": nodes,
+                    "root_elapsed_ms": elapsed_ms,
                     "before_solution": "true" if solution_rank and root_rank < int(solution_rank) else "false",
                 }
 
@@ -130,6 +132,7 @@ def emit(rows, output):
         "move",
         "outcome",
         "nodes_expanded",
+        "root_elapsed_ms",
         "before_solution",
     ]
     if output is None:

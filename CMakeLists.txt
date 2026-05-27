@@ -879,7 +879,7 @@ add_test(
         --limit 4
 )
 set_tests_properties(analyze_root_search_profile PROPERTIES
-    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,elapsed_ms,total_nodes,solution_rank,root_rank,move,outcome,nodes_expanded,before_solution.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,1,U,not_found,1962759,true.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,3,D,found,2004969,false"
+    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,elapsed_ms,total_nodes,solution_rank,root_rank,move,outcome,nodes_expanded,root_elapsed_ms,before_solution.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,1,U,not_found,1962759,612,true.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,3,D,found,2004969,701,false"
 )
 add_test(
     NAME analyze_root_search_profile_rejects_missing_values
