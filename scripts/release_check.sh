@@ -4,6 +4,7 @@ set -euo pipefail
 profile="standard"
 with_benchmarks="0"
 with_large_local="0"
+with_v3_auto="0"
 
 usage() {
     cat <<'USAGE'
@@ -19,12 +20,16 @@ Profiles:
 Options:
   --profile NAME          quick|standard|full, default: standard
   --with-benchmarks       run profile-realistic, Auto, embedded-multiseed, and optimal-stress gates
+  --with-v3-auto          run Auto profile, Auto tail, and Auto hardening gates
   --with-large-local      also run large-local, Auto tail, and Auto hardening optimal benchmark gates
   -h, --help              show this help
 
 Large-local gates use the public high-memory optimal profile and can take a
 long time on a cold cache. Auto hardening extends the adaptive optimal tail
 coverage and can add several minutes to the run.
+
+Use --with-v3-auto before a V3 release candidate when the adaptive Auto
+optimal policy changed but the full large-local suite is not needed.
 USAGE
 }
 
@@ -39,6 +44,11 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --with-benchmarks)
+            with_benchmarks="1"
+            shift
+            ;;
+        --with-v3-auto)
+            with_v3_auto="1"
             with_benchmarks="1"
             shift
             ;;
@@ -123,6 +133,7 @@ check_source_archive_build() {
 echo "release_check,profile,${profile}"
 echo "release_check,with_benchmarks,${with_benchmarks}"
 echo "release_check,with_large_local,${with_large_local}"
+echo "release_check,with_v3_auto,${with_v3_auto}"
 release_version="$(read_project_version)"
 archive_root="rubik_cube_library-${release_version}"
 archive_path="${repo_root}/dist/${archive_root}.tar.gz"
@@ -162,6 +173,10 @@ if [[ "${with_benchmarks}" == "1" ]]; then
     run_step cmake --build out/release-native-lto --target rubik-benchmark-embedded-multiseed-gates
     run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-stress
     run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-stress-gates
+fi
+
+if [[ "${with_v3_auto}" == "1" ]]; then
+    run_step cmake --build out/release-native-lto --target rubik-benchmark-v3-auto-gates
 fi
 
 if [[ "${with_large_local}" == "1" ]]; then
