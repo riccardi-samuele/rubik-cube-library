@@ -88,6 +88,7 @@ than 24 moves.
 
 Current profile comparison:
 
+- [Auto Optimal Hardening - 2026-05-27](optimal-auto-hardening-2026-05-27.md)
 - [Auto Optimal Discovery - 2026-05-27](optimal-auto-discovery-2026-05-27.md)
 - [V2 Optimal Baseline - 2026-05-26](v2-optimal-baseline-2026-05-26.md)
 - [V2 Corner-State Validation - 2026-05-26](v2-corner-state-validation-2026-05-26.md)
