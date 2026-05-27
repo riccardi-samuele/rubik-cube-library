@@ -41,41 +41,57 @@ Variants:
 USAGE
 }
 
+require_value() {
+    if [[ $# -lt 2 ]]; then
+        usage >&2
+        exit 2
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --build-dir)
+            require_value "$@"
             build_dir="$2"
             shift 2
             ;;
         --cache-dir)
+            require_value "$@"
             cache_dir="$2"
             shift 2
             ;;
         --output-dir)
+            require_value "$@"
             output_dir="$2"
             shift 2
             ;;
         --profile)
+            require_value "$@"
             profile="$2"
             shift 2
             ;;
         --timeout-ms)
+            require_value "$@"
             timeout_ms="$2"
             shift 2
             ;;
         --max-depth)
+            require_value "$@"
             max_depth="$2"
             shift 2
             ;;
         --threads)
+            require_value "$@"
             threads="$2"
             shift 2
             ;;
         --max-memory-mb)
+            require_value "$@"
             max_memory_mb="$2"
             shift 2
             ;;
         --variants)
+            require_value "$@"
             variants="$2"
             shift 2
             ;;
