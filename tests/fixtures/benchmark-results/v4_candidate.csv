@@ -1,0 +1,3 @@
+seed,status,optimal,move_count,initial_lower_bound,elapsed_ms,nodes_expanded,warmup_elapsed_ms,wall_elapsed_ms,output_file
+1009,Optimal,true,15,11,7600,28000000,0,8200,candidate_1009.csv
+987654321,Optimal,true,15,11,7000,24000000,0,7700,candidate_987654321.csv

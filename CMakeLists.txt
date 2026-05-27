@@ -955,6 +955,20 @@ add_test(
     NAME run_auto_tail_ordering_ab_rejects_missing_values
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_auto_tail_ordering_ab_rejects_missing_values.sh
 )
+add_test(
+    NAME compare_v4_tail_runs_rejects_missing_values
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_v4_tail_runs_rejects_missing_values.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_v4_tail_runs.py
+)
+add_test(
+    NAME compare_v4_tail_runs_fixture
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_v4_tail_runs.py
+        --baseline ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v4_baseline.csv
+        --candidate ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v4_candidate.csv
+)
+set_tests_properties(compare_v4_tail_runs_fixture PROPERTIES
+    PASS_REGULAR_EXPRESSION "__summary__,8411,7300,-1111,-13.21,59590724,52000000,-7590724,candidate"
+)
 
 add_test(
     NAME benchmark_root_ordering_experiments_contract
