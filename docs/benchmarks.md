@@ -287,7 +287,8 @@ cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-harde
 This suite runs `SolveProfile::Auto` across fixed depth-14 and depth-15 random
 seeds with warm cache and a 2 GiB memory budget. It is intended for local tail
 latency analysis before changing optimal search policy; it is not part of the
-normal release gate.
+normal release gate. The CMake target runs `rubik-cache-setup` first so the
+reported solve rows are not dominated by first-run table generation.
 
 Default corner-state pruning:
 

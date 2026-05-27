@@ -441,6 +441,11 @@ add_custom_target(rubik-benchmark-optimal-auto-tail-gates
     COMMENT "Checking Auto optimal depth-15 tail gates"
 )
 add_custom_target(rubik-benchmark-optimal-auto-hardening
+    COMMAND rubik-cache-setup
+        --profile auto
+        --cache-dir /tmp/rubik_cube_library_optimal_auto_hardening_cache
+        --max-memory-mb 2048
+        --threads 0
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
         --suite optimal-auto-hardening
         --cache-mode warm
@@ -452,7 +457,7 @@ add_custom_target(rubik-benchmark-optimal-auto-hardening
         --deep-opt15-count 1
         --threads 0
         --max-memory-mb 2048
-    DEPENDS rubik-bench
+    DEPENDS rubik-bench rubik-cache-setup
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running Auto optimal hardening benchmark suite"
 )
