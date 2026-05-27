@@ -89,3 +89,36 @@ scripts/benchmark_root_ordering_experiments.sh \
 This probe is a net improvement on the current tail set and keeps the hot path
 linear. It avoids one redundant lower-bound computation when strong move
 ordering is active.
+
+## Base Bound Max Probe
+
+The base lower bound was changed from an initializer-list `std::max` to explicit
+linear max updates. This keeps the same table lookups and result while avoiding
+initializer-list construction in a hot function.
+
+Command:
+
+```sh
+scripts/benchmark_root_ordering_experiments.sh \
+  --cache-dir /tmp/rubik_cube_library_v3_tail_probe_cache \
+  --output-dir out/release-native-lto/benchmark-results/manual-base-bound-max-tail \
+  --seeds 987654321,424242,1009,2016,666,555,99,888 \
+  --variants default \
+  --timeout-ms 30000 \
+  --max-depth 15 \
+  --random-depth 15
+```
+
+| Seed | Previous ms | Manual max ms | Delta ms |
+| ---: | ---: | ---: | ---: |
+| 987654321 | 8885 | 8688 | -197 |
+| 2016 | 6334 | 6120 | -214 |
+| 555 | 3409 | 3341 | -68 |
+| 1009 | 10956 | 10933 | -23 |
+| 99 | 2353 | 2346 | -7 |
+| 888 | 2203 | 2189 | -14 |
+| 424242 | 3398 | 3420 | +22 |
+| 666 | 1102 | 1113 | +11 |
+
+This probe is a small net improvement on the current tail set and preserves the
+same lower-bound values.

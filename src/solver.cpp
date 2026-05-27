@@ -569,17 +569,16 @@ int nodeBaseLowerBound(const SearchNode& node)
     const auto edgeOrientationSliceIndex = node.edgeOrientation * coordinates::slice_edge_count + node.sliceEdges;
     const auto cornerPermutationSliceIndex = node.cornerPermutation * coordinates::slice_edge_count + node.sliceEdges;
 
-    return std::max({
-        static_cast<int>(pruning_tables::cornerOrientation()[node.cornerOrientation]),
-        static_cast<int>(pruning_tables::edgeOrientation()[node.edgeOrientation]),
-        static_cast<int>(pruning_tables::sliceEdges()[node.sliceEdges]),
-        static_cast<int>(pruning_tables::cornerPermutation()[node.cornerPermutation]),
-        static_cast<int>(pruning_tables::upEdgePermutation()[node.upEdgePermutation]),
-        static_cast<int>(pruning_tables::downEdgePermutation()[node.downEdgePermutation]),
-        static_cast<int>(pruning_tables::cornerOrientationSlice()[cornerOrientationSliceIndex]),
-        static_cast<int>(pruning_tables::edgeOrientationSlice()[edgeOrientationSliceIndex]),
-        static_cast<int>(pruning_tables::cornerPermutationSlice()[cornerPermutationSliceIndex]),
-    });
+    int bound = static_cast<int>(pruning_tables::cornerOrientation()[node.cornerOrientation]);
+    bound = std::max(bound, static_cast<int>(pruning_tables::edgeOrientation()[node.edgeOrientation]));
+    bound = std::max(bound, static_cast<int>(pruning_tables::sliceEdges()[node.sliceEdges]));
+    bound = std::max(bound, static_cast<int>(pruning_tables::cornerPermutation()[node.cornerPermutation]));
+    bound = std::max(bound, static_cast<int>(pruning_tables::upEdgePermutation()[node.upEdgePermutation]));
+    bound = std::max(bound, static_cast<int>(pruning_tables::downEdgePermutation()[node.downEdgePermutation]));
+    bound = std::max(bound, static_cast<int>(pruning_tables::cornerOrientationSlice()[cornerOrientationSliceIndex]));
+    bound = std::max(bound, static_cast<int>(pruning_tables::edgeOrientationSlice()[edgeOrientationSliceIndex]));
+    bound = std::max(bound, static_cast<int>(pruning_tables::cornerPermutationSlice()[cornerPermutationSliceIndex]));
+    return bound;
 }
 
 int nodeLowerBoundWithoutThreePhase1(
