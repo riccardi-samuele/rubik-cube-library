@@ -18,8 +18,8 @@ Profiles:
 
 Options:
   --profile NAME          quick|standard|full, default: standard
-  --with-benchmarks       run profile-realistic, embedded-multiseed, and optimal-stress gates
-  --with-large-local      also run large-local optimal benchmark gates
+  --with-benchmarks       run profile-realistic, Auto, embedded-multiseed, and optimal-stress gates
+  --with-large-local      also run large-local and Auto tail optimal benchmark gates
   -h, --help              show this help
 
 Large-local gates use the public high-memory optimal profile and can take a
@@ -151,6 +151,8 @@ check_source_archive_build "${archive_path}" "${archive_root}"
 if [[ "${with_benchmarks}" == "1" ]]; then
     run_step cmake --build out/release-native-lto --target rubik-benchmark-profile-realistic
     run_step cmake --build out/release-native-lto --target rubik-benchmark-profile-realistic-gates
+    run_step cmake --build out/release-native-lto --target rubik-benchmark-auto-profile
+    run_step cmake --build out/release-native-lto --target rubik-benchmark-auto-profile-gates
     run_step cmake --build out/release-native-lto --target rubik-benchmark-embedded-multiseed
     run_step cmake --build out/release-native-lto --target rubik-benchmark-embedded-multiseed-gates
     run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-stress
@@ -162,6 +164,8 @@ if [[ "${with_large_local}" == "1" ]]; then
     run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-large-local-gates
     run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-large-local-tail-8threads
     run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-large-local-tail-8threads-gates
+    run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail
+    run_step cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-gates
 fi
 
 echo

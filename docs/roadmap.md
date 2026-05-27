@@ -34,8 +34,8 @@ Implemented:
 - root-level thread parallelism for optimal search;
 - CLI solver;
 - CLI benchmark runner;
-- profile-smoke, profile-realistic, embedded-multiseed, optimal-stress, and
-  large local benchmark suites;
+- profile-smoke, profile-realistic, Auto, embedded-multiseed, optimal-stress,
+  Auto tail, and large local benchmark suites;
 - example programs;
 - install/export packaging for downstream CMake projects;
 - optimized CMake presets for release, native, LTO, and sanitizer builds;
@@ -228,8 +228,8 @@ Available suites:
 - `fast-1000`: longer fast random 1000 depth-20 benchmark;
 - `optimal-depth`: deterministic optimal benchmark through depth 13;
 - `tail-diagnostics`: diagnostic runs for the current slowest random cases;
-- `all`: smoke, profile-smoke, profile-realistic, embedded-multiseed,
-  optimal-stress, optimal-tail-cases, optimal-deep-probe,
+- `all`: smoke, profile-smoke, profile-realistic, Auto tail,
+  embedded-multiseed, optimal-stress, optimal-tail-cases, optimal-deep-probe,
   embedded-fast-tail-cases, embedded-fast-failures, fast-100, optimal-depth,
   and tail-diagnostics.
 
