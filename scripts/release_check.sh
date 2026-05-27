@@ -31,6 +31,10 @@ USAGE
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --profile)
+            if [[ $# -lt 2 ]]; then
+                usage >&2
+                exit 2
+            fi
             profile="$2"
             shift 2
             ;;
