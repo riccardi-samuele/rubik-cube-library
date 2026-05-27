@@ -173,16 +173,27 @@ if [[ ! -x "${cache_setup}" ]]; then
 fi
 
 mkdir -p "${cache_dir}" "${output_dir}"
+cache_setup_elapsed_ms="0"
+cache_setup_output="${output_dir}/cache_setup.csv"
 if [[ "${cache_mode}" == "cold" ]]; then
     rm -rf "${cache_dir}"
     mkdir -p "${cache_dir}"
 fi
 if [[ "${cache_mode}" == "warm" || "${cache_mode}" == "cold" ]]; then
+    cache_setup_started_at="$(date +%s%3N)"
     "${cache_setup}" \
         --profile auto \
         --threads "${threads}" \
         --max-memory-mb "${max_memory_mb}" \
-        --cache-dir "${cache_dir}"
+        --cache-dir "${cache_dir}" \
+        | tee "${cache_setup_output}"
+    cache_setup_ended_at="$(date +%s%3N)"
+    cache_setup_elapsed_ms="$((cache_setup_ended_at - cache_setup_started_at))"
+else
+    {
+        echo "status: Skipped"
+        echo "message: cache setup skipped by cache-mode reuse"
+    } > "${cache_setup_output}"
 fi
 
 summary_file="${output_dir}/summary.csv"
@@ -195,6 +206,8 @@ manifest_file="${output_dir}/manifest.csv"
     echo "build_dir,${build_dir}"
     echo "cache_dir,${cache_dir}"
     echo "cache_mode,${cache_mode}"
+    echo "cache_setup_output,${cache_setup_output}"
+    echo "cache_setup_elapsed_ms,${cache_setup_elapsed_ms}"
     echo "output_dir,${output_dir}"
     echo "seeds,${seeds}"
     echo "timeout_ms,${timeout_ms}"

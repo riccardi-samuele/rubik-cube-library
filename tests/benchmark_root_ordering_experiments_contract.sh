@@ -28,3 +28,13 @@ if ! grep -q 'rubik-cache-setup' "${script}"; then
     echo "benchmark_root_ordering_experiments.sh must prepare warm cache before timed cases" >&2
     exit 1
 fi
+
+if ! grep -q 'cache_setup_output' "${script}"; then
+    echo "benchmark_root_ordering_experiments.sh must persist cache setup output" >&2
+    exit 1
+fi
+
+if ! grep -q 'cache_setup_elapsed_ms' "${script}"; then
+    echo "benchmark_root_ordering_experiments.sh must report cache setup elapsed time" >&2
+    exit 1
+fi
