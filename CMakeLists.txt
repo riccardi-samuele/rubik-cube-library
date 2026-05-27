@@ -860,6 +860,10 @@ add_test(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/release_check_archive_build.sh
 )
 add_test(
+    NAME release_check_large_local_routes
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/release_check_large_local_routes.sh
+)
+add_test(
     NAME check_release_archive_versioned_docs
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_release_archive_versioned_docs.sh
 )
