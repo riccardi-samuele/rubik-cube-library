@@ -840,6 +840,10 @@ set_tests_properties(benchmark_gates_fail PROPERTIES
     WILL_FAIL TRUE
 )
 add_test(
+    NAME check_benchmark_gates_rejects_missing_values
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_benchmark_gates_rejects_missing_values.sh
+)
+add_test(
     NAME extract_slowest_cases
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_slowest_cases.sh
         --input-dir ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results

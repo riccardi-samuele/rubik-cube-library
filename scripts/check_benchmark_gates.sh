@@ -18,13 +18,22 @@ Use -1 for a latency threshold to skip that check.
 USAGE
 }
 
+require_value() {
+    if [[ $# -lt 2 ]]; then
+        usage >&2
+        exit 2
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --summary-file)
+            require_value "$@"
             summary_file="$2"
             shift 2
             ;;
         --gate)
+            require_value "$@"
             gates+=("$2")
             shift 2
             ;;
