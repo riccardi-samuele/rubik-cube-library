@@ -1,6 +1,6 @@
 # Rubik Cube Library
 
-C++20 Rubik's Cube solver library, currently at `2.0.0`.
+C++20 Rubik's Cube solver library, currently at `3.0.0`.
 
 The library is designed as an optimal 3x3x3 solver for desktop and embedded
 targets. The public API is centered on certified optimal solving first, with

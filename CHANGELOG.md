@@ -6,7 +6,7 @@ This project uses semantic versioning for public releases. The main
 `rubik::Solver` API is treated as stable, while explicitly experimental APIs
 can still change between minor releases.
 
-## 3.0.0 - Unreleased
+## 3.0.0 - 2026-05-27
 
 Third stable release scope:
 
