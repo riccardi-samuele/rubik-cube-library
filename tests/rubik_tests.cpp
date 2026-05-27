@@ -173,6 +173,22 @@ void testAutoPlannerRejectsWhenMemoryIsTooSmallForAuto()
     expect(plan.status == rubik::SolveStatus::MemoryLimitExceeded);
 }
 
+void testAutoPlannerReportsColdLargeLocalRequirement()
+{
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 15;
+    options.cachePolicy = rubik::CachePolicy::RequireWarm;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+
+    const auto decision = rubik::detail::makeAutoPlan(options, false);
+    expect(!decision.supported);
+    expect(decision.status == rubik::SolveStatus::CacheNotReady);
+}
+
 void testAutoPlannerReportsFullTailPayload()
 {
     rubik::SolveOptions options;
@@ -1313,6 +1329,7 @@ int main()
     testAutoPlannerUsesLargeLocalForDeepOptimal();
     testAutoPlannerFallsBackWhenLargeLocalMemoryIsTooSmall();
     testAutoPlannerRejectsWhenMemoryIsTooSmallForAuto();
+    testAutoPlannerReportsColdLargeLocalRequirement();
     testAutoPlannerReportsFullTailPayload();
     testAutoStrongMoveOrderingPolicy();
     testAutoSolveReportsPlan();

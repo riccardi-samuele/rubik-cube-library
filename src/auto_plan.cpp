@@ -83,7 +83,7 @@ unsigned int autoThreadCount(const SolveOptions& options)
     return std::max(1u, std::min(hardware, auto_default_thread_cap));
 }
 
-AutoPlanDecision makeAutoPlan(const SolveOptions& options)
+AutoPlanDecision makeAutoPlan(const SolveOptions& options, bool selectedProfileCacheWarm)
 {
     AutoPlanDecision decision;
 
@@ -112,6 +112,12 @@ AutoPlanDecision makeAutoPlan(const SolveOptions& options)
 
         decision.supported = false;
         decision.status = SolveStatus::MemoryLimitExceeded;
+        return decision;
+    }
+
+    if (options.cachePolicy == CachePolicy::RequireWarm && !selectedProfileCacheWarm) {
+        decision.supported = false;
+        decision.status = SolveStatus::CacheNotReady;
         return decision;
     }
 

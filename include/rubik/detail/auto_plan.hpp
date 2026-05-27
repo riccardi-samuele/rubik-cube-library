@@ -21,6 +21,6 @@ struct AutoPlanDecision {
 
 std::size_t autoMemoryBudgetBytes(const SolveOptions& options);
 unsigned int autoThreadCount(const SolveOptions& options);
-AutoPlanDecision makeAutoPlan(const SolveOptions& options);
+AutoPlanDecision makeAutoPlan(const SolveOptions& options, bool selectedProfileCacheWarm = true);
 
 } // namespace rubik::detail
