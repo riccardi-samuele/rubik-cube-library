@@ -25,6 +25,8 @@ cmake --build build --target rubik-benchmark-optimal-large-local
 cmake --build build --target rubik-benchmark-optimal-large-local-gates
 cmake --build build --target rubik-benchmark-optimal-large-local-tail-8threads
 cmake --build build --target rubik-benchmark-optimal-large-local-tail-8threads-gates
+cmake --build build --target rubik-benchmark-optimal-auto-tail
+cmake --build build --target rubik-benchmark-optimal-auto-tail-gates
 cmake --build build --target rubik-benchmark-embedded-multiseed
 cmake --build build --target rubik-benchmark-embedded-multiseed-gates
 cmake --build build --target rubik-benchmark-embedded-fast-tail-cases
@@ -55,6 +57,7 @@ scripts/run_benchmark_suite.sh --suite optimal-stress --seeds 12345,20260525,42 
 scripts/run_benchmark_suite.sh --suite optimal-tail-cases
 scripts/run_benchmark_suite.sh --suite optimal-deep-probe --seeds 12345 --deep-opt14-count 2 --deep-opt15-count 1
 scripts/run_benchmark_suite.sh --suite optimal-large-local --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525,111,222,333,444,555,666,777,888,999,13579,24680,112358 --threads 4 --max-memory-mb 2048 --deep-opt15-count 1
+scripts/run_benchmark_suite.sh --suite optimal-auto-tail --seeds 987654321,424242,666,555,99,888 --threads 0 --max-memory-mb 2048 --deep-opt15-count 1
 scripts/run_benchmark_suite.sh --suite embedded-multiseed --seeds 12345,20260525,42 --realistic-fast-count 100 --fast-max-depth 28 --realistic-opt13-count 10
 scripts/check_benchmark_gates.sh --summary-file benchmark-results/warm_embedded_multiseed_summary.csv --gate embedded,fast,random_seed_20260525_depth_20_count_100,100,350,500,700
 scripts/run_benchmark_suite.sh --suite embedded-fast-tail-cases
@@ -291,6 +294,9 @@ Profile selection:
 - `--suite optimal-large-local`: run the large local `LargeLocal/Optimal`
   depth-15 probe across fixed seeds. This suite is intended for desktop/Orin
   class validation and uses the public `large-local` profile.
+- `--suite optimal-auto-tail`: replay the slowest known depth-15 local optimal
+  seeds through `SolveProfile::Auto`. The CMake target uses automatic thread
+  selection and a 2 GiB memory budget to validate the adaptive desktop path.
 - `--suite embedded-fast-tail-cases`: replay the current slowest
   `Embedded/Fast` random depth-20 cases from the multiseed sweep with
   `--diagnose-fast`.
