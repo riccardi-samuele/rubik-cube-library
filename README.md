@@ -293,11 +293,13 @@ Additional technical notes live in `docs/`:
 
 - [Architecture](docs/architecture.md)
 - [API Notes](docs/api.md)
+- [API Stability - 3.0.0 Draft](docs/api-stability-3.0.0.md)
 - [API Stability - 2.0.0](docs/api-stability-2.0.0.md)
 - [API Stability - 1.0.0](docs/api-stability-1.0.0.md)
 - [Benchmarks](docs/benchmarks.md)
 - [Runtime Behavior](docs/runtime.md)
 - [Versioning And API Stability](docs/versioning.md)
+- [Release Checklist - 3.0.0 Draft](docs/release-3.0.0.md)
 - [Release Checklist - 2.0.0](docs/release-2.0.0.md)
 - [Release Checklist - 1.0.0](docs/release-1.0.0.md)
 - [Embedded Fast Tail-Case Diagnostics - 2026-05-25](docs/embedded-fast-tail-cases-2026-05-25.md)
