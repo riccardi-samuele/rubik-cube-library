@@ -243,6 +243,41 @@ The current CMake target uses twenty-four fixed depth-15 seeds and a 30 second g
 The current 8-thread tail target replays the six slowest known depth-15 seeds
 with an 18 second gate: `987654321`, `424242`, `666`, `555`, `99`, and `888`.
 
+Auto optimal profile:
+
+```sh
+out/release-native-lto/rubik-bench \
+  --mode optimal \
+  --profile auto \
+  --threads 0 \
+  --max-memory-mb 2048 \
+  --timeout-ms 30000 \
+  --max-depth 15 \
+  --case-set random \
+  --random-count 1 \
+  --random-depth 15 \
+  --random-seed 987654321
+```
+
+`--profile auto` lets the planner select the effective local profile and
+thread count. Benchmark output reports both `requested_profile` and the
+effective `profile`, plus `adaptive_strategy`, `threads`,
+`warmup_table_payload_bytes`, and `warmup_elapsed_ms`.
+
+Use `rubik-cache-setup --profile auto` or `prepareCache()` before
+latency-sensitive benchmark runs when cold-cache setup should be separated from
+solve latency. The Auto benchmark targets use warm cache mode and still print
+warm-up timing so reports can distinguish cache preparation from search time.
+
+The repeatable Auto gates are:
+
+```sh
+cmake --build out/release-native-lto --target rubik-benchmark-auto-profile
+cmake --build out/release-native-lto --target rubik-benchmark-auto-profile-gates
+cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail
+cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-gates
+```
+
 Default corner-state pruning:
 
 ```sh
