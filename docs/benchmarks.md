@@ -27,6 +27,7 @@ cmake --build build --target rubik-benchmark-optimal-large-local-tail-8threads
 cmake --build build --target rubik-benchmark-optimal-large-local-tail-8threads-gates
 cmake --build build --target rubik-benchmark-optimal-auto-tail
 cmake --build build --target rubik-benchmark-optimal-auto-tail-gates
+cmake --build build --target rubik-benchmark-optimal-auto-tail-ordering-ab
 cmake --build build --target rubik-benchmark-optimal-auto-hardening
 cmake --build build --target rubik-benchmark-optimal-auto-discovery
 cmake --build build --target rubik-benchmark-embedded-multiseed
@@ -60,6 +61,7 @@ scripts/run_benchmark_suite.sh --suite optimal-tail-cases
 scripts/run_benchmark_suite.sh --suite optimal-deep-probe --seeds 12345 --deep-opt14-count 2 --deep-opt15-count 1
 scripts/run_benchmark_suite.sh --suite optimal-large-local --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525,111,222,333,444,555,666,777,888,999,13579,24680,112358 --threads 4 --max-memory-mb 2048 --deep-opt15-count 1
 scripts/run_benchmark_suite.sh --suite optimal-auto-tail --seeds 987654321,424242,1009,666,555,99,888 --threads 0 --max-memory-mb 2048 --deep-opt15-count 1
+scripts/run_auto_tail_ordering_ab.sh --build-dir out/release-native-lto --cache-dir /tmp/rubik_cube_library_optimal_auto_tail_cache --output-dir out/release-native-lto/benchmark-results/optimal-auto-tail-ordering-ab --seeds 987654321,424242,1009,2016,666,555,99,888 --threads 0 --max-memory-mb 2048
 scripts/run_benchmark_suite.sh --suite optimal-auto-hardening --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525 --threads 0 --max-memory-mb 2048 --deep-opt14-count 2 --deep-opt15-count 1
 scripts/run_benchmark_suite.sh --suite optimal-auto-discovery --seeds 101,202,303,404,505,606,707,808 --threads 0 --max-memory-mb 2048 --deep-opt15-count 2
 scripts/run_benchmark_suite.sh --suite embedded-multiseed --seeds 12345,20260525,42 --realistic-fast-count 100 --fast-max-depth 28 --realistic-opt13-count 10
@@ -284,7 +286,13 @@ cmake --build out/release-native-lto --target rubik-benchmark-auto-profile
 cmake --build out/release-native-lto --target rubik-benchmark-auto-profile-gates
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-gates
+cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-ordering-ab
 ```
+
+`rubik-benchmark-optimal-auto-tail-ordering-ab` compares the default ordering
+against `RUBIK_EXPERIMENTAL_STRONG_OPTIMAL_ORDERING=1` on the current Auto tail
+set. It writes `summary.csv` and `comparison.csv`, including elapsed/node deltas
+and the winner per seed.
 
 For V3 performance hardening, use the longer Auto diagnostic suite:
 

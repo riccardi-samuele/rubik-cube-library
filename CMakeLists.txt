@@ -446,6 +446,23 @@ add_custom_target(rubik-benchmark-optimal-auto-tail-gates
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking Auto optimal depth-15 tail gates"
 )
+add_custom_target(rubik-benchmark-optimal-auto-tail-ordering-ab
+    COMMAND rubik-cache-setup
+        --profile auto
+        --cache-dir /tmp/rubik_cube_library_optimal_auto_tail_cache
+        --max-memory-mb 2048
+        --threads 0
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_auto_tail_ordering_ab.sh
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cache-dir /tmp/rubik_cube_library_optimal_auto_tail_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-auto-tail-ordering-ab
+        --seeds 987654321,424242,1009,2016,666,555,99,888
+        --threads 0
+        --max-memory-mb 2048
+    DEPENDS rubik-bench rubik-cache-setup
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running Auto optimal base vs strong ordering A/B benchmark"
+)
 add_custom_target(rubik-benchmark-optimal-auto-hardening
     COMMAND rubik-cache-setup
         --profile auto
@@ -779,6 +796,13 @@ add_test(
 )
 set_tests_properties(extract_slowest_cases PROPERTIES
     PASS_REGULAR_EXPRESSION "elapsed_ms,source_file,benchmark,mode,profile,slowest_rank,case_name,case_depth,scramble,status,move_count,nodes_expanded,solution.*900,.*sample_b.csv,fixture_tail,optimal,embedded,1,random_42_2,13,R U R',Optimal,13,9000,R U"
+)
+add_test(
+    NAME auto_tail_ordering_ab_help
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_auto_tail_ordering_ab.sh --help
+)
+set_tests_properties(auto_tail_ordering_ab_help PROPERTIES
+    PASS_REGULAR_EXPRESSION "Variants:.*base,strong"
 )
 add_test(
     NAME release_check_archive_build

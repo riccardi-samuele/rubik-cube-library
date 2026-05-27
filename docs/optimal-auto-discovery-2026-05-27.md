@@ -155,3 +155,40 @@ Do not promote `strong ordering` globally yet. It improved several heavy tails,
 but it also made some previously fast tail cases slower. The next useful step is
 to design a selective policy, or gather more evidence about when strong ordering
 wins, before changing the default optimal search order.
+
+## Official Ordering A/B Runner
+
+The ordering comparison is now repeatable through:
+
+```sh
+scripts/run_auto_tail_ordering_ab.sh \
+  --build-dir out/release-native-lto \
+  --cache-dir /tmp/rubik_cube_library_optimal_auto_tail_cache \
+  --output-dir out/release-native-lto/benchmark-results/optimal-auto-tail-ordering-ab \
+  --seeds 987654321,424242,1009,2016,666,555,99,888 \
+  --threads 0 \
+  --max-memory-mb 2048
+```
+
+The equivalent CMake target is:
+
+```sh
+cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-ordering-ab
+```
+
+Official runner result:
+
+| Seed | Base ms | Strong ms | Delta ms | Delta % | Winner |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 99 | 2053 | 3517 | 1464 | 71.31 | base |
+| 555 | 4877 | 3070 | -1807 | -37.05 | strong |
+| 666 | 1633 | 1041 | -592 | -36.25 | strong |
+| 888 | 1917 | 4249 | 2332 | 121.65 | base |
+| 1009 | 10385 | 10127 | -258 | -2.48 | strong |
+| 2016 | 9783 | 5655 | -4128 | -42.20 | strong |
+| 424242 | 6701 | 3128 | -3573 | -53.32 | strong |
+| 987654321 | 7549 | 7816 | 267 | 3.54 | base |
+
+This reinforces the previous decision: `strong ordering` is valuable, but not as
+a blanket default. The next solver change should be a selective policy with
+tests that prove both paths remain reachable.
