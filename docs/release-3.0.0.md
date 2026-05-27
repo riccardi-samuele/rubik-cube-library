@@ -189,7 +189,7 @@ Hard blockers:
 
 - Final release-candidate validation has not been run after setting the final
   `3.0.0` version.
-- The `3.0.0` changelog and GitHub Release draft are not written yet.
+- The `3.0.0` source archive has not been regenerated and validated yet.
 
 Soft blockers:
 
