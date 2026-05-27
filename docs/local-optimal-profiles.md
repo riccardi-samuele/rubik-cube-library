@@ -95,11 +95,26 @@ the directly benchmarked host.
 from the request shape. For optimal HTM searches through depth 13, it resolves
 to `Performance` to avoid preparing the larger `LargeLocal` tables for shallow
 work. For deeper optimal searches, it resolves to `LargeLocal` and enables the
-larger admissible bounds.
+larger admissible bounds when memory and cache policy allow it. If the
+large-local path does not fit the requested memory budget, `Auto` falls back to
+the performance table set when that still preserves certified optimal solving.
+If the large-local cache is cold and the requested timeout is too tight for the
+larger table path, `Auto` can also choose the performance table set to keep the
+request on the lower-latency path.
 
 `SolveResult::plan` reports the requested profile, effective profile, selected
 thread count, memory budget, estimated table payload, and strategy name. Use
 those fields when logging or benchmarking adaptive runs.
+
+For latency-sensitive runs, prepare the cache first:
+
+```sh
+rubik-cache-setup --profile auto
+```
+
+Use `CachePolicy::RequireWarm` or `--cache-policy require-warm` when a solve
+must not build missing tables during the request. A cold required cache returns
+`CacheNotReady` instead of starting the search.
 
 ## Non-Goals For Public Profiles
 

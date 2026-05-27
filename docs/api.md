@@ -108,7 +108,20 @@ optimal solving. It selects an effective local profile, memory budget, thread
 count, and table strategy, then reports that selection through
 `SolveResult::plan`. For shallow optimal searches through depth 13, `Auto`
 selects the `Performance` profile to avoid the large-local warm-up cost. For
-deeper optimal searches it selects `LargeLocal`.
+deeper optimal searches it selects `LargeLocal` when memory and cache policy
+allow it.
+
+Stable `Auto` strategy names include:
+
+- `auto_shallow_optimal`: shallow certified optimal search using the
+  performance table set.
+- `auto_desktop_tail`: deeper certified optimal search using the large-local
+  table set when memory and cache policy allow it.
+- `auto_memory_fallback`: fallback to the performance table set when the
+  requested memory budget is too small for large-local tables.
+- `auto_timeout_fallback`: fallback to the performance table set when the
+  large-local cache is cold and the requested timeout is too tight for the
+  larger table path.
 
 `SolveProfile::Default` is the normal desktop/server profile.
 `SolveProfile::Performance` may use larger or more expensive internal search

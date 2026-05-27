@@ -30,6 +30,7 @@ cmake --build build --target rubik-benchmark-optimal-auto-tail-gates
 cmake --build build --target rubik-benchmark-optimal-auto-tail-ordering-ab
 cmake --build build --target rubik-benchmark-optimal-auto-hardening
 cmake --build build --target rubik-benchmark-optimal-auto-hardening-gates
+cmake --build build --target rubik-benchmark-v3-auto-gates
 cmake --build build --target rubik-benchmark-optimal-auto-discovery
 cmake --build build --target rubik-benchmark-embedded-multiseed
 cmake --build build --target rubik-benchmark-embedded-multiseed-gates
@@ -294,7 +295,11 @@ cmake --build out/release-native-lto --target rubik-benchmark-auto-profile-gates
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-gates
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-ordering-ab
+cmake --build out/release-native-lto --target rubik-benchmark-v3-auto-gates
 ```
+
+`rubik-benchmark-v3-auto-gates` runs the current V3 Auto release gate surface:
+shallow Auto, fixed depth-15 Auto tail replay, and Auto hardening gates.
 
 `rubik-benchmark-optimal-auto-tail-ordering-ab` compares the default ordering
 against `RUBIK_EXPERIMENTAL_STRONG_OPTIMAL_ORDERING=1` on the current Auto tail
@@ -306,6 +311,7 @@ For V3 performance hardening, use the longer Auto diagnostic suite:
 ```sh
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening-gates
+scripts/release_check.sh --profile quick --with-v3-auto
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-discovery
 ```
 
