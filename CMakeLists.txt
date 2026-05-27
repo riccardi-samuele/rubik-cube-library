@@ -917,6 +917,11 @@ add_test(
     NAME run_auto_tail_ordering_ab_rejects_missing_values
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_auto_tail_ordering_ab_rejects_missing_values.sh
 )
+
+add_test(
+    NAME benchmark_root_ordering_experiments_contract
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/benchmark_root_ordering_experiments_contract.sh
+)
 add_test(
     NAME release_check_archive_build
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/release_check_archive_build.sh

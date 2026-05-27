@@ -177,7 +177,7 @@ manifest_file="${output_dir}/manifest.csv"
 } > "${manifest_file}"
 
 {
-    echo "variant,seed,status,optimal,move_count,initial_lower_bound,elapsed_ms,nodes_expanded,solution_rank,root_ordering_mode,warmup_elapsed_ms,output_file"
+    echo "variant,seed,status,optimal,move_count,initial_lower_bound,elapsed_ms,nodes_expanded,solution_rank,root_ordering_mode,warmup_elapsed_ms,wall_elapsed_ms,output_file"
 } > "${summary_file}"
 
 variant_env() {
@@ -220,6 +220,8 @@ run_case() {
 
     mapfile -t env_vars < <(variant_env "${variant}")
 
+    local started_at ended_at
+    started_at="$(date +%s%3N)"
     set +e
     env RUBIK_TABLE_CACHE_DIR="${cache_dir}" "${env_vars[@]}" \
         "${bench}" \
@@ -238,8 +240,10 @@ run_case() {
         >> "${output_file}"
     local command_status="$?"
     set -e
+    ended_at="$(date +%s%3N)"
+    echo "benchmark,wall_elapsed_ms,$((ended_at - started_at))" >> "${output_file}"
 
-    local status optimal move_count initial_lower_bound elapsed nodes warmup profile rank mode
+    local status optimal move_count initial_lower_bound elapsed nodes warmup wall_elapsed profile rank mode
     status="$(awk -F, '$1 ~ /^random_/ { print $4; exit }' "${output_file}")"
     optimal="$(awk -F, '$1 ~ /^random_/ { print $5; exit }' "${output_file}")"
     move_count="$(awk -F, '$1 ~ /^random_/ { print $6; exit }' "${output_file}")"
@@ -247,11 +251,12 @@ run_case() {
     elapsed="$(awk -F, '$1 ~ /^random_/ { print $8; exit }' "${output_file}")"
     nodes="$(awk -F, '$1 ~ /^random_/ { print $9; exit }' "${output_file}")"
     warmup="$(awk -F, '$1 == "benchmark" && $2 == "warmup_elapsed_ms" { print $3; exit }' "${output_file}")"
+    wall_elapsed="$(awk -F, '$1 == "benchmark" && $2 == "wall_elapsed_ms" { print $3; exit }' "${output_file}")"
     profile="$(awk -F, '$1 ~ /^random_/ { print $16; exit }' "${output_file}" | tr -d '"')"
     rank="$(extract_profile_value "${profile}" "solution_rank")"
     mode="$(extract_profile_value "${profile}" "root_ordering_mode")"
 
-    echo "${variant},${seed},${status:-Unknown},${optimal:-false},${move_count:-0},${initial_lower_bound:-0},${elapsed:-0},${nodes:-0},${rank:-0},${mode:-unknown},${warmup:-0},${output_file}" \
+    echo "${variant},${seed},${status:-Unknown},${optimal:-false},${move_count:-0},${initial_lower_bound:-0},${elapsed:-0},${nodes:-0},${rank:-0},${mode:-unknown},${warmup:-0},${wall_elapsed:-0},${output_file}" \
         >> "${summary_file}"
 
     return "${command_status}"
