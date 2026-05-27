@@ -396,7 +396,10 @@ bool cornerDownEdgeBoundsEnabled(const rubik::SolveOptions& options)
     return cornerDownEdgeBoundsPolicy(options) != "disabled";
 }
 
-void printBenchmarkPolicyRows(const rubik::SolveOptions& options, bool lowerBoundOnly)
+void printBenchmarkPolicyRows(
+    const rubik::SolveOptions& options,
+    bool lowerBoundOnly,
+    rubik::SolveProfile requestedProfile)
 {
     const ThreePhase1Policy policy = lowerBoundOnly
         ? threePhase1LowerBoundPolicy(options.profile)
@@ -413,6 +416,10 @@ void printBenchmarkPolicyRows(const rubik::SolveOptions& options, bool lowerBoun
                       ? "strong_bound"
                       : environmentFlagEnabled("RUBIK_EXPERIMENTAL_PHASE2_OPTIMAL_ORDERING")
                       ? "phase2_tiebreak"
+                      : environmentFlagEnabled("RUBIK_DISABLE_AUTO_STRONG_OPTIMAL_ORDERING")
+                      ? "base_bound"
+                      : requestedProfile == rubik::SolveProfile::Auto
+                      ? "auto_selective"
                       : "base_bound")
               << "\n";
     std::cout << "benchmark,corner_state_bounds,"
@@ -1162,7 +1169,7 @@ void printLowerBoundBenchmark(
     std::uint64_t totalEvaluations = 0;
     std::int64_t checksum = 0;
 
-    printBenchmarkPolicyRows(options, true);
+    printBenchmarkPolicyRows(options, true, options.profile);
     const std::chrono::milliseconds warmupElapsed = warmUpTables(options);
     std::cout << "benchmark,warmup_table_payload_bytes," << warmUpTablePayloadBytes(options) << "\n";
     std::cout << "benchmark,warmup_elapsed_ms," << warmupElapsed.count() << "\n";
@@ -1474,6 +1481,7 @@ int main(int argc, char** argv)
         return 0;
     }
 
+    const rubik::SolveOptions requestedOptions = options;
     const rubik::SolveProfile requestedProfile = options.profile;
     const rubik::detail::OptimalPlan plan = rubik::detail::makeOptimalPlan(options);
     if (!plan.supported) {
@@ -1484,7 +1492,7 @@ int main(int argc, char** argv)
 
     if (reportPolicy) {
         std::cout << "benchmark,requested_profile," << profileName(requestedProfile) << "\n";
-        printBenchmarkPolicyRows(options, benchmarkLowerBound);
+        printBenchmarkPolicyRows(options, benchmarkLowerBound, requestedProfile);
         return 0;
     }
 
@@ -1501,7 +1509,8 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    options.collectDiagnostics = diagnoseOptimal;
+    rubik::SolveOptions solveOptions = requestedOptions;
+    solveOptions.collectDiagnostics = diagnoseOptimal;
 
     rubik::Solver solver;
     std::uint64_t totalNodes = 0;
@@ -1513,7 +1522,7 @@ int main(int argc, char** argv)
     std::cout << "cache_dir," << rubik::pruning_tables::cacheDirectory() << "\n";
     std::cout << "benchmark,requested_profile," << profileName(requestedProfile) << "\n";
     std::cout << "benchmark,adaptive_strategy," << plan.publicPlan.strategyName << "\n";
-    printBenchmarkPolicyRows(options, false);
+    printBenchmarkPolicyRows(options, false, requestedProfile);
     const std::chrono::milliseconds warmupElapsed = warmUpTables(options);
     std::cout << "benchmark,warmup_table_payload_bytes," << warmUpTablePayloadBytes(options) << "\n";
     std::cout << "benchmark,warmup_elapsed_ms," << warmupElapsed.count() << "\n";
@@ -1530,7 +1539,7 @@ int main(int argc, char** argv)
         }
 
         const int initialLowerBound = solver.lowerBound(cube, options.metric, options.profile);
-        const rubik::SolveResult result = solver.solve(cube, options);
+        const rubik::SolveResult result = solver.solve(cube, solveOptions);
         if (diagnoseOptimal) {
             printOptimalDiagnostics(item, result);
             std::cout.flush();

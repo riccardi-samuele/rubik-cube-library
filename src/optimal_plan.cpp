@@ -61,6 +61,20 @@ unsigned int autoThreadCount(const SolveOptions& options)
     return std::max(1u, std::min(hardware, auto_default_thread_cap));
 }
 
+bool autoStrongMoveOrderingEnabled(
+    const SolveOptions& requestedOptions,
+    const SolveOptions& effectiveOptions,
+    int initialLowerBound,
+    bool autoOrderingAllowed)
+{
+    return autoOrderingAllowed &&
+        requestedOptions.mode == SolveMode::Optimal &&
+        requestedOptions.metric == Metric::HTM &&
+        requestedOptions.profile == SolveProfile::Auto &&
+        effectiveOptions.profile == SolveProfile::LargeLocal &&
+        initialLowerBound == 9;
+}
+
 OptimalPlan makeOptimalPlan(const SolveOptions& options)
 {
     OptimalPlan plan;

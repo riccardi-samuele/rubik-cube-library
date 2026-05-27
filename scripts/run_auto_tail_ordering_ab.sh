@@ -140,6 +140,7 @@ manifest_file="${output_dir}/manifest.csv"
 variant_env() {
     case "$1" in
         base)
+            echo "RUBIK_DISABLE_AUTO_STRONG_OPTIMAL_ORDERING=1"
             ;;
         strong)
             echo "RUBIK_EXPERIMENTAL_STRONG_OPTIMAL_ORDERING=1"
@@ -213,14 +214,18 @@ awk -F, '
     {
         variant = $1
         seed = $2
+        move_count[seed, variant] = $5
+        lower_bound[seed, variant] = $6
         elapsed[seed, variant] = $7
         nodes[seed, variant] = $8
         seen[seed] = 1
     }
     END {
-        print "seed,base_elapsed_ms,strong_elapsed_ms,elapsed_delta_ms,elapsed_delta_percent,base_nodes,strong_nodes,nodes_delta,winner"
+        print "seed,move_count,initial_lower_bound,base_elapsed_ms,strong_elapsed_ms,elapsed_delta_ms,elapsed_delta_percent,base_nodes,strong_nodes,nodes_delta,winner"
         for (seed in seen) {
             if ((seed, "base") in elapsed && (seed, "strong") in elapsed) {
+                base_moves = move_count[seed, "base"] + 0
+                base_lower_bound = lower_bound[seed, "base"] + 0
                 base_elapsed = elapsed[seed, "base"] + 0
                 strong_elapsed = elapsed[seed, "strong"] + 0
                 base_nodes = nodes[seed, "base"] + 0
@@ -228,7 +233,7 @@ awk -F, '
                 delta = strong_elapsed - base_elapsed
                 pct = base_elapsed == 0 ? 0 : (delta * 100.0 / base_elapsed)
                 winner = delta < 0 ? "strong" : (delta > 0 ? "base" : "tie")
-                printf "%s,%d,%d,%d,%.2f,%d,%d,%d,%s\n", seed, base_elapsed, strong_elapsed, delta, pct, base_nodes, strong_nodes, strong_nodes - base_nodes, winner
+                printf "%s,%d,%d,%d,%d,%d,%.2f,%d,%d,%d,%s\n", seed, base_moves, base_lower_bound, base_elapsed, strong_elapsed, delta, pct, base_nodes, strong_nodes, strong_nodes - base_nodes, winner
             }
         }
     }

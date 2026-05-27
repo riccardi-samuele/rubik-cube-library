@@ -178,17 +178,48 @@ cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-
 
 Official runner result:
 
-| Seed | Base ms | Strong ms | Delta ms | Delta % | Winner |
-| --- | ---: | ---: | ---: | ---: | --- |
-| 99 | 2053 | 3517 | 1464 | 71.31 | base |
-| 555 | 4877 | 3070 | -1807 | -37.05 | strong |
-| 666 | 1633 | 1041 | -592 | -36.25 | strong |
-| 888 | 1917 | 4249 | 2332 | 121.65 | base |
-| 1009 | 10385 | 10127 | -258 | -2.48 | strong |
-| 2016 | 9783 | 5655 | -4128 | -42.20 | strong |
-| 424242 | 6701 | 3128 | -3573 | -53.32 | strong |
-| 987654321 | 7549 | 7816 | 267 | 3.54 | base |
+| Seed | Moves | Initial lower bound | Base ms | Strong ms | Delta ms | Delta % | Winner |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 99 | 15 | 8 | 2105 | 3596 | 1491 | 70.83 | base |
+| 555 | 15 | 9 | 4910 | 3121 | -1789 | -36.44 | strong |
+| 666 | 15 | 8 | 1622 | 1017 | -605 | -37.30 | strong |
+| 888 | 15 | 10 | 1994 | 4325 | 2331 | 116.90 | base |
+| 1009 | 15 | 9 | 10279 | 10078 | -201 | -1.96 | strong |
+| 2016 | 15 | 9 | 9693 | 5567 | -4126 | -42.57 | strong |
+| 424242 | 15 | 9 | 6719 | 3136 | -3583 | -53.33 | strong |
+| 987654321 | 15 | 8 | 7634 | 7797 | 163 | 2.14 | base |
 
 This reinforces the previous decision: `strong ordering` is valuable, but not as
 a blanket default. The next solver change should be a selective policy with
 tests that prove both paths remain reachable.
+
+## Selective Auto Ordering Policy
+
+`SolveProfile::Auto` now enables strong optimal child ordering only when the
+initial lower bound is `9`, the requested mode is optimal HTM, and Auto resolved
+to the large-local profile. Environment overrides keep precedence:
+`RUBIK_EXPERIMENTAL_STRONG_OPTIMAL_ORDERING=1` still forces strong ordering,
+while `RUBIK_EXPERIMENTAL_PHASE2_OPTIMAL_ORDERING=1` keeps using the phase-2
+tiebreak variant for experiments. `RUBIK_DISABLE_AUTO_STRONG_OPTIMAL_ORDERING=1`
+disables the Auto promotion path for baseline A/B measurements.
+
+This policy promotes the cases that were consistently improved by the A/B run
+without applying strong ordering to known slower lower-bound `8` and `10`
+tails. Seed `666` remains a known exception where strong ordering helped at
+lower bound `8`; it is not promoted yet because the same lower-bound bucket also
+contains a regression on seed `987654321`.
+
+Selective Auto tail result:
+
+| Seed | Initial lower bound | Elapsed ms | Nodes |
+| --- | ---: | ---: | ---: |
+| 987654321 | 8 | 7096 | 26322725 |
+| 424242 | 9 | 2893 | 10215997 |
+| 1009 | 9 | 9401 | 33385543 |
+| 666 | 8 | 1523 | 4992548 |
+| 555 | 9 | 2880 | 9548004 |
+| 99 | 8 | 1909 | 6124256 |
+| 888 | 10 | 1784 | 5595349 |
+
+All fixed Auto tail gates passed with the `12000 ms` threshold after the policy
+was promoted.

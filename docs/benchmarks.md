@@ -291,8 +291,8 @@ cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-
 
 `rubik-benchmark-optimal-auto-tail-ordering-ab` compares the default ordering
 against `RUBIK_EXPERIMENTAL_STRONG_OPTIMAL_ORDERING=1` on the current Auto tail
-set. It writes `summary.csv` and `comparison.csv`, including elapsed/node deltas
-and the winner per seed.
+set. It writes `summary.csv` and `comparison.csv`, including move count,
+initial lower bound, elapsed/node deltas, and the winner per seed.
 
 For V3 performance hardening, use the longer Auto diagnostic suite:
 

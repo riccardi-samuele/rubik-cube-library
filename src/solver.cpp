@@ -1581,8 +1581,25 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
     const bool includeExperimentalSymmetryBounds = experimentalSymmetryBoundsEnabled();
     const bool includeThreePhase1Bounds =
         threePhase1BoundsEnabled(effectiveOptions.mode, effectiveOptions.profile);
-    const bool useStrongMoveOrdering = strongOptimalMoveOrderingEnabled();
     const SearchNode root = makeSearchNode(parsed.cube, includeThreePhase1Bounds);
+    const int initialLowerBound = nodeLowerBound(
+        root,
+        effectiveOptions.profile,
+        includeExperimentalSymmetryBounds,
+        includeExperimentalCornerStateBounds,
+        includeExperimentalCornerUpEdgeBounds,
+        includeExperimentalCornerDownEdgeBounds,
+        includeThreePhase1Bounds);
+    const bool forcedStrongMoveOrdering = strongOptimalMoveOrderingEnabled();
+    const bool allowAutoStrongMoveOrdering =
+        !environmentFlagEnabled("RUBIK_DISABLE_AUTO_STRONG_OPTIMAL_ORDERING");
+    const bool useAutoStrongMoveOrdering = !forcedStrongMoveOrdering && !usePhase2MoveOrdering &&
+        detail::autoStrongMoveOrderingEnabled(
+            options,
+            effectiveOptions,
+            initialLowerBound,
+            allowAutoStrongMoveOrdering);
+    const bool useStrongMoveOrdering = forcedStrongMoveOrdering || useAutoStrongMoveOrdering;
     const GoalTable* exactGoalTable = goalTableDepth > 0
         ? &goalTable(goalTableDepth)
         : nullptr;
@@ -1785,14 +1802,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
     SolveBoundDiagnostics* boundDiagnosticsPtr = effectiveOptions.collectDiagnostics
         ? &boundDiagnostics
         : nullptr;
-    for (int limit = nodeLowerBound(
-             root,
-             effectiveOptions.profile,
-             includeExperimentalSymmetryBounds,
-             includeExperimentalCornerStateBounds,
-             includeExperimentalCornerUpEdgeBounds,
-             includeExperimentalCornerDownEdgeBounds,
-             includeThreePhase1Bounds);
+    for (int limit = initialLowerBound;
          limit <= effectiveOptions.maxDepth;
          ++limit) {
         std::vector<Move> path;

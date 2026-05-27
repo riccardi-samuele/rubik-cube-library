@@ -111,6 +111,29 @@ void testAutoPlannerReportsFullTailPayload()
     expect(plan.publicPlan.estimatedTablePayloadBytes > 1024ull * 1024ull * 1024ull);
 }
 
+void testAutoStrongMoveOrderingPolicy()
+{
+    rubik::SolveOptions requested;
+    requested.mode = rubik::SolveMode::Optimal;
+    requested.metric = rubik::Metric::HTM;
+    requested.profile = rubik::SolveProfile::Auto;
+
+    const auto plan = rubik::detail::makeOptimalPlan(requested);
+    expect(plan.supported);
+    expect(rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 9));
+    expect(!rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 9, false));
+    expect(!rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 8));
+    expect(!rubik::detail::autoStrongMoveOrderingEnabled(requested, plan.effectiveOptions, 10));
+
+    rubik::SolveOptions manual = requested;
+    manual.profile = rubik::SolveProfile::LargeLocal;
+    expect(!rubik::detail::autoStrongMoveOrderingEnabled(manual, manual, 9));
+
+    rubik::SolveOptions nonOptimal = requested;
+    nonOptimal.mode = rubik::SolveMode::Fast;
+    expect(!rubik::detail::autoStrongMoveOrderingEnabled(nonOptimal, plan.effectiveOptions, 9));
+}
+
 void testAutoSolveReportsPlan()
 {
     rubik::Solver solver;
@@ -1204,6 +1227,7 @@ int main()
     testAutoPlannerRejectsFastMode();
     testAutoPlannerDesktopDefaults();
     testAutoPlannerReportsFullTailPayload();
+    testAutoStrongMoveOrderingPolicy();
     testAutoSolveReportsPlan();
     testAutoFastSolveIsUnsupported();
     testPrepareCacheDryRun();
