@@ -239,7 +239,7 @@ Before publishing a new version:
 
 1. Run the appropriate release validation profile.
 2. Run benchmark gates relevant to the release scope.
-3. Remove temporary files and generated local artifacts.
+3. Verify the source archive excludes generated local artifacts.
 4. Verify public documentation only describes the library and measured facts.
 5. Update changelog, version references, and release notes.
 6. Create and validate the source archive.
