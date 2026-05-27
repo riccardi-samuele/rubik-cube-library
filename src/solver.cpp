@@ -692,11 +692,10 @@ int nodePhase2OrderingLowerBound(const SearchNode& node)
     const auto downEdgeSliceIndex =
         node.downEdgePermutation * coordinates::slice_edge_permutation_count + sliceEdgePermutation;
 
-    return std::max({
-        static_cast<int>(pruning_tables::phase2CornerSlicePermutation()[cornerSliceIndex]),
-        static_cast<int>(pruning_tables::phase2UpEdgeSlicePermutation()[upEdgeSliceIndex]),
-        static_cast<int>(pruning_tables::phase2DownEdgeSlicePermutation()[downEdgeSliceIndex]),
-    });
+    int bound = static_cast<int>(pruning_tables::phase2CornerSlicePermutation()[cornerSliceIndex]);
+    bound = std::max(bound, static_cast<int>(pruning_tables::phase2UpEdgeSlicePermutation()[upEdgeSliceIndex]));
+    bound = std::max(bound, static_cast<int>(pruning_tables::phase2DownEdgeSlicePermutation()[downEdgeSliceIndex]));
+    return bound;
 }
 
 int axisOf(Face face)

@@ -122,3 +122,44 @@ scripts/benchmark_root_ordering_experiments.sh \
 
 This probe is a small net improvement on the current tail set and preserves the
 same lower-bound values.
+
+## Phase2 Ordering Max Probe
+
+The phase2 ordering lower bound was also changed from initializer-list
+`std::max` to explicit linear max updates. This affects the phase2 ordering
+diagnostic path and keeps the same lower-bound values.
+
+Commands:
+
+```sh
+scripts/benchmark_root_ordering_experiments.sh \
+  --cache-dir /tmp/rubik_cube_library_v3_tail_probe_cache \
+  --output-dir out/release-native-lto/benchmark-results/phase2-ordering-listmax-baseline \
+  --seeds 987654321,424242,1009,2016,666,555,99,888 \
+  --variants phase2_tiebreak \
+  --timeout-ms 30000 \
+  --max-depth 15 \
+  --random-depth 15
+
+scripts/benchmark_root_ordering_experiments.sh \
+  --cache-dir /tmp/rubik_cube_library_v3_tail_probe_cache \
+  --output-dir out/release-native-lto/benchmark-results/phase2-ordering-linear-max-probe \
+  --seeds 987654321,424242,1009,2016,666,555,99,888 \
+  --variants phase2_tiebreak \
+  --timeout-ms 30000 \
+  --max-depth 15 \
+  --random-depth 15
+```
+
+| Seed | List max ms | Linear max ms | Delta ms |
+| ---: | ---: | ---: | ---: |
+| 987654321 | 9971 | 8717 | -1254 |
+| 424242 | 4014 | 3431 | -583 |
+| 1009 | 13654 | 10881 | -2773 |
+| 2016 | 10476 | 6232 | -4244 |
+| 666 | 2059 | 1096 | -963 |
+| 555 | 4753 | 3329 | -1424 |
+| 99 | 6568 | 2363 | -4205 |
+| 888 | 5208 | 2172 | -3036 |
+
+This probe is strongly favorable for the phase2 ordering path.
