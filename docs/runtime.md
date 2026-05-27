@@ -100,3 +100,7 @@ building heavy cache data during a short solve. Use `rubik-cache-setup` or
 `rubik-cache-setup --dry-run` checks the selected plan without building tables.
 Its output includes `cache-warm` and `bytes-missing` so applications can detect
 whether the next optimal solve may pay cold-cache setup cost.
+
+`CachePolicy::RequireWarm` is strict: if the selected solve plan needs cache
+files that are not present, `Solver::solve()` returns
+`SolveStatus::CacheNotReady` before entering search.

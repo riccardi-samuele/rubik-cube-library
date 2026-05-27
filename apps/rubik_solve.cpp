@@ -31,6 +31,8 @@ std::string statusName(rubik::SolveStatus status)
         return "InvalidCube";
     case rubik::SolveStatus::UnsupportedOptions:
         return "UnsupportedOptions";
+    case rubik::SolveStatus::CacheNotReady:
+        return "CacheNotReady";
     case rubik::SolveStatus::InternalError:
         return "InternalError";
     }

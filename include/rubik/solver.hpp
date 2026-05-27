@@ -39,6 +39,7 @@ enum class SolveStatus {
     DepthLimitExceeded,
     InvalidCube,
     UnsupportedOptions,
+    CacheNotReady,
     InternalError
 };
 

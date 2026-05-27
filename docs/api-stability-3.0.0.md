@@ -14,6 +14,8 @@ New stable public concepts:
 
 `SolveProfile::Auto` is valid for `SolveMode::Optimal` with `Metric::HTM`.
 Unsupported combinations return `SolveStatus::UnsupportedOptions`.
+When `CachePolicy::RequireWarm` is selected and required cache files are
+missing, `Solver::solve()` returns `SolveStatus::CacheNotReady`.
 
 The exact internal table set selected by `Auto` is not stable. The public
 contract is that the selected plan respects user limits and is reported through

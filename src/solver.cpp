@@ -17,6 +17,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>
+#include <filesystem>
 #include <limits>
 #include <mutex>
 #include <stdexcept>
@@ -480,6 +481,40 @@ std::size_t experimentalCornerEdgeGroupPayloadBytes()
 {
     return static_cast<std::size_t>(coordinates::corner_permutation_count) *
         static_cast<std::size_t>(coordinates::edge_group_permutation_count);
+}
+
+std::size_t missingCacheBytes(SolveProfile profile)
+{
+    const std::filesystem::path cacheDirectory = pruning_tables::cacheDirectory();
+    std::size_t missing = 0;
+    for (const detail::TableProfileEntry& entry : detail::optimalTableProfile(profile)) {
+        if (!pruning_tables::cacheEntryReady(cacheDirectory, entry.name, entry.entries)) {
+            missing += entry.entries;
+        }
+    }
+    const std::size_t cornerStateEntries = experimentalCornerStatePayloadBytes();
+    if (!pruning_tables::cacheEntryReady(
+            cacheDirectory,
+            "corner_orientation_permutation",
+            cornerStateEntries)) {
+        missing += cornerStateEntries;
+    }
+    if (profile == SolveProfile::LargeLocal) {
+        const std::size_t cornerEdgeGroupEntries = experimentalCornerEdgeGroupPayloadBytes();
+        if (!pruning_tables::cacheEntryReady(
+                cacheDirectory,
+                "corner_permutation_up_edge_permutation",
+                cornerEdgeGroupEntries)) {
+            missing += cornerEdgeGroupEntries;
+        }
+        if (!pruning_tables::cacheEntryReady(
+                cacheDirectory,
+                "corner_permutation_down_edge_permutation",
+                cornerEdgeGroupEntries)) {
+            missing += cornerEdgeGroupEntries;
+        }
+    }
+    return missing;
 }
 
 std::size_t phase2OrderingPayloadBytes()
@@ -1391,7 +1426,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         return std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - startedAt);
     };
-    const detail::OptimalPlan plan = detail::makeOptimalPlan(options);
+    detail::OptimalPlan plan = detail::makeOptimalPlan(options);
     const auto withPlan = [&](SolveResult result) {
         result.plan = plan.publicPlan;
         return result;
@@ -1459,6 +1494,25 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
             .boundDiagnostics = {},
             .plan = {},
         });
+    }
+
+    if (effectiveOptions.cachePolicy == CachePolicy::RequireWarm && plan.publicPlan.diskCacheEnabled) {
+        plan.publicPlan.diskCacheWarm = missingCacheBytes(effectiveOptions.profile) == 0;
+        if (!plan.publicPlan.diskCacheWarm) {
+            return withPlan({
+                .status = SolveStatus::CacheNotReady,
+                .moves = {},
+                .moveCount = -1,
+                .isOptimal = false,
+                .metric = effectiveOptions.metric,
+                .elapsed = elapsed(),
+                .nodesExpanded = 0,
+                .memoryUsedBytes = sizeof(Solver),
+                .nodesByDepth = {},
+                .boundDiagnostics = {},
+                .plan = {},
+            });
+        }
     }
 
     CubieParseResult parsed = CubieCube::fromCube(cube);

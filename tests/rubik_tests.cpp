@@ -186,6 +186,36 @@ void testPrepareCacheDryRunReportsColdCache()
     std::filesystem::remove_all(cacheDirectory, error);
 }
 
+void testRequireWarmSolveRejectsColdCache()
+{
+    const std::filesystem::path cacheDirectory =
+        std::filesystem::temp_directory_path() / "rubik_require_warm_rejects_cold_cache";
+    std::error_code error;
+    std::filesystem::remove_all(cacheDirectory, error);
+    setenv("RUBIK_TABLE_CACHE_DIR", cacheDirectory.string().c_str(), 1);
+
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R"));
+
+    rubik::Solver solver;
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.cachePolicy = rubik::CachePolicy::RequireWarm;
+    options.maxDepth = 1;
+    options.timeout = std::chrono::seconds(1);
+    options.threads = 0;
+
+    const rubik::SolveResult result = solver.solve(cube, options);
+    expect(result.status == rubik::SolveStatus::CacheNotReady);
+    expect(!result.plan.diskCacheWarm);
+    expect(result.nodesExpanded == 0);
+
+    unsetenv("RUBIK_TABLE_CACHE_DIR");
+    std::filesystem::remove_all(cacheDirectory, error);
+}
+
 std::vector<std::uint8_t> buildCornerEdgeOrientationPruningForTest()
 {
     constexpr std::uint8_t unvisited = 0xff;
@@ -1178,6 +1208,7 @@ int main()
     testAutoFastSolveIsUnsupported();
     testPrepareCacheDryRun();
     testPrepareCacheDryRunReportsColdCache();
+    testRequireWarmSolveRejectsColdCache();
     testSolvedCube();
     testStructuredStickerInput();
     testPhysicalValidation();

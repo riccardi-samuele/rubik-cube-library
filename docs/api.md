@@ -84,6 +84,8 @@ Important statuses:
 - `DepthLimitExceeded`: no result within `maxDepth`.
 - `InvalidCube`: input is not a valid physical cube.
 - `UnsupportedOptions`: requested mode or metric is not implemented.
+- `CacheNotReady`: `CachePolicy::RequireWarm` was requested but required cache
+  files are missing.
 
 ## Modes
 
