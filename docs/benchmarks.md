@@ -150,6 +150,13 @@ metrics such as root nodes per millisecond, cheap candidate prunes per node in
 parts per million, and three-phase candidate prune rate in parts per million.
 Add `--summary` to emit one aggregate row per benchmark case.
 
+When the input directory also contains `cache_setup.csv`, the analyzer includes
+`cache_setup_status`, `cache_setup_elapsed_ms`, and `cache_warm` in both detail
+and summary output. Summary rows also separate solver elapsed time from wrapper
+wall time with `solver_elapsed_ms`, `wall_elapsed_ms`, and
+`wall_overhead_ms`. This keeps first-run cache preparation visible without
+mixing it into per-case search latency.
+
 V2 optimal baseline:
 
 ```sh
@@ -302,6 +309,20 @@ warm-up timing so reports can distinguish cache preparation from search time.
 The CMake `optimal-auto-tail` and `optimal-auto-hardening` targets run
 `rubik-cache-setup` before solving so their gated rows track search latency, not
 first-run table generation.
+
+The root-ordering experiment runner prepares cache by default:
+
+```sh
+scripts/benchmark_root_ordering_experiments.sh \
+  --cache-mode warm \
+  --cache-dir /tmp/rubik_cube_library_root_ordering_cache
+```
+
+`--cache-mode cold` clears the selected cache directory before preparing it.
+`--cache-mode reuse` skips setup and measures against the directory as-is. Each
+run writes `cache_setup.csv` plus manifest fields `cache_setup_output` and
+`cache_setup_elapsed_ms`; per-case CSV files still contain their own
+`warmup_elapsed_ms` and wrapper `wall_elapsed_ms`.
 
 The repeatable Auto gates are:
 
