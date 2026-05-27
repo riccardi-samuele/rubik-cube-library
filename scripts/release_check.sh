@@ -49,7 +49,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         --with-v3-auto)
             with_v3_auto="1"
-            with_benchmarks="1"
             shift
             ;;
         --with-large-local)

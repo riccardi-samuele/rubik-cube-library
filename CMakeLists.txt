@@ -959,6 +959,10 @@ add_test(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/release_check_large_local_routes.sh
 )
 add_test(
+    NAME release_check_v3_auto_routes
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/release_check_v3_auto_routes.sh
+)
+add_test(
     NAME release_check_rejects_missing_profile_value
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/release_check_rejects_missing_profile_value.sh
 )
