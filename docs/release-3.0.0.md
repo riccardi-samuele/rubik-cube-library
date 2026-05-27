@@ -47,7 +47,7 @@ Non-goals for this release:
 | Cache preparation | Ready for candidate | `prepareCache()` and `rubik-cache-setup` exist. |
 | Benchmark gates | Ready for local candidate validation | V3 Auto gates, embedded multiseed, and optimal stress gates exist. |
 | Embedded/Raspberry/Jetson | Not release-claimed | Needs physical hardware benchmark before any latency claim. |
-| Packaging | Pending final candidate run | Requires archive validation after setting the final version. |
+| Packaging | Ready for final candidate run | Source archive and checksum were regenerated for `3.0.0`. |
 | Documentation | In progress | V3 API stability, benchmarks, and local verification are documented. |
 | CI/release automation | Ready for candidate | Local release script and GitHub Actions CI workflow exist. |
 | License | Ready | Apache License 2.0 with repository NOTICE. |
@@ -64,6 +64,11 @@ Latest local V3 verification:
 - Result: passed.
 - Command: `cmake --build out/release-native-lto --target rubik-benchmark-v3-auto-gates`
 - Result: passed.
+- Archive audit: source tarball regenerated, checked for generated artifacts,
+  wrote a SHA-256 checksum, and verified required versioned release documents.
+- Archive contents: `149` paths.
+- Archive checksum:
+  `9f2aad917145d587cc5dbb8fe4af4c2fa6d55b3b4340e6e8aa1d1458f8ecd732  rubik_cube_library-3.0.0.tar.gz`
 
 See [V3 Local Verification - 2026-05-27](v3-local-verification-2026-05-27.md).
 
@@ -80,7 +85,7 @@ See [V3 Local Verification - 2026-05-27](v3-local-verification-2026-05-27.md).
 - [x] Add changelog entry for `3.0.0`.
 - [x] Draft GitHub Release text and asset checklist for `v3.0.0`.
 - [x] Set project version to `3.0.0` in CMake package metadata.
-- [ ] Regenerate and validate the `3.0.0` source archive.
+- [x] Regenerate and validate the `3.0.0` source archive.
 - [ ] Run final release validation with V3 Auto gates.
 - [ ] Confirm public docs contain no unverified hardware performance claims.
 - [ ] Confirm generated artifacts are not committed.
@@ -189,7 +194,6 @@ Hard blockers:
 
 - Final release-candidate validation has not been run after setting the final
   `3.0.0` version.
-- The `3.0.0` source archive has not been regenerated and validated yet.
 
 Soft blockers:
 
