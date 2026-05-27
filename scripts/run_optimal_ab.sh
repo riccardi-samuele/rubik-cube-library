@@ -33,49 +33,67 @@ Options:
 USAGE
 }
 
+require_value() {
+    if [[ $# -lt 2 ]]; then
+        usage >&2
+        exit 2
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --build-dir)
+            require_value "$@"
             build_dir="$2"
             shift 2
             ;;
         --cache-dir)
+            require_value "$@"
             cache_dir="$2"
             shift 2
             ;;
         --output-dir)
+            require_value "$@"
             output_dir="$2"
             shift 2
             ;;
         --repetitions)
+            require_value "$@"
             repetitions="$2"
             shift 2
             ;;
         --case-set)
+            require_value "$@"
             case_set="$2"
             shift 2
             ;;
         --max-case-depth)
+            require_value "$@"
             max_case_depth="$2"
             shift 2
             ;;
         --max-depth)
+            require_value "$@"
             max_depth="$2"
             shift 2
             ;;
         --timeout-ms)
+            require_value "$@"
             timeout_ms="$2"
             shift 2
             ;;
         --random-count)
+            require_value "$@"
             random_count="$2"
             shift 2
             ;;
         --random-depth)
+            require_value "$@"
             random_depth="$2"
             shift 2
             ;;
         --random-seed)
+            require_value "$@"
             random_seed="$2"
             shift 2
             ;;
