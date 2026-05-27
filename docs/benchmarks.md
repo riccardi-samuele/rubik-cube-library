@@ -145,7 +145,9 @@ scripts/analyze_root_search_profile.py \
 The root-search analyzer expands `root_search` and `root_bound_diagnostics`
 from benchmark CSV output into one row per root candidate. Use it to identify
 how much work is spent before the solution root in parallel optimal searches and
-which pruning counters dominate that work.
+which pruning counters dominate that work. It also reports derived integer
+metrics such as root nodes per millisecond, cheap candidate prunes per node in
+parts per million, and three-phase candidate prune rate in parts per million.
 
 V2 optimal baseline:
 

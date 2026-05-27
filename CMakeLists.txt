@@ -879,7 +879,7 @@ add_test(
         --limit 4
 )
 set_tests_properties(analyze_root_search_profile PROPERTIES
-    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,elapsed_ms,total_nodes,solution_rank,root_rank,move,outcome,nodes_expanded,root_elapsed_ms,cheap_node_prunes,three_phase_node_checks,three_phase_node_prunes,cheap_candidate_prunes,three_phase_candidate_checks,three_phase_candidate_prunes,before_solution.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,1,U,not_found,1962759,612,100,200,300,400,500,600,true.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,3,D,found,2004969,701,102,202,302,402,502,602,false"
+    PASS_REGULAR_EXPRESSION "source_file,benchmark,case_name,elapsed_ms,total_nodes,solution_rank,root_rank,move,outcome,nodes_expanded,root_elapsed_ms,root_nodes_per_ms,cheap_node_prunes,three_phase_node_checks,three_phase_node_prunes,cheap_candidate_prunes,three_phase_candidate_checks,three_phase_candidate_prunes,cheap_candidate_prunes_per_node_ppm,three_phase_candidate_prune_rate_ppm,before_solution.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,1,U,not_found,1962759,612,3207,100,200,300,400,500,600,203,1200000,true.*root_search_sample.csv,root_search_fixture,random_1009_1,9846,33238809,3,3,D,found,2004969,701,2860,102,202,302,402,502,602,200,1199203,false"
 )
 add_test(
     NAME analyze_root_search_profile_rejects_missing_values

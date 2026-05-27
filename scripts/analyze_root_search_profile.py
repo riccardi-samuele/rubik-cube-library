@@ -99,6 +99,21 @@ def parse_root_bound_diagnostics(profile):
     return entries
 
 
+def int_value(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def integer_ratio(numerator, denominator, scale=1):
+    numerator_value = int_value(numerator)
+    denominator_value = int_value(denominator)
+    if numerator_value is None or denominator_value is None or denominator_value <= 0:
+        return ""
+    return str((numerator_value * scale) // denominator_value)
+
+
 def case_rows(path):
     benchmark = ""
     with path.open(newline="") as handle:
@@ -128,12 +143,21 @@ def case_rows(path):
                     "outcome": outcome,
                     "nodes_expanded": nodes,
                     "root_elapsed_ms": elapsed_ms,
+                    "root_nodes_per_ms": integer_ratio(nodes, elapsed_ms),
                     "cheap_node_prunes": diagnostics.get("cheap_node_prunes", ""),
                     "three_phase_node_checks": diagnostics.get("three_phase_node_checks", ""),
                     "three_phase_node_prunes": diagnostics.get("three_phase_node_prunes", ""),
                     "cheap_candidate_prunes": diagnostics.get("cheap_candidate_prunes", ""),
                     "three_phase_candidate_checks": diagnostics.get("three_phase_candidate_checks", ""),
                     "three_phase_candidate_prunes": diagnostics.get("three_phase_candidate_prunes", ""),
+                    "cheap_candidate_prunes_per_node_ppm": integer_ratio(
+                        diagnostics.get("cheap_candidate_prunes", ""),
+                        nodes,
+                        1_000_000),
+                    "three_phase_candidate_prune_rate_ppm": integer_ratio(
+                        diagnostics.get("three_phase_candidate_prunes", ""),
+                        diagnostics.get("three_phase_candidate_checks", ""),
+                        1_000_000),
                     "before_solution": "true" if solution_rank and root_rank < int(solution_rank) else "false",
                 }
 
@@ -162,12 +186,15 @@ def emit(rows, output):
         "outcome",
         "nodes_expanded",
         "root_elapsed_ms",
+        "root_nodes_per_ms",
         "cheap_node_prunes",
         "three_phase_node_checks",
         "three_phase_node_prunes",
         "cheap_candidate_prunes",
         "three_phase_candidate_checks",
         "three_phase_candidate_prunes",
+        "cheap_candidate_prunes_per_node_ppm",
+        "three_phase_candidate_prune_rate_ppm",
         "before_solution",
     ]
     if output is None:
