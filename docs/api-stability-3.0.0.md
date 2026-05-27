@@ -24,3 +24,7 @@ contract is that the selected plan respects user limits and is reported through
 `SolvePlan::optimalMoveOrdering` reports the actual optimal DFS child ordering
 used by the solve. Stable values are `base_bound`, `auto_strong_bound`,
 `forced_strong_bound`, and `phase2_tiebreak`.
+
+`SolvePlan::rootOrderingProfile` reports compact root child-ordering diagnostic
+data for benchmark analysis. It is informational; consumers should treat it as a
+semicolon-separated key-value string rather than a fixed schema.

@@ -223,3 +223,20 @@ Selective Auto tail result:
 
 All fixed Auto tail gates passed with the `12000 ms` threshold after the policy
 was promoted.
+
+## Root Ordering Profile Diagnostics
+
+The benchmark CSV now includes `root_ordering_profile`, a compact diagnostic
+string for the root children. The field is intended to support future Auto
+ordering policy work without changing the solver behavior first.
+
+Initial lower-bound `8` examples:
+
+| Seed | Ordering used | Elapsed ms | Nodes | Root ordering profile |
+| --- | --- | ---: | ---: | --- |
+| 666 | base_bound | 1595 | 5038297 | `lb=8;children=18;base_min=6;base_max=7;strong_min=8;strong_max=9;base_first=B;strong_first=U;first_diff=1;base_hist=6x1|7x17;strong_hist=8x6|9x12` |
+| 987654321 | base_bound | 7437 | 26229318 | `lb=8;children=18;base_min=7;base_max=8;strong_min=8;strong_max=9;base_first=U;strong_first=U;first_diff=0;base_hist=7x10|8x8;strong_hist=8x7|9x11` |
+
+This gives a concrete next hypothesis for LB `8`: `first_diff=1` and the base
+histogram shape may identify cases where strong ordering is worth testing,
+while `first_diff=0` should likely stay on the base ordering path.

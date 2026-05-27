@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <limits>
 #include <mutex>
+#include <sstream>
 #include <stdexcept>
 #include <thread>
 #include <unordered_map>
@@ -770,6 +771,13 @@ struct CandidateMove {
     int order = 0;
 };
 
+struct RootMoveProfile {
+    Move move = Move::U;
+    int baseBound = 0;
+    int strongBound = 0;
+    int order = 0;
+};
+
 struct FastSearchResult {
     SolveStatus status = SolveStatus::DepthLimitExceeded;
     std::vector<Move> moves;
@@ -1140,6 +1148,117 @@ bool candidateMoveLess(const CandidateMove& lhs, const CandidateMove& rhs)
         return lhs.phase2OrderBound < rhs.phase2OrderBound;
     }
     return lhs.order < rhs.order;
+}
+
+template <typename BoundGetter>
+std::string rootBoundHistogram(
+    const std::array<RootMoveProfile, move_count>& moves,
+    int count,
+    BoundGetter boundGetter)
+{
+    std::array<int, 32> histogram{};
+    for (int i = 0; i < count; ++i) {
+        const int bound = boundGetter(moves[static_cast<std::size_t>(i)]);
+        if (bound >= 0 && bound < static_cast<int>(histogram.size())) {
+            ++histogram[static_cast<std::size_t>(bound)];
+        }
+    }
+
+    std::ostringstream out;
+    bool first = true;
+    for (std::size_t i = 0; i < histogram.size(); ++i) {
+        if (histogram[i] == 0) {
+            continue;
+        }
+        if (!first) {
+            out << '|';
+        }
+        out << i << 'x' << histogram[i];
+        first = false;
+    }
+    return out.str();
+}
+
+std::string describeRootOrderingProfile(
+    const SearchNode& root,
+    int initialLowerBound,
+    SolveProfile profile,
+    bool includeExperimentalSymmetryBounds,
+    bool includeExperimentalCornerStateBounds,
+    bool includeExperimentalCornerUpEdgeBounds,
+    bool includeExperimentalCornerDownEdgeBounds,
+    bool includeThreePhase1Bounds)
+{
+    std::array<RootMoveProfile, move_count> moves{};
+    int count = 0;
+
+    for (Move move : allMoves()) {
+        const SearchNode next = moved(root, move, includeThreePhase1Bounds);
+        int strongBound = nodeLowerBoundWithoutThreePhase1(
+            next,
+            profile,
+            includeExperimentalSymmetryBounds,
+            includeExperimentalCornerStateBounds,
+            includeExperimentalCornerUpEdgeBounds,
+            includeExperimentalCornerDownEdgeBounds);
+        if (includeThreePhase1Bounds) {
+            strongBound = std::max(strongBound, nodeThreePhase1LowerBound(next));
+        }
+        moves[static_cast<std::size_t>(count)] = {
+            .move = move,
+            .baseBound = nodeBaseLowerBound(next),
+            .strongBound = strongBound,
+            .order = static_cast<int>(move),
+        };
+        ++count;
+    }
+
+    if (count == 0) {
+        return {};
+    }
+
+    auto baseMoves = moves;
+    auto strongMoves = moves;
+    const auto baseLess = [](const RootMoveProfile& lhs, const RootMoveProfile& rhs) {
+        if (lhs.baseBound != rhs.baseBound) {
+            return lhs.baseBound < rhs.baseBound;
+        }
+        return lhs.order < rhs.order;
+    };
+    const auto strongLess = [](const RootMoveProfile& lhs, const RootMoveProfile& rhs) {
+        if (lhs.strongBound != rhs.strongBound) {
+            return lhs.strongBound < rhs.strongBound;
+        }
+        return lhs.order < rhs.order;
+    };
+    std::sort(baseMoves.begin(), baseMoves.begin() + count, baseLess);
+    std::sort(strongMoves.begin(), strongMoves.begin() + count, strongLess);
+
+    std::ostringstream out;
+    out << "lb=" << initialLowerBound
+        << ";children=" << count
+        << ";base_min=" << baseMoves.front().baseBound
+        << ";base_max=" << std::max_element(
+               baseMoves.begin(),
+               baseMoves.begin() + count,
+               baseLess)->baseBound
+        << ";strong_min=" << strongMoves.front().strongBound
+        << ";strong_max=" << std::max_element(
+               strongMoves.begin(),
+               strongMoves.begin() + count,
+               strongLess)->strongBound
+        << ";base_first=" << toString(baseMoves.front().move)
+        << ";strong_first=" << toString(strongMoves.front().move)
+        << ";first_diff=" << (baseMoves.front().move == strongMoves.front().move ? 0 : 1)
+        << ";base_hist=" << rootBoundHistogram(
+               moves,
+               count,
+               [](const RootMoveProfile& move) { return move.baseBound; })
+        << ";strong_hist=" << rootBoundHistogram(
+               moves,
+               count,
+               [](const RootMoveProfile& move) { return move.strongBound; });
+    return out.str();
 }
 
 SearchState dfs(
@@ -1600,6 +1719,17 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
             initialLowerBound,
             allowAutoStrongMoveOrdering);
     const bool useStrongMoveOrdering = forcedStrongMoveOrdering || useAutoStrongMoveOrdering;
+    if (effectiveOptions.mode == SolveMode::Optimal) {
+        plan.publicPlan.rootOrderingProfile = describeRootOrderingProfile(
+            root,
+            initialLowerBound,
+            effectiveOptions.profile,
+            includeExperimentalSymmetryBounds,
+            includeExperimentalCornerStateBounds,
+            includeExperimentalCornerUpEdgeBounds,
+            includeExperimentalCornerDownEdgeBounds,
+            includeThreePhase1Bounds);
+    }
     if (useStrongMoveOrdering) {
         plan.publicPlan.optimalMoveOrdering = forcedStrongMoveOrdering
             ? "forced_strong_bound"

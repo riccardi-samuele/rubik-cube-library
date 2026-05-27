@@ -67,6 +67,7 @@ struct SolvePlan {
     std::vector<std::string> boundsUsed;
     std::string strategyName;
     std::string optimalMoveOrdering = "base_bound";
+    std::string rootOrderingProfile;
 };
 
 struct SolveOptions {

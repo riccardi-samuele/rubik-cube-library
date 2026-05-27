@@ -137,6 +137,9 @@ thread count and report it through `SolvePlan::effectiveThreads`.
 `SolveResult::plan.optimalMoveOrdering` reports the actual optimal DFS child
 ordering used by that solve. Stable values are `base_bound`,
 `auto_strong_bound`, `forced_strong_bound`, and `phase2_tiebreak`.
+`SolveResult::plan.rootOrderingProfile` is a compact diagnostic string for the
+root child-ordering signals used in benchmark analysis. It is informational and
+may grow with additional key-value fields.
 
 ## Cache Setup
 

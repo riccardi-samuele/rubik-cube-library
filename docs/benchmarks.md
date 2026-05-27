@@ -839,6 +839,7 @@ Important columns:
 - `nodes_by_depth`: `|`-separated expansion counts per attempted depth/budget.
 - `solution`: returned move sequence.
 - `optimal_move_ordering`: actual optimal DFS child ordering used by that case.
+- `root_ordering_profile`: compact root child-ordering diagnostic string.
 
 Additional report rows:
 

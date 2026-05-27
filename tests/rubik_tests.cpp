@@ -61,6 +61,7 @@ void testV3AdaptiveApiDefaults()
     expect(!plan.builtCacheDuringSolve);
     expect(plan.strategyName.empty());
     expect(plan.optimalMoveOrdering == "base_bound");
+    expect(plan.rootOrderingProfile.empty());
     expect(plan.boundsUsed.empty());
 
     rubik::SolveResult result;
@@ -155,6 +156,7 @@ void testAutoSolveReportsPlan()
     expect(result.plan.effectiveMaxMemoryBytes == 2ull * 1024ull * 1024ull * 1024ull);
     expect(result.plan.strategyName == "auto_desktop_tail");
     expect(result.plan.optimalMoveOrdering == "base_bound");
+    expect(result.plan.rootOrderingProfile.empty());
 }
 
 void testAutoFastSolveIsUnsupported()
