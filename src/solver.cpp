@@ -23,6 +23,7 @@
 #include <mutex>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <unordered_map>
 
@@ -435,6 +436,29 @@ bool strongOptimalMoveOrderingEnabled()
 bool phase2OptimalMoveOrderingEnabled()
 {
     return environmentFlagEnabled("RUBIK_EXPERIMENTAL_PHASE2_OPTIMAL_ORDERING");
+}
+
+enum class RootOrderingMode {
+    Default,
+    ReverseTie,
+    Phase2TieBreak,
+};
+
+RootOrderingMode experimentalRootOrderingMode()
+{
+    const char* value = std::getenv("RUBIK_EXPERIMENTAL_ROOT_ORDERING");
+    if (value == nullptr || value[0] == '\0') {
+        return RootOrderingMode::Default;
+    }
+
+    const std::string mode(value);
+    if (mode == "reverse_tie") {
+        return RootOrderingMode::ReverseTie;
+    }
+    if (mode == "phase2_tiebreak") {
+        return RootOrderingMode::Phase2TieBreak;
+    }
+    return RootOrderingMode::Default;
 }
 
 bool experimentalCornerStateBoundsEnabled()
@@ -1107,7 +1131,7 @@ int collectCandidateMoves(
     return candidateCount;
 }
 
-bool candidateMoveLess(const CandidateMove& lhs, const CandidateMove& rhs)
+bool candidateMoveLess(const CandidateMove& lhs, const CandidateMove& rhs, RootOrderingMode mode)
 {
     if (lhs.orderBound != rhs.orderBound) {
         return lhs.orderBound < rhs.orderBound;
@@ -1120,7 +1144,9 @@ bool candidateMoveLess(const CandidateMove& lhs, const CandidateMove& rhs)
     if (lhsHasPhase2Order && lhs.phase2OrderBound != rhs.phase2OrderBound) {
         return lhs.phase2OrderBound < rhs.phase2OrderBound;
     }
-    return lhs.order < rhs.order;
+    return mode == RootOrderingMode::ReverseTie
+        ? lhs.order > rhs.order
+        : lhs.order < rhs.order;
 }
 
 std::string solutionRootOrderingProfile(
@@ -1134,6 +1160,7 @@ std::string solutionRootOrderingProfile(
     bool includeThreePhase1Bounds,
     bool useStrongMoveOrdering,
     bool usePhase2MoveOrdering,
+    RootOrderingMode rootOrderingMode,
     const std::vector<Move>& solution)
 {
     if (solution.empty()) {
@@ -1152,11 +1179,16 @@ std::string solutionRootOrderingProfile(
         includeExperimentalCornerDownEdgeBounds,
         includeThreePhase1Bounds,
         useStrongMoveOrdering,
-        usePhase2MoveOrdering,
+        usePhase2MoveOrdering || rootOrderingMode == RootOrderingMode::Phase2TieBreak,
         nullptr,
         candidates,
         nullptr);
-    std::sort(candidates.begin(), candidates.begin() + candidateCount, candidateMoveLess);
+    std::sort(
+        candidates.begin(),
+        candidates.begin() + candidateCount,
+        [rootOrderingMode](const CandidateMove& lhs, const CandidateMove& rhs) {
+            return candidateMoveLess(lhs, rhs, rootOrderingMode);
+        });
 
     int solutionRank = 0;
     for (int i = 0; i < candidateCount; ++i) {
@@ -1170,6 +1202,19 @@ std::string solutionRootOrderingProfile(
     out << ";solution_first=" << toString(solution.front())
         << ";solution_rank=" << solutionRank
         << ";root_candidate_count=" << candidateCount
+        << ";root_ordering_mode=";
+    switch (rootOrderingMode) {
+    case RootOrderingMode::Default:
+        out << "default";
+        break;
+    case RootOrderingMode::ReverseTie:
+        out << "reverse_tie";
+        break;
+    case RootOrderingMode::Phase2TieBreak:
+        out << "phase2_tiebreak";
+        break;
+    }
+    out
         << ";root_order=";
     for (int i = 0; i < candidateCount; ++i) {
         if (i > 0) {
@@ -1398,7 +1443,12 @@ SearchState dfs(
         candidates,
         diagnostics);
 
-    std::sort(candidates.begin(), candidates.begin() + candidateCount, candidateMoveLess);
+    std::sort(
+        candidates.begin(),
+        candidates.begin() + candidateCount,
+        [](const CandidateMove& lhs, const CandidateMove& rhs) {
+            return candidateMoveLess(lhs, rhs, RootOrderingMode::Default);
+        });
 
     for (int i = 0; i < candidateCount; ++i) {
         const Move move = candidates[i].move;
@@ -1456,6 +1506,7 @@ SearchState parallelRootDfs(
     bool includeThreePhase1Bounds,
     bool useStrongMoveOrdering,
     bool usePhase2MoveOrdering,
+    RootOrderingMode rootOrderingMode,
     const GoalTable* exactGoalTable,
     unsigned int threadCount,
     std::vector<Move>& solution,
@@ -1483,11 +1534,16 @@ SearchState parallelRootDfs(
         includeExperimentalCornerDownEdgeBounds,
         includeThreePhase1Bounds,
         useStrongMoveOrdering,
-        usePhase2MoveOrdering,
+        usePhase2MoveOrdering || rootOrderingMode == RootOrderingMode::Phase2TieBreak,
         nullptr,
         candidates,
         diagnostics);
-    std::sort(candidates.begin(), candidates.begin() + candidateCount, candidateMoveLess);
+    std::sort(
+        candidates.begin(),
+        candidates.begin() + candidateCount,
+        [rootOrderingMode](const CandidateMove& lhs, const CandidateMove& rhs) {
+            return candidateMoveLess(lhs, rhs, rootOrderingMode);
+        });
 
     if (candidateCount == 0) {
         return SearchState::NotFound;
@@ -1715,6 +1771,12 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
     const bool usePhase2MoveOrdering = phase2OptimalMoveOrderingEnabled() &&
         effectiveOptions.mode == SolveMode::Optimal;
     if (usePhase2MoveOrdering) {
+        estimatedTableBytes += phase2OrderingPayloadBytes();
+    }
+    const RootOrderingMode rootOrderingMode = effectiveOptions.mode == SolveMode::Optimal
+        ? experimentalRootOrderingMode()
+        : RootOrderingMode::Default;
+    if (rootOrderingMode == RootOrderingMode::Phase2TieBreak && !usePhase2MoveOrdering) {
         estimatedTableBytes += phase2OrderingPayloadBytes();
     }
     const int goalTableDepth = effectiveOptions.mode == SolveMode::Optimal
@@ -2010,6 +2072,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                   includeThreePhase1Bounds,
                   useStrongMoveOrdering,
                   usePhase2MoveOrdering,
+                  rootOrderingMode,
                   exactGoalTable,
                   effectiveOptions.threads,
                   solution,
@@ -2047,6 +2110,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                 includeThreePhase1Bounds,
                 useStrongMoveOrdering,
                 usePhase2MoveOrdering,
+                rootOrderingMode,
                 solution);
             return withPlan({
                 .status = SolveStatus::Optimal,

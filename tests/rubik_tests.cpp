@@ -1317,6 +1317,39 @@ void testOptimalRootOrderingReportsSolutionRank()
     expect(result.plan.rootOrderingProfile.find("solution_rank=") != std::string::npos);
 }
 
+void testExperimentalRootOrderingReverseTieChangesRootOrderOnly()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R U F"));
+
+    const rubik::Solver solver;
+    unsetenv("RUBIK_EXPERIMENTAL_ROOT_ORDERING");
+    const auto defaultResult = solver.solve(cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .maxDepth = 5,
+        .threads = 4,
+        .profile = rubik::SolveProfile::Default,
+    });
+
+    setenv("RUBIK_EXPERIMENTAL_ROOT_ORDERING", "reverse_tie", 1);
+    const auto reverseTieResult = solver.solve(cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .maxDepth = 5,
+        .threads = 4,
+        .profile = rubik::SolveProfile::Default,
+    });
+    unsetenv("RUBIK_EXPERIMENTAL_ROOT_ORDERING");
+
+    expect(defaultResult.status == rubik::SolveStatus::Optimal);
+    expect(reverseTieResult.status == rubik::SolveStatus::Optimal);
+    expect(defaultResult.isOptimal);
+    expect(reverseTieResult.isOptimal);
+    expect(defaultResult.moveCount == reverseTieResult.moveCount);
+    expect(defaultResult.plan.rootOrderingProfile.find("root_ordering_mode=default") != std::string::npos);
+    expect(reverseTieResult.plan.rootOrderingProfile.find("root_ordering_mode=reverse_tie") != std::string::npos);
+    expect(defaultResult.plan.rootOrderingProfile != reverseTieResult.plan.rootOrderingProfile);
+}
+
 void testSolveMemoryLimit()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -1487,6 +1520,7 @@ int main()
     testOptimalTinyScramble();
     testOptimalThreadedTinyScramble();
     testOptimalRootOrderingReportsSolutionRank();
+    testExperimentalRootOrderingReverseTieChangesRootOrderOnly();
     testSolveMemoryLimit();
     testFastTinyScramble();
     testPhase1TinyScramble();
