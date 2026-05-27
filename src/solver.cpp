@@ -769,6 +769,13 @@ struct RootMoveProfile {
     int order = 0;
 };
 
+struct RootSearchProfileEntry {
+    Move move = Move::U;
+    std::uint64_t nodesExpanded = 0;
+    SearchState state = SearchState::NotFound;
+    bool visited = false;
+};
+
 struct RootOrderingProfile {
     std::string description;
     bool firstMoveDiffers = false;
@@ -1226,6 +1233,42 @@ std::string solutionRootOrderingProfile(
     return out.str();
 }
 
+const char* searchStateToken(SearchState state)
+{
+    switch (state) {
+    case SearchState::Found:
+        return "found";
+    case SearchState::Timeout:
+        return "timeout";
+    case SearchState::NotFound:
+        return "not_found";
+    }
+    return "unknown";
+}
+
+std::string formatRootSearchProfile(const std::vector<RootSearchProfileEntry>& entries)
+{
+    if (entries.empty()) {
+        return {};
+    }
+
+    std::ostringstream out;
+    out << ";root_search=";
+    for (std::size_t i = 0; i < entries.size(); ++i) {
+        if (i > 0) {
+            out << '|';
+        }
+        const RootSearchProfileEntry& entry = entries[i];
+        out << toString(entry.move) << ':';
+        if (entry.visited) {
+            out << searchStateToken(entry.state) << ':' << entry.nodesExpanded;
+        } else {
+            out << "unvisited:0";
+        }
+    }
+    return out.str();
+}
+
 template <typename BoundGetter>
 std::string rootBoundHistogram(
     const std::array<RootMoveProfile, move_count>& moves,
@@ -1511,7 +1554,8 @@ SearchState parallelRootDfs(
     unsigned int threadCount,
     std::vector<Move>& solution,
     std::uint64_t& nodesExpanded,
-    SolveBoundDiagnostics* diagnostics)
+    SolveBoundDiagnostics* diagnostics,
+    std::vector<RootSearchProfileEntry>* rootSearchProfile)
 {
     ++nodesExpanded;
     if (deadline.expired()) {
@@ -1549,6 +1593,19 @@ SearchState parallelRootDfs(
         return SearchState::NotFound;
     }
 
+    if (rootSearchProfile != nullptr) {
+        rootSearchProfile->clear();
+        rootSearchProfile->reserve(static_cast<std::size_t>(candidateCount));
+        for (int i = 0; i < candidateCount; ++i) {
+            rootSearchProfile->push_back({
+                .move = candidates[static_cast<std::size_t>(i)].move,
+                .nodesExpanded = 0,
+                .state = SearchState::NotFound,
+                .visited = false,
+            });
+        }
+    }
+
     std::atomic_int nextCandidate{0};
     std::atomic_bool stopRequested{false};
     std::atomic_bool timedOut{false};
@@ -1572,6 +1629,7 @@ SearchState parallelRootDfs(
                     break;
                 }
 
+                const std::uint64_t nodesBeforeCandidate = localNodes;
                 std::vector<Move> path{candidates[index].move};
                 std::vector<Move> localSolution;
                 const SearchState state = dfs(
@@ -1593,6 +1651,13 @@ SearchState parallelRootDfs(
                     localSolution,
                     localNodes,
                     diagnostics == nullptr ? nullptr : &localDiagnostics);
+                if (rootSearchProfile != nullptr) {
+                    std::scoped_lock lock(resultMutex);
+                    RootSearchProfileEntry& entry = (*rootSearchProfile)[static_cast<std::size_t>(index)];
+                    entry.nodesExpanded = localNodes - nodesBeforeCandidate;
+                    entry.state = state;
+                    entry.visited = true;
+                }
 
                 if (state == SearchState::Found) {
                     {
@@ -2057,6 +2122,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
          ++limit) {
         std::vector<Move> path;
         std::vector<Move> solution;
+        std::vector<RootSearchProfileEntry> rootSearchProfile;
         const std::uint64_t nodesBeforeDepth = nodesExpanded;
 
         const SearchState result = effectiveOptions.threads > 1
@@ -2077,7 +2143,8 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                   effectiveOptions.threads,
                   solution,
                   nodesExpanded,
-                  boundDiagnosticsPtr)
+                  boundDiagnosticsPtr,
+                  &rootSearchProfile)
             : dfs(
                   root,
                   0,
@@ -2112,6 +2179,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                 usePhase2MoveOrdering,
                 rootOrderingMode,
                 solution);
+            plan.publicPlan.rootOrderingProfile += formatRootSearchProfile(rootSearchProfile);
             return withPlan({
                 .status = SolveStatus::Optimal,
                 .moves = solution,

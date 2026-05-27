@@ -154,7 +154,9 @@ ordering used by that solve. Stable values are `base_bound`,
 `auto_strong_bound`, `forced_strong_bound`, and `phase2_tiebreak`.
 `SolveResult::plan.rootOrderingProfile` is a compact diagnostic string for the
 root child-ordering signals used in benchmark analysis. It is informational and
-may grow with additional key-value fields.
+may grow with additional key-value fields. Parallel optimal searches also report
+`root_search`, the per-root search outcome and expanded-node count used for
+solver tuning.
 
 ## Cache Setup
 

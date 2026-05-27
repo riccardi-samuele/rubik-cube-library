@@ -856,6 +856,8 @@ Important columns:
 - `solution`: returned move sequence.
 - `optimal_move_ordering`: actual optimal DFS child ordering used by that case.
 - `root_ordering_profile`: compact root child-ordering diagnostic string.
+  Parallel optimal runs include `root_search` with per-root outcomes and
+  expanded-node counts.
 
 Additional report rows:
 

@@ -27,4 +27,6 @@ used by the solve. Stable values are `base_bound`, `auto_strong_bound`,
 
 `SolvePlan::rootOrderingProfile` reports compact root child-ordering diagnostic
 data for benchmark analysis. It is informational; consumers should treat it as a
-semicolon-separated key-value string rather than a fixed schema.
+semicolon-separated key-value string rather than a fixed schema. Parallel
+optimal searches may include a `root_search` field with per-root outcome and
+expanded-node counts.
