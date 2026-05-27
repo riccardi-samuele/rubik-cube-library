@@ -13,12 +13,14 @@ shift 2
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
 
-for option in "$@"; do
+check_missing_value() {
+    local option="$1"
+    shift
     stdout_file="${tmp_dir}/${option#--}.stdout"
     stderr_file="${tmp_dir}/${option#--}.stderr"
 
     set +e
-    "${script_path}" "${option}" > "${stdout_file}" 2> "${stderr_file}"
+    "${script_path}" "${option}" "$@" > "${stdout_file}" 2> "${stderr_file}"
     exit_code="$?"
     set -e
 
@@ -38,5 +40,16 @@ for option in "$@"; do
         echo "missing value test failed for ${script_path} ${option}: shell error leaked to stderr" >&2
         cat "${stderr_file}" >&2
         exit 1
+    fi
+}
+
+options=("$@")
+for index in "${!options[@]}"; do
+    option="${options[${index}]}"
+    check_missing_value "${option}"
+
+    next_index=$((index + 1))
+    if [[ "${next_index}" -lt "${#options[@]}" ]]; then
+        check_missing_value "${option}" "${options[${next_index}]}"
     fi
 done

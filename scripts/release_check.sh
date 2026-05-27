@@ -31,7 +31,7 @@ USAGE
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --profile)
-            if [[ $# -lt 2 ]]; then
+            if [[ $# -lt 2 || "$2" == -* ]]; then
                 usage >&2
                 exit 2
             fi

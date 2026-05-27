@@ -34,7 +34,7 @@ read_project_version() {
 }
 
 require_value() {
-    if [[ $# -lt 2 ]]; then
+    if [[ $# -lt 2 || "$2" == -* ]]; then
         usage >&2
         exit 2
     fi
