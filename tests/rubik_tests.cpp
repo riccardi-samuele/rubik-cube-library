@@ -1298,6 +1298,25 @@ void testOptimalThreadedTinyScramble()
     assert(cube.isSolved());
 }
 
+void testOptimalRootOrderingReportsSolutionRank()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R U"));
+
+    const rubik::Solver solver;
+    const auto result = solver.solve(cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .maxDepth = 4,
+        .profile = rubik::SolveProfile::Default,
+    });
+
+    expect(result.status == rubik::SolveStatus::Optimal);
+    expect(result.isOptimal);
+    expect(result.moveCount == 2);
+    expect(result.plan.rootOrderingProfile.find("solution_first=") != std::string::npos);
+    expect(result.plan.rootOrderingProfile.find("solution_rank=") != std::string::npos);
+}
+
 void testSolveMemoryLimit()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -1467,6 +1486,7 @@ int main()
     testParseMoves();
     testOptimalTinyScramble();
     testOptimalThreadedTinyScramble();
+    testOptimalRootOrderingReportsSolutionRank();
     testSolveMemoryLimit();
     testFastTinyScramble();
     testPhase1TinyScramble();

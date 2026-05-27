@@ -1123,6 +1123,64 @@ bool candidateMoveLess(const CandidateMove& lhs, const CandidateMove& rhs)
     return lhs.order < rhs.order;
 }
 
+std::string solutionRootOrderingProfile(
+    const SearchNode& root,
+    int limit,
+    SolveProfile profile,
+    bool includeExperimentalSymmetryBounds,
+    bool includeExperimentalCornerStateBounds,
+    bool includeExperimentalCornerUpEdgeBounds,
+    bool includeExperimentalCornerDownEdgeBounds,
+    bool includeThreePhase1Bounds,
+    bool useStrongMoveOrdering,
+    bool usePhase2MoveOrdering,
+    const std::vector<Move>& solution)
+{
+    if (solution.empty()) {
+        return {};
+    }
+
+    std::array<CandidateMove, move_count> candidates{};
+    const int candidateCount = collectCandidateMoves(
+        root,
+        0,
+        limit,
+        profile,
+        includeExperimentalSymmetryBounds,
+        includeExperimentalCornerStateBounds,
+        includeExperimentalCornerUpEdgeBounds,
+        includeExperimentalCornerDownEdgeBounds,
+        includeThreePhase1Bounds,
+        useStrongMoveOrdering,
+        usePhase2MoveOrdering,
+        nullptr,
+        candidates,
+        nullptr);
+    std::sort(candidates.begin(), candidates.begin() + candidateCount, candidateMoveLess);
+
+    int solutionRank = 0;
+    for (int i = 0; i < candidateCount; ++i) {
+        if (candidates[static_cast<std::size_t>(i)].move == solution.front()) {
+            solutionRank = i + 1;
+            break;
+        }
+    }
+
+    std::ostringstream out;
+    out << ";solution_first=" << toString(solution.front())
+        << ";solution_rank=" << solutionRank
+        << ";root_candidate_count=" << candidateCount
+        << ";root_order=";
+    for (int i = 0; i < candidateCount; ++i) {
+        if (i > 0) {
+            out << '|';
+        }
+        const CandidateMove& candidate = candidates[static_cast<std::size_t>(i)];
+        out << toString(candidate.move) << '/' << candidate.orderBound;
+    }
+    return out.str();
+}
+
 template <typename BoundGetter>
 std::string rootBoundHistogram(
     const std::array<RootMoveProfile, move_count>& moves,
@@ -1978,6 +2036,18 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                   boundDiagnosticsPtr);
         nodesByDepth.push_back(nodesExpanded - nodesBeforeDepth);
         if (result == SearchState::Found) {
+            plan.publicPlan.rootOrderingProfile += solutionRootOrderingProfile(
+                root,
+                static_cast<int>(solution.size()),
+                effectiveOptions.profile,
+                includeExperimentalSymmetryBounds,
+                includeExperimentalCornerStateBounds,
+                includeExperimentalCornerUpEdgeBounds,
+                includeExperimentalCornerDownEdgeBounds,
+                includeThreePhase1Bounds,
+                useStrongMoveOrdering,
+                usePhase2MoveOrdering,
+                solution);
             return withPlan({
                 .status = SolveStatus::Optimal,
                 .moves = solution,
