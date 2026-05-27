@@ -888,6 +888,11 @@ add_test(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_benchmark_suite_rejects_missing_values.sh
 )
 add_test(
+    NAME run_v4_tail_discovery_rejects_missing_values
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v4_tail_discovery_rejects_missing_values.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_tail_discovery.sh
+)
+add_test(
     NAME extract_slowest_cases
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_slowest_cases.sh
         --input-dir ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results
