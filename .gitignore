@@ -31,3 +31,6 @@ Thumbs.db
 
 # Test framework scratch data
 /Testing/
+
+# Local agent planning notes are not part of the public library surface.
+/docs/superpowers/
