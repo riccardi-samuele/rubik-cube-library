@@ -2,6 +2,7 @@
 #include "rubik/detail/symmetry_coordinates.hpp"
 #include "rubik/detail/symmetry_pruning.hpp"
 #include "rubik/detail/symmetry.hpp"
+#include "rubik/detail/auto_plan.hpp"
 #include "rubik/detail/optimal_plan.hpp"
 #include "rubik/detail/table_profiles.hpp"
 #include "rubik/experimental/phase1.hpp"
@@ -77,6 +78,28 @@ void testAutoPlannerRejectsFastMode()
     const auto plan = rubik::detail::makeOptimalPlan(options);
     expect(!plan.supported);
     expect(plan.status == rubik::SolveStatus::UnsupportedOptions);
+}
+
+void testAutoPlannerInternalDecisionMatchesPublicPlan()
+{
+    rubik::SolveOptions options;
+    options.mode = rubik::SolveMode::Optimal;
+    options.metric = rubik::Metric::HTM;
+    options.profile = rubik::SolveProfile::Auto;
+    options.maxDepth = 13;
+    options.maxMemoryBytes = 0;
+    options.threads = 0;
+
+    const auto decision = rubik::detail::makeAutoPlan(options);
+    const auto plan = rubik::detail::makeOptimalPlan(options);
+
+    expect(decision.supported);
+    expect(decision.effectiveProfile == rubik::SolveProfile::Performance);
+    expect(std::string(decision.strategyName) == "auto_shallow_optimal");
+    expect(plan.publicPlan.effectiveProfile == decision.effectiveProfile);
+    expect(plan.publicPlan.strategyName == decision.strategyName);
+    expect(plan.publicPlan.effectiveThreads == decision.effectiveThreads);
+    expect(plan.publicPlan.effectiveMaxMemoryBytes == decision.effectiveMaxMemoryBytes);
 }
 
 void testAutoPlannerUsesPerformanceForShallowOptimal()
@@ -1253,6 +1276,7 @@ int main()
     testVersionMetadata();
     testV3AdaptiveApiDefaults();
     testAutoPlannerRejectsFastMode();
+    testAutoPlannerInternalDecisionMatchesPublicPlan();
     testAutoPlannerUsesPerformanceForShallowOptimal();
     testAutoPlannerUsesLargeLocalForDeepOptimal();
     testAutoPlannerReportsFullTailPayload();

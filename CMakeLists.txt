@@ -34,6 +34,7 @@ if (RUBIK_ENABLE_SANITIZERS)
 endif()
 
 add_library(rubik
+    src/auto_plan.cpp
     src/cache.cpp
     src/coordinates.cpp
     src/cubie_cube.cpp

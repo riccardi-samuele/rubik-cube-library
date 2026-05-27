@@ -1,17 +1,13 @@
 #include "rubik/detail/optimal_plan.hpp"
 
 #include "rubik/coordinates.hpp"
+#include "rubik/detail/auto_plan.hpp"
 #include "rubik/detail/table_profiles.hpp"
 
-#include <algorithm>
-#include <thread>
 #include <vector>
 
 namespace rubik::detail {
 namespace {
-
-constexpr std::size_t auto_default_memory_bytes = 2ull * 1024ull * 1024ull * 1024ull;
-constexpr unsigned int auto_default_thread_cap = 16;
 
 std::vector<std::string> boundsForProfile(SolveProfile profile)
 {
@@ -38,43 +34,7 @@ std::size_t estimatedPayloadForProfile(SolveProfile profile)
     return bytes;
 }
 
-SolveProfile autoEffectiveProfile(const SolveOptions& options)
-{
-    if (options.maxDepth <= 13) {
-        return SolveProfile::Performance;
-    }
-    return SolveProfile::LargeLocal;
-}
-
-const char* autoStrategyName(SolveProfile effectiveProfile)
-{
-    return effectiveProfile == SolveProfile::LargeLocal
-        ? "auto_desktop_tail"
-        : "auto_shallow_optimal";
-}
-
 } // namespace
-
-std::size_t autoMemoryBudgetBytes(const SolveOptions& options)
-{
-    if (options.maxMemoryBytes != 0) {
-        return options.maxMemoryBytes;
-    }
-    return auto_default_memory_bytes;
-}
-
-unsigned int autoThreadCount(const SolveOptions& options)
-{
-    if (options.threads != 0) {
-        return options.threads;
-    }
-
-    const unsigned int hardware = std::thread::hardware_concurrency();
-    if (hardware == 0) {
-        return 1;
-    }
-    return std::max(1u, std::min(hardware, auto_default_thread_cap));
-}
 
 bool autoStrongMoveOrderingEnabled(
     const SolveOptions& requestedOptions,
@@ -106,31 +66,36 @@ OptimalPlan makeOptimalPlan(const SolveOptions& options)
     plan.publicPlan.requestedThreads = options.threads;
     plan.publicPlan.cachePolicy = options.cachePolicy;
 
-    if (options.profile == SolveProfile::Auto &&
-        (options.mode != SolveMode::Optimal || options.metric != Metric::HTM)) {
-        plan.supported = false;
-        plan.status = SolveStatus::UnsupportedOptions;
-        return plan;
+    if (options.profile == SolveProfile::Auto) {
+        const AutoPlanDecision autoPlan = makeAutoPlan(options);
+        if (!autoPlan.supported) {
+            plan.supported = false;
+            plan.status = autoPlan.status;
+            return plan;
+        }
+
+        plan.effectiveOptions.profile = autoPlan.effectiveProfile;
+        plan.effectiveOptions.maxMemoryBytes = autoPlan.effectiveMaxMemoryBytes;
+        plan.effectiveOptions.threads = autoPlan.effectiveThreads;
+
+        plan.publicPlan.effectiveProfile = autoPlan.effectiveProfile;
+        plan.publicPlan.effectiveMaxMemoryBytes = autoPlan.effectiveMaxMemoryBytes;
+        plan.publicPlan.effectiveThreads = autoPlan.effectiveThreads;
+        plan.publicPlan.estimatedTablePayloadBytes = autoPlan.estimatedTablePayloadBytes;
+        plan.publicPlan.boundsUsed = autoPlan.boundsUsed;
+        plan.publicPlan.strategyName = autoPlan.strategyName;
+    } else {
+        plan.effectiveOptions.profile = options.profile;
+        plan.effectiveOptions.maxMemoryBytes = options.maxMemoryBytes;
+        plan.effectiveOptions.threads = options.threads;
+
+        plan.publicPlan.effectiveProfile = options.profile;
+        plan.publicPlan.effectiveMaxMemoryBytes = options.maxMemoryBytes;
+        plan.publicPlan.effectiveThreads = options.threads;
+        plan.publicPlan.estimatedTablePayloadBytes = estimatedPayloadForProfile(options.profile);
+        plan.publicPlan.boundsUsed = boundsForProfile(options.profile);
+        plan.publicPlan.strategyName = "manual_profile";
     }
-
-    const SolveProfile effectiveProfile =
-        options.profile == SolveProfile::Auto ? autoEffectiveProfile(options) : options.profile;
-    const std::size_t effectiveMemory =
-        options.profile == SolveProfile::Auto ? autoMemoryBudgetBytes(options) : options.maxMemoryBytes;
-    const unsigned int effectiveThreads =
-        options.profile == SolveProfile::Auto ? autoThreadCount(options) : options.threads;
-
-    plan.effectiveOptions.profile = effectiveProfile;
-    plan.effectiveOptions.maxMemoryBytes = effectiveMemory;
-    plan.effectiveOptions.threads = effectiveThreads;
-
-    plan.publicPlan.effectiveProfile = effectiveProfile;
-    plan.publicPlan.effectiveMaxMemoryBytes = effectiveMemory;
-    plan.publicPlan.effectiveThreads = effectiveThreads;
-    plan.publicPlan.estimatedTablePayloadBytes = estimatedPayloadForProfile(effectiveProfile);
-    plan.publicPlan.boundsUsed = boundsForProfile(effectiveProfile);
-    plan.publicPlan.strategyName =
-        options.profile == SolveProfile::Auto ? autoStrategyName(effectiveProfile) : "manual_profile";
     plan.publicPlan.diskCacheEnabled = options.cachePolicy != CachePolicy::Disabled;
 
     plan.supported = true;
