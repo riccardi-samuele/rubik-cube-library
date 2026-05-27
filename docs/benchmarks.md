@@ -27,6 +27,8 @@ cmake --build build --target rubik-benchmark-optimal-large-local-tail-8threads
 cmake --build build --target rubik-benchmark-optimal-large-local-tail-8threads-gates
 cmake --build build --target rubik-benchmark-optimal-auto-tail
 cmake --build build --target rubik-benchmark-optimal-auto-tail-gates
+cmake --build build --target rubik-benchmark-optimal-auto-hardening
+cmake --build build --target rubik-benchmark-optimal-auto-discovery
 cmake --build build --target rubik-benchmark-embedded-multiseed
 cmake --build build --target rubik-benchmark-embedded-multiseed-gates
 cmake --build build --target rubik-benchmark-embedded-fast-tail-cases
@@ -58,6 +60,8 @@ scripts/run_benchmark_suite.sh --suite optimal-tail-cases
 scripts/run_benchmark_suite.sh --suite optimal-deep-probe --seeds 12345 --deep-opt14-count 2 --deep-opt15-count 1
 scripts/run_benchmark_suite.sh --suite optimal-large-local --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525,111,222,333,444,555,666,777,888,999,13579,24680,112358 --threads 4 --max-memory-mb 2048 --deep-opt15-count 1
 scripts/run_benchmark_suite.sh --suite optimal-auto-tail --seeds 987654321,424242,666,555,99,888 --threads 0 --max-memory-mb 2048 --deep-opt15-count 1
+scripts/run_benchmark_suite.sh --suite optimal-auto-hardening --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525 --threads 0 --max-memory-mb 2048 --deep-opt14-count 2 --deep-opt15-count 1
+scripts/run_benchmark_suite.sh --suite optimal-auto-discovery --seeds 101,202,303,404,505,606,707,808 --threads 0 --max-memory-mb 2048 --deep-opt15-count 2
 scripts/run_benchmark_suite.sh --suite embedded-multiseed --seeds 12345,20260525,42 --realistic-fast-count 100 --fast-max-depth 28 --realistic-opt13-count 10
 scripts/check_benchmark_gates.sh --summary-file benchmark-results/warm_embedded_multiseed_summary.csv --gate embedded,fast,random_seed_20260525_depth_20_count_100,100,350,500,700
 scripts/run_benchmark_suite.sh --suite embedded-fast-tail-cases
@@ -285,6 +289,7 @@ For V3 performance hardening, use the longer Auto diagnostic suite:
 
 ```sh
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening
+cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-discovery
 ```
 
 This suite runs `SolveProfile::Auto` across fixed depth-14 and depth-15 random
@@ -292,6 +297,9 @@ seeds with warm cache and a 2 GiB memory budget. It is intended for local tail
 latency analysis before changing optimal search policy; it is not part of the
 normal release gate. The CMake target runs `rubik-cache-setup` first so the
 reported solve rows are not dominated by first-run table generation.
+The discovery target runs additional depth-15 random batches and writes a
+`warm_optimal_auto_discovery_slowest.csv` file sorted by elapsed time. Promote
+only repeatedly slow discovery cases into gated tail regressions.
 
 Default corner-state pruning:
 
@@ -351,6 +359,9 @@ Profile selection:
 - `--suite optimal-auto-hardening`: run a longer `SolveProfile::Auto`
   depth-14/depth-15 diagnostic sweep across fixed seeds. This suite is for
   performance hardening and tail discovery, not routine release validation.
+- `--suite optimal-auto-discovery`: run depth-15 `SolveProfile::Auto` random
+  batches and extract the slowest individual cases into a separate CSV. This is
+  for finding new tail regressions before tightening gates.
 - `--suite embedded-fast-tail-cases`: replay the current slowest
   `Embedded/Fast` random depth-20 cases from the multiseed sweep with
   `--diagnose-fast`.

@@ -25,7 +25,7 @@ usage() {
 Usage: scripts/run_benchmark_suite.sh [options]
 
 Options:
-  --suite NAME             smoke|profile-smoke|profile-realistic|embedded-multiseed|optimal-stress|optimal-tail-cases|optimal-deep-probe|optimal-large-local|optimal-auto-tail|optimal-auto-hardening|embedded-fast-tail-cases|embedded-fast-failures|fast-100|fast-1000|optimal-depth|tail-diagnostics|all
+  --suite NAME             smoke|profile-smoke|profile-realistic|embedded-multiseed|optimal-stress|optimal-tail-cases|optimal-deep-probe|optimal-large-local|optimal-auto-tail|optimal-auto-hardening|optimal-auto-discovery|embedded-fast-tail-cases|embedded-fast-failures|fast-100|fast-1000|optimal-depth|tail-diagnostics|all
   --build-dir DIR          CMake build directory, default: build
   --cache-dir DIR          pruning table cache directory
   --cache-mode MODE        warm|cold, default: warm
@@ -792,6 +792,47 @@ run_optimal_auto_hardening() {
     echo "optimal auto hardening summary: ${summary_file}"
 }
 
+run_optimal_auto_discovery() {
+    local previous_profile="${profile}"
+    local summary_file="${output_dir}/${cache_mode}_optimal_auto_discovery_summary.csv"
+    local slowest_file="${output_dir}/${cache_mode}_optimal_auto_discovery_slowest.csv"
+    profile="auto"
+
+    {
+        echo "profile,mode,benchmark,total_cases,solved,failed,total_elapsed_ms,total_nodes_expanded,p50_elapsed_ms,p90_elapsed_ms,p95_elapsed_ms,p99_elapsed_ms,max_elapsed_ms,warmup_elapsed_ms,wall_elapsed_ms,output_file"
+    } > "${summary_file}"
+
+    for current_seed in "${seed_list[@]}"; do
+        local opt15_name="optimal_auto_discovery_auto_random_${deep_optimal_depth15_count}_depth_15_seed_${current_seed}"
+        local opt15_output="${output_dir}/${cache_mode}_${opt15_name}.csv"
+
+        run_benchmark "${opt15_name}" \
+            --mode optimal \
+            --profile auto \
+            --threads "${benchmark_threads}" \
+            --max-memory-mb "${benchmark_max_memory_mb}" \
+            --timeout-ms "${optimal_timeout_ms}" \
+            --max-depth 15 \
+            --case-set random \
+            --random-count "${deep_optimal_depth15_count}" \
+            --random-depth 15 \
+            --random-seed "${current_seed}" \
+            --slowest-count "${deep_optimal_depth15_count}" \
+            --diagnose-optimal || true
+        append_profile_summary_row "${summary_file}" "auto" "optimal" "random_seed_${current_seed}_depth_15_count_${deep_optimal_depth15_count}" "${opt15_output}"
+    done
+
+    scripts/extract_slowest_cases.sh \
+        --input-dir "${output_dir}" \
+        --output "${slowest_file}" \
+        --limit 50
+
+    profile="${previous_profile}"
+
+    echo "optimal auto discovery summary: ${summary_file}"
+    echo "optimal auto discovery slowest cases: ${slowest_file}"
+}
+
 case "${suite}" in
     smoke)
         run_smoke
@@ -822,6 +863,9 @@ case "${suite}" in
         ;;
     optimal-auto-hardening)
         run_optimal_auto_hardening
+        ;;
+    optimal-auto-discovery)
+        run_optimal_auto_discovery
         ;;
     embedded-fast-tail-cases)
         run_embedded_fast_tail_cases

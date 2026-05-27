@@ -466,6 +466,26 @@ add_custom_target(rubik-benchmark-optimal-auto-hardening
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running Auto optimal hardening benchmark suite"
 )
+add_custom_target(rubik-benchmark-optimal-auto-discovery
+    COMMAND rubik-cache-setup
+        --profile auto
+        --cache-dir /tmp/rubik_cube_library_optimal_auto_discovery_cache
+        --max-memory-mb 2048
+        --threads 0
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
+        --suite optimal-auto-discovery
+        --cache-mode warm
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cache-dir /tmp/rubik_cube_library_optimal_auto_discovery_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-auto-discovery
+        --seeds 101,202,303,404,505,606,707,808
+        --deep-opt15-count 2
+        --threads 0
+        --max-memory-mb 2048
+    DEPENDS rubik-bench rubik-cache-setup
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running Auto optimal tail discovery benchmark suite"
+)
 add_custom_target(rubik-benchmark-embedded-fast-tail-cases
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
         --suite embedded-fast-tail-cases
