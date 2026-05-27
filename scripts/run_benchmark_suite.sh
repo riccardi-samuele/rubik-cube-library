@@ -25,7 +25,7 @@ usage() {
 Usage: scripts/run_benchmark_suite.sh [options]
 
 Options:
-  --suite NAME             smoke|profile-smoke|profile-realistic|embedded-multiseed|optimal-stress|optimal-tail-cases|optimal-deep-probe|optimal-large-local|optimal-auto-tail|embedded-fast-tail-cases|embedded-fast-failures|fast-100|fast-1000|optimal-depth|tail-diagnostics|all
+  --suite NAME             smoke|profile-smoke|profile-realistic|embedded-multiseed|optimal-stress|optimal-tail-cases|optimal-deep-probe|optimal-large-local|optimal-auto-tail|optimal-auto-hardening|embedded-fast-tail-cases|embedded-fast-failures|fast-100|fast-1000|optimal-depth|tail-diagnostics|all
   --build-dir DIR          CMake build directory, default: build
   --cache-dir DIR          pruning table cache directory
   --cache-mode MODE        warm|cold, default: warm
@@ -741,6 +741,57 @@ run_optimal_auto_tail() {
     echo "optimal auto tail summary: ${summary_file}"
 }
 
+run_optimal_auto_hardening() {
+    local previous_profile="${profile}"
+    local summary_file="${output_dir}/${cache_mode}_optimal_auto_hardening_summary.csv"
+    profile="auto"
+
+    {
+        echo "profile,mode,benchmark,total_cases,solved,failed,total_elapsed_ms,total_nodes_expanded,p50_elapsed_ms,p90_elapsed_ms,p95_elapsed_ms,p99_elapsed_ms,max_elapsed_ms,warmup_elapsed_ms,wall_elapsed_ms,output_file"
+    } > "${summary_file}"
+
+    for current_seed in "${seed_list[@]}"; do
+        local opt14_name="optimal_auto_hardening_auto_random_${deep_optimal_depth14_count}_depth_14_seed_${current_seed}"
+        local opt15_name="optimal_auto_hardening_auto_random_${deep_optimal_depth15_count}_depth_15_seed_${current_seed}"
+        local opt14_output="${output_dir}/${cache_mode}_${opt14_name}.csv"
+        local opt15_output="${output_dir}/${cache_mode}_${opt15_name}.csv"
+
+        run_benchmark "${opt14_name}" \
+            --mode optimal \
+            --profile auto \
+            --threads "${benchmark_threads}" \
+            --max-memory-mb "${benchmark_max_memory_mb}" \
+            --timeout-ms "${optimal_timeout_ms}" \
+            --max-depth 14 \
+            --case-set random \
+            --random-count "${deep_optimal_depth14_count}" \
+            --random-depth 14 \
+            --random-seed "${current_seed}" \
+            --slowest-count "${deep_optimal_depth14_count}" \
+            --diagnose-optimal || true
+        append_profile_summary_row "${summary_file}" "auto" "optimal" "random_seed_${current_seed}_depth_14_count_${deep_optimal_depth14_count}" "${opt14_output}"
+
+        run_benchmark "${opt15_name}" \
+            --mode optimal \
+            --profile auto \
+            --threads "${benchmark_threads}" \
+            --max-memory-mb "${benchmark_max_memory_mb}" \
+            --timeout-ms "${optimal_timeout_ms}" \
+            --max-depth 15 \
+            --case-set random \
+            --random-count "${deep_optimal_depth15_count}" \
+            --random-depth 15 \
+            --random-seed "${current_seed}" \
+            --slowest-count "${deep_optimal_depth15_count}" \
+            --diagnose-optimal || true
+        append_profile_summary_row "${summary_file}" "auto" "optimal" "random_seed_${current_seed}_depth_15_count_${deep_optimal_depth15_count}" "${opt15_output}"
+    done
+
+    profile="${previous_profile}"
+
+    echo "optimal auto hardening summary: ${summary_file}"
+}
+
 case "${suite}" in
     smoke)
         run_smoke
@@ -769,6 +820,9 @@ case "${suite}" in
     optimal-auto-tail)
         run_optimal_auto_tail
         ;;
+    optimal-auto-hardening)
+        run_optimal_auto_hardening
+        ;;
     embedded-fast-tail-cases)
         run_embedded_fast_tail_cases
         ;;
@@ -796,6 +850,7 @@ case "${suite}" in
         run_optimal_tail_cases
         run_optimal_deep_probe
         run_optimal_auto_tail
+        run_optimal_auto_hardening
         run_embedded_fast_tail_cases
         run_embedded_fast_failures
         run_fast_100

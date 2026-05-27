@@ -278,6 +278,17 @@ cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-gates
 ```
 
+For V3 performance hardening, use the longer Auto diagnostic suite:
+
+```sh
+cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening
+```
+
+This suite runs `SolveProfile::Auto` across fixed depth-14 and depth-15 random
+seeds with warm cache and a 2 GiB memory budget. It is intended for local tail
+latency analysis before changing optimal search policy; it is not part of the
+normal release gate.
+
 Default corner-state pruning:
 
 ```sh
@@ -332,6 +343,9 @@ Profile selection:
 - `--suite optimal-auto-tail`: replay the slowest known depth-15 local optimal
   seeds through `SolveProfile::Auto`. The CMake target uses automatic thread
   selection and a 2 GiB memory budget to validate the adaptive desktop path.
+- `--suite optimal-auto-hardening`: run a longer `SolveProfile::Auto`
+  depth-14/depth-15 diagnostic sweep across fixed seeds. This suite is for
+  performance hardening and tail discovery, not routine release validation.
 - `--suite embedded-fast-tail-cases`: replay the current slowest
   `Embedded/Fast` random depth-20 cases from the multiseed sweep with
   `--diagnose-fast`.

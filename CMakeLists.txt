@@ -440,6 +440,22 @@ add_custom_target(rubik-benchmark-optimal-auto-tail-gates
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking Auto optimal depth-15 tail gates"
 )
+add_custom_target(rubik-benchmark-optimal-auto-hardening
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
+        --suite optimal-auto-hardening
+        --cache-mode warm
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cache-dir /tmp/rubik_cube_library_optimal_auto_hardening_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/optimal-auto-hardening
+        --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525
+        --deep-opt14-count 2
+        --deep-opt15-count 1
+        --threads 0
+        --max-memory-mb 2048
+    DEPENDS rubik-bench
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running Auto optimal hardening benchmark suite"
+)
 add_custom_target(rubik-benchmark-embedded-fast-tail-cases
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_benchmark_suite.sh
         --suite embedded-fast-tail-cases
