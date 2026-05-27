@@ -6,12 +6,12 @@ cd "${repo_root}"
 
 matches="$(
     rg -n -i \
-        "raspberry pi [0-9]+ estimate|planning range|[0-9]+x-[0-9]+x slower|desktop estimates for raspberry" \
+        "raspberry pi [0-9]+ estimate|planning range|[0-9]+x-[0-9]+x slower|desktop estimates for raspberry|internal planning notes|internal process notes|local process notes|non-user-facing planning artifacts" \
         README.md CHANGELOG.md docs || true
 )"
 
 if [[ -n "${matches}" ]]; then
-    echo "public docs hardware estimate check failed: remove unmeasured Raspberry/Jetson estimates" >&2
+    echo "public docs check failed: remove unmeasured hardware estimates or internal process notes" >&2
     printf '%s\n' "${matches}" >&2
     exit 1
 fi

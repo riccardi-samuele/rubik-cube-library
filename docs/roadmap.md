@@ -135,7 +135,7 @@ Success criteria:
 
 - a release candidate can be validated locally with one documented command;
 - slow cases can be replayed deterministically;
-- benchmark reports are useful without exposing internal planning notes.
+- benchmark reports are useful as reproducible library evidence.
 
 ### 3. Public API Ergonomics
 
@@ -239,10 +239,7 @@ Before publishing a new version:
 
 1. Run the appropriate release validation profile.
 2. Run benchmark gates relevant to the release scope.
-3. Remove temporary files, local notes, and non-user-facing planning artifacts.
+3. Remove temporary files and generated local artifacts.
 4. Verify public documentation only describes the library and measured facts.
 5. Update changelog, version references, and release notes.
 6. Create and validate the source archive.
-
-Internal process notes may exist locally, but they should not be pushed unless
-they are part of the user-facing library documentation.
