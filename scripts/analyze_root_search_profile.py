@@ -124,6 +124,18 @@ def file_wall_elapsed_ms(path):
     return ""
 
 
+def cache_setup_values(input_dir):
+    path = input_dir / "cache_setup.csv"
+    values = {}
+    if not path.is_file():
+        return values
+    with path.open(newline="") as handle:
+        for row in csv.reader(handle):
+            if len(row) >= 3 and row[0] == "cache_setup":
+                values[row[1]] = row[2]
+    return values
+
+
 def case_rows(path):
     benchmark = ""
     wall_elapsed_ms = file_wall_elapsed_ms(path)
@@ -179,9 +191,14 @@ def collect_rows(input_dir):
         print(f"root search analysis failed: input directory not found: {input_dir}", file=sys.stderr)
         sys.exit(1)
 
+    cache_setup = cache_setup_values(input_dir)
     rows = []
     for path in sorted(input_dir.rglob("*.csv")):
-        rows.extend(case_rows(path))
+        for row in case_rows(path):
+            row["cache_setup_status"] = cache_setup.get("status", "")
+            row["cache_setup_elapsed_ms"] = cache_setup.get("elapsed_ms", "")
+            row["cache_warm"] = cache_setup.get("cache_warm", "")
+            rows.append(row)
     return rows
 
 
@@ -199,6 +216,9 @@ def summarize_rows(rows):
             "total_root_elapsed_ms": 0,
             "solver_elapsed_ms": "",
             "wall_elapsed_ms": "",
+            "cache_setup_status": "",
+            "cache_setup_elapsed_ms": "",
+            "cache_warm": "",
             "cheap_candidate_prunes": 0,
             "three_phase_candidate_checks": 0,
             "three_phase_candidate_prunes": 0,
@@ -218,6 +238,12 @@ def summarize_rows(rows):
             group["solver_elapsed_ms"] = row["elapsed_ms"]
         if not group["wall_elapsed_ms"]:
             group["wall_elapsed_ms"] = row["wall_elapsed_ms"]
+        if not group["cache_setup_status"]:
+            group["cache_setup_status"] = row["cache_setup_status"]
+        if not group["cache_setup_elapsed_ms"]:
+            group["cache_setup_elapsed_ms"] = row["cache_setup_elapsed_ms"]
+        if not group["cache_warm"]:
+            group["cache_warm"] = row["cache_warm"]
         group["cheap_candidate_prunes"] += cheap_prunes
         group["three_phase_candidate_checks"] += three_phase_checks
         group["three_phase_candidate_prunes"] += three_phase_prunes
@@ -248,6 +274,9 @@ def summarize_rows(rows):
             "solver_elapsed_ms": solver_elapsed,
             "wall_elapsed_ms": wall_elapsed,
             "wall_overhead_ms": wall_overhead,
+            "cache_setup_status": group["cache_setup_status"],
+            "cache_setup_elapsed_ms": group["cache_setup_elapsed_ms"],
+            "cache_warm": group["cache_warm"],
             "root_nodes_per_ms": integer_ratio(total_nodes, total_elapsed),
             "cheap_candidate_prunes_per_node_ppm": integer_ratio(
                 str(group["cheap_candidate_prunes"]),
@@ -270,6 +299,9 @@ def emit(rows, output):
         "case_name",
         "elapsed_ms",
         "wall_elapsed_ms",
+        "cache_setup_status",
+        "cache_setup_elapsed_ms",
+        "cache_warm",
         "total_nodes",
         "solution_rank",
         "root_rank",
@@ -314,6 +346,9 @@ def emit_summary(rows, output):
         "solver_elapsed_ms",
         "wall_elapsed_ms",
         "wall_overhead_ms",
+        "cache_setup_status",
+        "cache_setup_elapsed_ms",
+        "cache_warm",
         "root_nodes_per_ms",
         "cheap_candidate_prunes_per_node_ppm",
         "three_phase_candidate_prune_rate_ppm",

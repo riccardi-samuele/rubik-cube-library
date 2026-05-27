@@ -1,0 +1,5 @@
+cache_setup,status,Ready
+cache_setup,effective_profile,large-local
+cache_setup,cache_warm,true
+cache_setup,elapsed_ms,657
+cache_setup,bytes_missing,0
