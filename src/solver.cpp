@@ -612,67 +612,98 @@ int nodeLowerBoundWithoutThreePhase1(
     bool includeExperimentalCornerStateBounds,
     bool includeExperimentalCornerUpEdgeBounds,
     bool includeExperimentalCornerDownEdgeBounds,
-    int* baseLowerBound = nullptr)
+    int* baseLowerBound = nullptr,
+    int pruneAbove = std::numeric_limits<int>::max())
 {
-    const auto cornerOrientationPermutationIndex =
-        node.cornerOrientation * coordinates::corner_permutation_count + node.cornerPermutation;
-    const auto cornerPermutationEdgeOrientationIndex =
-        node.cornerPermutation * coordinates::edge_orientation_count + node.edgeOrientation;
-    const auto cornerOrientationUpEdgeIndex =
-        node.cornerOrientation * coordinates::edge_group_permutation_count + node.upEdgePermutation;
-    const auto cornerOrientationDownEdgeIndex =
-        node.cornerOrientation * coordinates::edge_group_permutation_count + node.downEdgePermutation;
-    const auto cornerPermutationUpEdgeIndex =
-        node.cornerPermutation * coordinates::edge_group_permutation_count + node.upEdgePermutation;
-    const auto cornerPermutationDownEdgeIndex =
-        node.cornerPermutation * coordinates::edge_group_permutation_count + node.downEdgePermutation;
-    const auto edgeOrientationUpEdgeIndex =
-        node.edgeOrientation * coordinates::edge_group_permutation_count + node.upEdgePermutation;
-    const auto edgeOrientationDownEdgeIndex =
-        node.edgeOrientation * coordinates::edge_group_permutation_count + node.downEdgePermutation;
-    const auto upDownEdgeIndex = node.upEdgePermutation * coordinates::edge_group_permutation_count + node.downEdgePermutation;
-
     int bound = nodeBaseLowerBound(node);
     if (baseLowerBound != nullptr) {
         *baseLowerBound = bound;
     }
+    if (bound > pruneAbove) {
+        return bound;
+    }
 
     if (profile == SolveProfile::Performance || profile == SolveProfile::LargeLocal) {
+        const auto upDownEdgeIndex =
+            node.upEdgePermutation * coordinates::edge_group_permutation_count + node.downEdgePermutation;
         bound = std::max(
             bound,
             static_cast<int>(pruning_tables::upDownEdgePermutation()[upDownEdgeIndex]));
+        if (bound > pruneAbove) {
+            return bound;
+        }
     }
     if (includeExperimentalCornerStateBounds) {
+        const auto cornerOrientationPermutationIndex =
+            node.cornerOrientation * coordinates::corner_permutation_count + node.cornerPermutation;
         bound = std::max(
             bound,
             static_cast<int>(pruning_tables::cornerOrientationPermutation()[cornerOrientationPermutationIndex]));
+        if (bound > pruneAbove) {
+            return bound;
+        }
     }
     if (includeExperimentalCornerUpEdgeBounds) {
+        const auto cornerPermutationUpEdgeIndex =
+            node.cornerPermutation * coordinates::edge_group_permutation_count + node.upEdgePermutation;
         bound = std::max(
             bound,
             static_cast<int>(pruning_tables::cornerPermutationUpEdgePermutation()[cornerPermutationUpEdgeIndex]));
+        if (bound > pruneAbove) {
+            return bound;
+        }
     }
     if (includeExperimentalCornerDownEdgeBounds) {
+        const auto cornerPermutationDownEdgeIndex =
+            node.cornerPermutation * coordinates::edge_group_permutation_count + node.downEdgePermutation;
         bound = std::max(
             bound,
             static_cast<int>(pruning_tables::cornerPermutationDownEdgePermutation()[cornerPermutationDownEdgeIndex]));
+        if (bound > pruneAbove) {
+            return bound;
+        }
     }
     if (profile != SolveProfile::Embedded) {
+        const auto cornerPermutationEdgeOrientationIndex =
+            node.cornerPermutation * coordinates::edge_orientation_count + node.edgeOrientation;
+        const auto cornerOrientationUpEdgeIndex =
+            node.cornerOrientation * coordinates::edge_group_permutation_count + node.upEdgePermutation;
+        const auto cornerOrientationDownEdgeIndex =
+            node.cornerOrientation * coordinates::edge_group_permutation_count + node.downEdgePermutation;
+        const auto edgeOrientationUpEdgeIndex =
+            node.edgeOrientation * coordinates::edge_group_permutation_count + node.upEdgePermutation;
+        const auto edgeOrientationDownEdgeIndex =
+            node.edgeOrientation * coordinates::edge_group_permutation_count + node.downEdgePermutation;
         bound = std::max(
             bound,
             static_cast<int>(pruning_tables::cornerPermutationEdgeOrientation()[cornerPermutationEdgeOrientationIndex]));
+        if (bound > pruneAbove) {
+            return bound;
+        }
         bound = std::max(
             bound,
             static_cast<int>(pruning_tables::cornerOrientationUpEdgePermutation()[cornerOrientationUpEdgeIndex]));
+        if (bound > pruneAbove) {
+            return bound;
+        }
         bound = std::max(
             bound,
             static_cast<int>(pruning_tables::cornerOrientationDownEdgePermutation()[cornerOrientationDownEdgeIndex]));
+        if (bound > pruneAbove) {
+            return bound;
+        }
         bound = std::max(
             bound,
             static_cast<int>(pruning_tables::edgeOrientationUpEdgePermutation()[edgeOrientationUpEdgeIndex]));
+        if (bound > pruneAbove) {
+            return bound;
+        }
         bound = std::max(
             bound,
             static_cast<int>(pruning_tables::edgeOrientationDownEdgePermutation()[edgeOrientationDownEdgeIndex]));
+        if (bound > pruneAbove) {
+            return bound;
+        }
     }
     if (includeExperimentalSymmetryBounds) {
         bound = std::max(bound, nodeExperimentalSymmetryLowerBound(node));
@@ -1143,7 +1174,8 @@ int collectCandidateMoves(
             includeExperimentalCornerStateBounds,
             includeExperimentalCornerUpEdgeBounds,
             includeExperimentalCornerDownEdgeBounds,
-            &candidateBaseLowerBound);
+            &candidateBaseLowerBound,
+            limit - depth - 1);
         const int candidateOrderBound = useStrongMoveOrdering
             ? -1
             : candidateBaseLowerBound;
