@@ -1431,6 +1431,30 @@ void testExperimentalDeepRootSplitReportsDiagnostics()
     expect(result.plan.rootOrderingProfile.find("worker_search=") != std::string::npos);
 }
 
+void testExperimentalAdaptiveDeepSplitReportsDecision()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R U F D"));
+
+    const rubik::Solver solver;
+    setenv("RUBIK_EXPERIMENTAL_ADAPTIVE_DEEP_SPLIT", "1", 1);
+    const auto result = solver.solve(cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .maxDepth = 8,
+        .threads = 4,
+        .profile = rubik::SolveProfile::Default,
+        .collectDiagnostics = true,
+    });
+    unsetenv("RUBIK_EXPERIMENTAL_ADAPTIVE_DEEP_SPLIT");
+
+    expect(result.status == rubik::SolveStatus::Optimal);
+    expect(result.isOptimal);
+    expect(result.moveCount == 4);
+    expect(result.plan.rootOrderingProfile.find("scheduler=adaptive") != std::string::npos);
+    expect(result.plan.rootOrderingProfile.find("adaptive_decision=") != std::string::npos);
+    expect(result.plan.rootOrderingProfile.find("adaptive_reason=") != std::string::npos);
+}
+
 void testSolveMemoryLimit()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -1605,6 +1629,7 @@ int main()
     testParallelOptimalReportsRootSearchProfile();
     testParallelOptimalReportsRootBoundDiagnosticsWhenCollected();
     testExperimentalDeepRootSplitReportsDiagnostics();
+    testExperimentalAdaptiveDeepSplitReportsDecision();
     testSolveMemoryLimit();
     testFastTinyScramble();
     testPhase1TinyScramble();

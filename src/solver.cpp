@@ -443,6 +443,11 @@ bool experimentalDeepRootSplitEnabled()
     return environmentFlagEnabled("RUBIK_EXPERIMENTAL_DEEP_ROOT_SPLIT");
 }
 
+bool experimentalAdaptiveDeepRootSplitEnabled()
+{
+    return environmentFlagEnabled("RUBIK_EXPERIMENTAL_ADAPTIVE_DEEP_SPLIT");
+}
+
 enum class RootOrderingMode {
     Default,
     ReverseTie,
@@ -801,6 +806,21 @@ struct RootOrderingProfile {
     std::string description;
     bool firstMoveDiffers = false;
     int strongMinCount = 0;
+};
+
+enum class OptimalSchedulerDecision {
+    Root,
+    DeepSplit,
+};
+
+struct AdaptiveDeepSplitDecision {
+    OptimalSchedulerDecision scheduler = OptimalSchedulerDecision::Root;
+    std::string reason = "default_root";
+    int initialLowerBound = 0;
+    int maxDepth = 0;
+    unsigned int threads = 0;
+    int strongMinCount = 0;
+    bool firstMoveDiffers = false;
 };
 
 struct FastSearchResult {
@@ -1341,6 +1361,54 @@ std::string formatDeepRootSplitProfile(std::size_t taskCount)
     std::ostringstream out;
     out << ";deep_root_split=enabled;split_depth=2;split_tasks=" << taskCount;
     return out.str();
+}
+
+std::string formatAdaptiveDeepSplitDecision(const AdaptiveDeepSplitDecision& decision)
+{
+    std::ostringstream out;
+    out << ";scheduler=adaptive"
+        << ";adaptive_decision="
+        << (decision.scheduler == OptimalSchedulerDecision::DeepSplit ? "deep_split" : "root")
+        << ";adaptive_reason=" << decision.reason
+        << ";adaptive_lb=" << decision.initialLowerBound
+        << ";adaptive_max_depth=" << decision.maxDepth
+        << ";adaptive_threads=" << decision.threads
+        << ";adaptive_strong_min_count=" << decision.strongMinCount
+        << ";adaptive_first_diff=" << (decision.firstMoveDiffers ? 1 : 0);
+    return out.str();
+}
+
+AdaptiveDeepSplitDecision chooseAdaptiveDeepSplit(
+    int initialLowerBound,
+    const SolveOptions& options,
+    const RootOrderingProfile& rootOrderingProfile)
+{
+    AdaptiveDeepSplitDecision decision{
+        .scheduler = OptimalSchedulerDecision::Root,
+        .reason = "conservative_root",
+        .initialLowerBound = initialLowerBound,
+        .maxDepth = options.maxDepth,
+        .threads = options.threads,
+        .strongMinCount = rootOrderingProfile.strongMinCount,
+        .firstMoveDiffers = rootOrderingProfile.firstMoveDiffers,
+    };
+
+    const int remainingDepth = options.maxDepth - initialLowerBound;
+    if (options.threads < 4) {
+        decision.reason = "threads_lt_4";
+        return decision;
+    }
+    if (remainingDepth < 5) {
+        decision.reason = "remaining_depth_lt_5";
+        return decision;
+    }
+    if (initialLowerBound >= 9 && rootOrderingProfile.strongMinCount >= 4) {
+        decision.scheduler = OptimalSchedulerDecision::DeepSplit;
+        decision.reason = "high_lb_broad_strong_min";
+        return decision;
+    }
+
+    return decision;
 }
 
 std::string formatRootBoundDiagnostics(const std::vector<RootSearchProfileEntry>& entries)
@@ -2344,6 +2412,19 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
     const bool useDeepRootSplit = effectiveOptions.mode == SolveMode::Optimal &&
         effectiveOptions.threads > 1 &&
         experimentalDeepRootSplitEnabled();
+    const bool useAdaptiveDeepRootSplit = effectiveOptions.mode == SolveMode::Optimal &&
+        effectiveOptions.threads > 1 &&
+        experimentalAdaptiveDeepRootSplitEnabled();
+    AdaptiveDeepSplitDecision adaptiveDeepSplitDecision;
+    if (useAdaptiveDeepRootSplit) {
+        adaptiveDeepSplitDecision = chooseAdaptiveDeepSplit(
+            initialLowerBound,
+            effectiveOptions,
+            rootOrderingProfile);
+    }
+    const bool useSelectedDeepRootSplit = useDeepRootSplit ||
+        (useAdaptiveDeepRootSplit &&
+         adaptiveDeepSplitDecision.scheduler == OptimalSchedulerDecision::DeepSplit);
 
     if (effectiveOptions.mode == SolveMode::Fast) {
         const auto remainingTimeout = [&]() {
@@ -2553,7 +2634,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         std::size_t splitTaskCount = 0;
         const std::uint64_t nodesBeforeDepth = nodesExpanded;
 
-        const SearchState result = useDeepRootSplit
+        const SearchState result = useSelectedDeepRootSplit
             ? parallelDeepRootDfs(
                   root,
                   limit,
@@ -2630,7 +2711,11 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
                 usePhase2MoveOrdering,
                 rootOrderingMode,
                 solution);
-            if (useDeepRootSplit) {
+            if (useAdaptiveDeepRootSplit) {
+                plan.publicPlan.rootOrderingProfile +=
+                    formatAdaptiveDeepSplitDecision(adaptiveDeepSplitDecision);
+            }
+            if (useSelectedDeepRootSplit) {
                 plan.publicPlan.rootOrderingProfile += formatDeepRootSplitProfile(splitTaskCount);
             }
             plan.publicPlan.rootOrderingProfile += formatRootSearchProfile(rootSearchProfile);
