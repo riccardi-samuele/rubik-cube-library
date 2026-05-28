@@ -2,6 +2,7 @@
 #include "rubik/detail/symmetry_coordinates.hpp"
 #include "rubik/detail/symmetry_pruning.hpp"
 #include "rubik/detail/symmetry.hpp"
+#include "rubik/detail/adaptive_scheduler.hpp"
 #include "rubik/detail/auto_plan.hpp"
 #include "rubik/detail/optimal_plan.hpp"
 #include "rubik/detail/table_profiles.hpp"
@@ -1476,6 +1477,73 @@ void testAutoOptimalReportsAdaptiveSchedulerDecision()
     expect(result.plan.rootOrderingProfile.find("adaptive_decision=") != std::string::npos);
 }
 
+void testAdaptiveSchedulerSelectsV6Lb8StableTailCase()
+{
+    const auto decision = rubik::detail::chooseAdaptiveDeepSplit({
+        .initialLowerBound = 8,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 7,
+        .firstMoveDiffers = false,
+    });
+
+    expect(decision.scheduler == rubik::detail::OptimalSchedulerDecision::DeepSplit);
+    expect(decision.reason == "lb8_stable_mid_strong_min");
+}
+
+void testAdaptiveSchedulerKeepsV6Lb8DivergentTailCaseOnRoot()
+{
+    const auto decision = rubik::detail::chooseAdaptiveDeepSplit({
+        .initialLowerBound = 8,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 11,
+        .firstMoveDiffers = true,
+    });
+
+    expect(decision.scheduler == rubik::detail::OptimalSchedulerDecision::Root);
+}
+
+void testAdaptiveSchedulerSelectsV6Lb9LowStrongMinTailCase()
+{
+    const auto decision = rubik::detail::chooseAdaptiveDeepSplit({
+        .initialLowerBound = 9,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 1,
+        .firstMoveDiffers = false,
+    });
+
+    expect(decision.scheduler == rubik::detail::OptimalSchedulerDecision::DeepSplit);
+    expect(decision.reason == "lb9_low_strong_min");
+}
+
+void testAdaptiveRootOrderingSelectsV6Lb9StableMidStrongMinCase()
+{
+    const auto decision = rubik::detail::chooseAdaptiveRootOrdering({
+        .initialLowerBound = 9,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 4,
+        .firstMoveDiffers = false,
+    });
+
+    expect(decision == rubik::detail::AdaptiveRootOrderingDecision::ReverseTie);
+}
+
+void testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault()
+{
+    const auto decision = rubik::detail::chooseAdaptiveRootOrdering({
+        .initialLowerBound = 9,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 14,
+        .firstMoveDiffers = false,
+    });
+
+    expect(decision == rubik::detail::AdaptiveRootOrderingDecision::Default);
+}
+
 void testSolveMemoryLimit()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -1652,6 +1720,11 @@ int main()
     testExperimentalDeepRootSplitReportsDiagnostics();
     testExperimentalAdaptiveDeepSplitReportsDecision();
     testAutoOptimalReportsAdaptiveSchedulerDecision();
+    testAdaptiveSchedulerSelectsV6Lb8StableTailCase();
+    testAdaptiveSchedulerKeepsV6Lb8DivergentTailCaseOnRoot();
+    testAdaptiveSchedulerSelectsV6Lb9LowStrongMinTailCase();
+    testAdaptiveRootOrderingSelectsV6Lb9StableMidStrongMinCase();
+    testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault();
     testSolveMemoryLimit();
     testFastTinyScramble();
     testPhase1TinyScramble();

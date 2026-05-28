@@ -2,6 +2,7 @@
 
 #include "rubik/coordinates.hpp"
 #include "rubik/cubie_cube.hpp"
+#include "rubik/detail/adaptive_scheduler.hpp"
 #include "rubik/detail/cache_status.hpp"
 #include "rubik/detail/optimal_plan.hpp"
 #include "rubik/detail/symmetry_coordinates.hpp"
@@ -471,6 +472,19 @@ RootOrderingMode experimentalRootOrderingMode()
     return RootOrderingMode::Default;
 }
 
+RootOrderingMode adaptiveRootOrderingMode(
+    RootOrderingMode requestedMode,
+    const detail::AdaptiveDeepSplitInputs& inputs)
+{
+    if (requestedMode != RootOrderingMode::Default) {
+        return requestedMode;
+    }
+
+    return detail::chooseAdaptiveRootOrdering(inputs) == detail::AdaptiveRootOrderingDecision::ReverseTie
+        ? RootOrderingMode::ReverseTie
+        : RootOrderingMode::Default;
+}
+
 bool experimentalCornerStateBoundsEnabled()
 {
     if (environmentFlagEnabled("RUBIK_DISABLE_CORNER_STATE_BOUNDS")) {
@@ -806,21 +820,6 @@ struct RootOrderingProfile {
     std::string description;
     bool firstMoveDiffers = false;
     int strongMinCount = 0;
-};
-
-enum class OptimalSchedulerDecision {
-    Root,
-    DeepSplit,
-};
-
-struct AdaptiveDeepSplitDecision {
-    OptimalSchedulerDecision scheduler = OptimalSchedulerDecision::Root;
-    std::string reason = "default_root";
-    int initialLowerBound = 0;
-    int maxDepth = 0;
-    unsigned int threads = 0;
-    int strongMinCount = 0;
-    bool firstMoveDiffers = false;
 };
 
 struct FastSearchResult {
@@ -1363,12 +1362,12 @@ std::string formatDeepRootSplitProfile(std::size_t taskCount)
     return out.str();
 }
 
-std::string formatAdaptiveDeepSplitDecision(const AdaptiveDeepSplitDecision& decision)
+std::string formatAdaptiveDeepSplitDecision(const detail::AdaptiveDeepSplitDecision& decision)
 {
     std::ostringstream out;
     out << ";scheduler=adaptive"
         << ";adaptive_decision="
-        << (decision.scheduler == OptimalSchedulerDecision::DeepSplit ? "deep_split" : "root")
+        << (decision.scheduler == detail::OptimalSchedulerDecision::DeepSplit ? "deep_split" : "root")
         << ";adaptive_reason=" << decision.reason
         << ";adaptive_lb=" << decision.initialLowerBound
         << ";adaptive_max_depth=" << decision.maxDepth
@@ -1376,41 +1375,6 @@ std::string formatAdaptiveDeepSplitDecision(const AdaptiveDeepSplitDecision& dec
         << ";adaptive_strong_min_count=" << decision.strongMinCount
         << ";adaptive_first_diff=" << (decision.firstMoveDiffers ? 1 : 0);
     return out.str();
-}
-
-AdaptiveDeepSplitDecision chooseAdaptiveDeepSplit(
-    int initialLowerBound,
-    const SolveOptions& options,
-    const RootOrderingProfile& rootOrderingProfile)
-{
-    AdaptiveDeepSplitDecision decision{
-        .scheduler = OptimalSchedulerDecision::Root,
-        .reason = "conservative_root",
-        .initialLowerBound = initialLowerBound,
-        .maxDepth = options.maxDepth,
-        .threads = options.threads,
-        .strongMinCount = rootOrderingProfile.strongMinCount,
-        .firstMoveDiffers = rootOrderingProfile.firstMoveDiffers,
-    };
-
-    const int remainingDepth = options.maxDepth - initialLowerBound;
-    if (options.threads < 4) {
-        decision.reason = "threads_lt_4";
-        return decision;
-    }
-    if (remainingDepth < 5) {
-        decision.reason = "remaining_depth_lt_5";
-        return decision;
-    }
-    if (initialLowerBound == 9 &&
-        rootOrderingProfile.strongMinCount >= 4 &&
-        rootOrderingProfile.strongMinCount <= 7) {
-        decision.scheduler = OptimalSchedulerDecision::DeepSplit;
-        decision.reason = "lb9_mid_strong_min";
-        return decision;
-    }
-
-    return decision;
 }
 
 std::string formatRootBoundDiagnostics(const std::vector<RootSearchProfileEntry>& entries)
@@ -2331,10 +2295,10 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
     if (usePhase2MoveOrdering) {
         estimatedTableBytes += phase2OrderingPayloadBytes();
     }
-    const RootOrderingMode rootOrderingMode = effectiveOptions.mode == SolveMode::Optimal
+    const RootOrderingMode requestedRootOrderingMode = effectiveOptions.mode == SolveMode::Optimal
         ? experimentalRootOrderingMode()
         : RootOrderingMode::Default;
-    if (rootOrderingMode == RootOrderingMode::Phase2TieBreak && !usePhase2MoveOrdering) {
+    if (requestedRootOrderingMode == RootOrderingMode::Phase2TieBreak && !usePhase2MoveOrdering) {
         estimatedTableBytes += phase2OrderingPayloadBytes();
     }
     const int goalTableDepth = effectiveOptions.mode == SolveMode::Optimal
@@ -2387,6 +2351,16 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
             includeThreePhase1Bounds);
         plan.publicPlan.rootOrderingProfile = rootOrderingProfile.description;
     }
+    detail::AdaptiveDeepSplitInputs adaptiveInputs{
+        .initialLowerBound = initialLowerBound,
+        .maxDepth = effectiveOptions.maxDepth,
+        .threads = effectiveOptions.threads,
+        .strongMinCount = rootOrderingProfile.strongMinCount,
+        .firstMoveDiffers = rootOrderingProfile.firstMoveDiffers,
+    };
+    const RootOrderingMode rootOrderingMode = effectiveOptions.mode == SolveMode::Optimal
+        ? adaptiveRootOrderingMode(requestedRootOrderingMode, adaptiveInputs)
+        : RootOrderingMode::Default;
     const bool forcedStrongMoveOrdering = strongOptimalMoveOrderingEnabled();
     const bool allowAutoStrongMoveOrdering =
         !environmentFlagEnabled("RUBIK_DISABLE_AUTO_STRONG_OPTIMAL_ORDERING");
@@ -2419,16 +2393,13 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         ((options.profile == SolveProfile::Auto ||
           effectiveOptions.profile == SolveProfile::LargeLocal) ||
          experimentalAdaptiveDeepRootSplitEnabled());
-    AdaptiveDeepSplitDecision adaptiveDeepSplitDecision;
+    detail::AdaptiveDeepSplitDecision adaptiveDeepSplitDecision;
     if (useAdaptiveDeepRootSplit) {
-        adaptiveDeepSplitDecision = chooseAdaptiveDeepSplit(
-            initialLowerBound,
-            effectiveOptions,
-            rootOrderingProfile);
+        adaptiveDeepSplitDecision = detail::chooseAdaptiveDeepSplit(adaptiveInputs);
     }
     const bool useSelectedDeepRootSplit = useDeepRootSplit ||
         (useAdaptiveDeepRootSplit &&
-         adaptiveDeepSplitDecision.scheduler == OptimalSchedulerDecision::DeepSplit);
+         adaptiveDeepSplitDecision.scheduler == detail::OptimalSchedulerDecision::DeepSplit);
 
     if (effectiveOptions.mode == SolveMode::Fast) {
         const auto remainingTimeout = [&]() {
