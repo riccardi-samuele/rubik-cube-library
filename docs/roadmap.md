@@ -67,8 +67,17 @@ Primary goals:
 2. Discover a broader deterministic set of difficult depth-15 optimal cases.
 3. Promote slow cases into a replayable V4 tail corpus.
 4. Compare candidate optimizations against the baseline with A/B tooling.
-5. Improve CPU root scheduling, root ordering, or Auto policy only when
+5. Promote adaptive CPU root scheduling for local Auto optimal solves when
    benchmark data supports the change.
+
+Accepted V4 optimization:
+
+- `SolveProfile::Auto` optimal solves with multiple threads use the adaptive
+  deep-split scheduler policy measured in
+  `docs/v4-adaptive-deep-split-results-2026-05-28.md`.
+- The policy chooses the existing root scheduler unless cheap pre-search signals
+  match the measured tail-latency case.
+- `SolveStatus::Optimal` remains a certified minimum-move HTM result.
 
 Out of scope for `4.0`:
 

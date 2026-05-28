@@ -2416,7 +2416,8 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         experimentalDeepRootSplitEnabled();
     const bool useAdaptiveDeepRootSplit = effectiveOptions.mode == SolveMode::Optimal &&
         effectiveOptions.threads > 1 &&
-        experimentalAdaptiveDeepRootSplitEnabled();
+        (effectiveOptions.profile == SolveProfile::Auto ||
+         experimentalAdaptiveDeepRootSplitEnabled());
     AdaptiveDeepSplitDecision adaptiveDeepSplitDecision;
     if (useAdaptiveDeepRootSplit) {
         adaptiveDeepSplitDecision = chooseAdaptiveDeepSplit(
