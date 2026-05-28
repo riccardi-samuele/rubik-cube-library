@@ -8,7 +8,8 @@ V5 is a public usability release for Rubik Cube Library.
   `CachePolicy::Auto`, and automatic thread planning.
 - Public cache setup example using `prepareCache()`.
 - Clearer experimental fast-mode example.
-- Release gates that reject stale public examples and stale public docs.
+- Release gates that reject stale public examples and stale current-version
+  references.
 
 ## Compatibility
 

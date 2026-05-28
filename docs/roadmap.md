@@ -70,7 +70,8 @@ Primary goals:
 3. Move cache setup examples to the public `prepareCache()` API.
 4. Keep experimental fast solving clearly separated from certified optimal
    solving.
-5. Add release gates that catch stale public docs and stale public examples.
+5. Add release gates that catch stale public examples and stale current-version
+   references.
 
 Out of scope for `5.0.0`:
 
