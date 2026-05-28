@@ -1,10 +1,10 @@
 # API Notes
 
 The API is intentionally small while the solver internals are still evolving.
-The current `4.0.0` optimal-latency API contract is documented in
-[API Stability - 4.0.0](api-stability-4.0.0.md). Historical compatibility
-contracts remain available for [3.0.0](api-stability-3.0.0.md) and
-[2.0.0](api-stability-2.0.0.md).
+The current `5.0.0` public-usability API contract is documented in
+[API Stability - 5.0.0](api-stability-5.0.0.md). Historical compatibility
+contracts remain available for [4.0.0](api-stability-4.0.0.md),
+[3.0.0](api-stability-3.0.0.md), and [2.0.0](api-stability-2.0.0.md).
 
 ## Version Metadata
 
@@ -14,7 +14,7 @@ compile time:
 ```cpp
 #include <rubik/version.hpp>
 
-static_assert(rubik::version_major == 4);
+static_assert(rubik::version_major == 5);
 std::cout << rubik::version_string << "\n";
 ```
 
@@ -244,8 +244,8 @@ main `Solver` API.
 
 ## Stability Policy
 
-The current `4.0.0` freeze is documented in
-[API Stability - 4.0.0](api-stability-4.0.0.md).
+The current `5.0.0` freeze is documented in
+[API Stability - 5.0.0](api-stability-5.0.0.md).
 
 Currently intended stable surface:
 

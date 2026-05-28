@@ -1,6 +1,6 @@
 # Rubik Cube Library
 
-C++20 Rubik's Cube solver library, currently at `4.0.0`.
+C++20 Rubik's Cube solver library, currently at `5.0.0`.
 
 The library is designed as an optimal 3x3x3 solver for desktop and embedded
 targets. The public API is centered on certified optimal solving first, with
@@ -126,7 +126,7 @@ scripts/check_release_archive.sh
 
 The archive check reads the default archive version from the CMake project
 version and requires the matching versioned release documents, for example
-`docs/release-4.0.0.md` and `docs/github-release-v4.0.0.md`. It also writes a
+`docs/release-5.0.0.md` and `docs/github-release-v5.0.0.md`. It also writes a
 matching `.sha256` checksum file next to the archive. Pass `--version` only when
 deliberately validating a different archive label.
 
@@ -188,7 +188,7 @@ Read the library version from C++:
 ```cpp
 #include <rubik/version.hpp>
 
-static_assert(rubik::version_major == 4);
+static_assert(rubik::version_major == 5);
 std::cout << rubik::version_string << "\n";
 ```
 
@@ -314,14 +314,16 @@ Additional technical notes live in `docs/`:
 
 Current versioned release documents:
 
-- [API Stability - 4.0.0](docs/api-stability-4.0.0.md)
-- [Release Checklist - 4.0.0](docs/release-4.0.0.md)
+- [API Stability - 5.0.0](docs/api-stability-5.0.0.md)
+- [Release Checklist - 5.0.0](docs/release-5.0.0.md)
 
 Historical versioned release documents:
 
+- [API Stability - 4.0.0](docs/api-stability-4.0.0.md)
 - [API Stability - 3.0.0](docs/api-stability-3.0.0.md)
 - [API Stability - 2.0.0](docs/api-stability-2.0.0.md)
 - [API Stability - 1.0.0](docs/api-stability-1.0.0.md)
+- [Release Checklist - 4.0.0](docs/release-4.0.0.md)
 - [Release Checklist - 3.0.0](docs/release-3.0.0.md)
 - [Release Checklist - 2.0.0](docs/release-2.0.0.md)
 - [Release Checklist - 1.0.0](docs/release-1.0.0.md)

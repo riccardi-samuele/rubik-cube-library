@@ -11,8 +11,10 @@ CMake packaging, and release validation.
 `2.0.0` added stronger local optimal profiles, benchmark gates, and release
 validation. `3.0.0` made the adaptive Auto optimal path the recommended local
 profile and added cache setup workflows for applications that need predictable
-startup behavior. `4.0.0` promotes adaptive CPU root scheduling for measured
-local optimal tail-latency reduction.
+startup behavior. `4.0.0` promoted adaptive CPU root scheduling for measured
+local optimal tail-latency reduction. `5.0.0` adds public-usability
+documentation, examples, and release gates that keep public integration
+guidance current.
 
 ## Current Status
 
@@ -39,8 +41,8 @@ Implemented:
 - example programs;
 - install/export packaging for downstream CMake projects;
 - optimized CMake presets for release, native, LTO, and sanitizer builds;
-- public API stability documentation for `1.0.0`, `2.0.0`, `3.0.0`, and
-  `4.0.0`;
+- public API stability documentation for `1.0.0`, `2.0.0`, `3.0.0`, `4.0.0`,
+  and `5.0.0`;
 - unit tests and release validation scripts.
 
 Experimental or hardware-dependent:
@@ -54,9 +56,9 @@ Experimental or hardware-dependent:
 Hardware-specific performance claims stay unpublished until they are measured
 on the real target devices.
 
-## Road To 5.0
+## Current 5.0 Release
 
-The `5.0.0` target is a public usability release. It should make the library
+The `5.0.0` release is a public usability release. It should make the library
 easier to integrate correctly without changing the certified optimality
 contract.
 
@@ -79,7 +81,7 @@ Out of scope for `5.0.0`:
 - camera recognition;
 - hardware control.
 
-## Current 4.0 Release
+## Historical 4.0 Release
 
 The `4.0.0` release is a CPU-only optimal tail-latency release. It reduces
 measured local `SolveMode::Optimal` tail cases without weakening the certified
