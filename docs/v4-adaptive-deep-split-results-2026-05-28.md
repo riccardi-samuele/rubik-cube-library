@@ -64,6 +64,7 @@ Rationale:
 - Unconditional deep split is still rejected because it regressed average latency
   by `15.10%` and caused severe per-case regressions.
 
-The promoted behavior should apply only to local optimal `SolveProfile::Auto`
-with multiple solver threads. Smaller profiles and explicit non-auto profiles
-should keep the existing scheduler unless an experimental flag is set.
+The promoted behavior should apply to local optimal `SolveProfile::Auto` solves
+that select the large local table profile, and to explicit local
+`SolveProfile::LargeLocal` optimal solves with multiple solver threads. Smaller
+profiles should keep the existing scheduler unless an experimental flag is set.

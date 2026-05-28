@@ -1455,6 +1455,27 @@ void testExperimentalAdaptiveDeepSplitReportsDecision()
     expect(result.plan.rootOrderingProfile.find("adaptive_reason=") != std::string::npos);
 }
 
+void testAutoOptimalReportsAdaptiveSchedulerDecision()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R U F D"));
+
+    const rubik::Solver solver;
+    const auto result = solver.solve(cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .maxDepth = 8,
+        .threads = 4,
+        .profile = rubik::SolveProfile::Auto,
+        .collectDiagnostics = true,
+    });
+
+    expect(result.status == rubik::SolveStatus::Optimal);
+    expect(result.isOptimal);
+    expect(result.moveCount == 4);
+    expect(result.plan.rootOrderingProfile.find("scheduler=adaptive") != std::string::npos);
+    expect(result.plan.rootOrderingProfile.find("adaptive_decision=") != std::string::npos);
+}
+
 void testSolveMemoryLimit()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -1630,6 +1651,7 @@ int main()
     testParallelOptimalReportsRootBoundDiagnosticsWhenCollected();
     testExperimentalDeepRootSplitReportsDiagnostics();
     testExperimentalAdaptiveDeepSplitReportsDecision();
+    testAutoOptimalReportsAdaptiveSchedulerDecision();
     testSolveMemoryLimit();
     testFastTinyScramble();
     testPhase1TinyScramble();

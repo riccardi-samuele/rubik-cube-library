@@ -72,8 +72,9 @@ Primary goals:
 
 Accepted V4 optimization:
 
-- `SolveProfile::Auto` optimal solves with multiple threads use the adaptive
-  deep-split scheduler policy measured in
+- `SolveProfile::Auto` optimal solves that select the local large-table profile,
+  and explicit local `SolveProfile::LargeLocal` optimal solves with multiple
+  threads, use the adaptive deep-split scheduler policy measured in
   `docs/v4-adaptive-deep-split-results-2026-05-28.md`.
 - The policy chooses the existing root scheduler unless cheap pre-search signals
   match the measured tail-latency case.
