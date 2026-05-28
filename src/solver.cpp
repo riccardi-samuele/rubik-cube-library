@@ -350,6 +350,19 @@ Phase1Coordinates movedPhase1Coordinates(const Phase1Coordinates& coordinates, M
     };
 }
 
+std::array<Phase1Coordinates, 2> movedExtraPhase1Directions(const SearchNode& node, Move move)
+{
+    const int moveIndex = static_cast<int>(move);
+    std::array<Phase1Coordinates, 2> extraPhase1Directions{};
+    const auto& directionMoves = extraPhase1DirectionMoveTable();
+    for (std::size_t direction = 0; direction < extraPhase1Directions.size(); ++direction) {
+        extraPhase1Directions[direction] = movedPhase1Coordinates(
+            node.extraPhase1Directions[direction],
+            directionMoves[direction][moveIndex]);
+    }
+    return extraPhase1Directions;
+}
+
 SearchNode makeSearchNode(const CubieCube& cube, bool includePhase1Directions)
 {
     return {
@@ -369,15 +382,6 @@ SearchNode makeSearchNode(const CubieCube& cube, bool includePhase1Directions)
 SearchNode moved(const SearchNode& node, Move move, bool includePhase1Directions)
 {
     const int moveIndex = static_cast<int>(move);
-    std::array<Phase1Coordinates, 2> extraPhase1Directions{};
-    if (includePhase1Directions) {
-        const auto& directionMoves = extraPhase1DirectionMoveTable();
-        for (std::size_t direction = 0; direction < extraPhase1Directions.size(); ++direction) {
-            extraPhase1Directions[direction] = movedPhase1Coordinates(
-                node.extraPhase1Directions[direction],
-                directionMoves[direction][moveIndex]);
-        }
-    }
 
     return {
         .cube = node.cube.moved(move),
@@ -387,7 +391,9 @@ SearchNode moved(const SearchNode& node, Move move, bool includePhase1Directions
         .cornerPermutation = move_tables::cornerPermutation()[node.cornerPermutation][moveIndex],
         .upEdgePermutation = move_tables::upEdgePermutation()[node.upEdgePermutation][moveIndex],
         .downEdgePermutation = move_tables::downEdgePermutation()[node.downEdgePermutation][moveIndex],
-        .extraPhase1Directions = extraPhase1Directions,
+        .extraPhase1Directions = includePhase1Directions
+            ? movedExtraPhase1Directions(node, move)
+            : std::array<Phase1Coordinates, 2>{},
     };
 }
 
@@ -1184,7 +1190,7 @@ int collectCandidateMoves(
             continue;
         }
 
-        SearchNode next = moved(node, move, includeThreePhase1Bounds);
+        SearchNode next = moved(node, move, false);
         int candidateBaseLowerBound = 0;
         const int candidateCheapLowerBound = nodeLowerBoundWithoutThreePhase1(
             next,
@@ -1207,6 +1213,10 @@ int collectCandidateMoves(
                 ++diagnostics->cheapCandidatePrunes;
             }
             continue;
+        }
+
+        if (includeThreePhase1Bounds) {
+            next.extraPhase1Directions = movedExtraPhase1Directions(node, move);
         }
 
         int candidateLowerBound = candidateCheapLowerBound;
