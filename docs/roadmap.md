@@ -6,9 +6,7 @@ applications that need 3x3x3 solving.
 
 The `1.0.0` release established the stable public base: sticker input,
 physical validation, HTM moves, certified optimal solving, benchmark tooling,
-CMake packaging, and release validation. The next major release is focused on
-making the optimal path faster, easier to integrate, and easier to validate
-across local hardware profiles.
+CMake packaging, and release validation.
 
 `2.0.0` added stronger local optimal profiles, benchmark gates, and release
 validation. `3.0.0` made the adaptive Auto optimal path the recommended local
@@ -56,13 +54,13 @@ Experimental or hardware-dependent:
 Hardware-specific performance claims stay unpublished until they are measured
 on the real target devices.
 
-## Road To 4.0
+## Current 4.0 Release
 
-The `4.0` target is a CPU-only optimal tail-latency release. It should reduce
-the slowest local `SolveMode::Optimal` cases without weakening the certified
+The `4.0.0` release is a CPU-only optimal tail-latency release. It reduces
+measured local `SolveMode::Optimal` tail cases without weakening the certified
 minimum-move contract.
 
-Primary goals:
+Completed goals:
 
 1. Record a clean V3 baseline before solver changes.
 2. Discover a broader deterministic set of difficult depth-15 optimal cases.
@@ -90,7 +88,25 @@ Out of scope for `4.0`:
 - hardware control;
 - unmeasured hardware performance claims.
 
-## Road To 3.0
+## Future Direction
+
+Future work should continue the same release discipline: improve local
+certified optimal latency, keep adaptive policy choices visible through public
+diagnostics, and avoid hardware-specific claims until the target hardware has
+been measured directly.
+
+Candidate focus areas:
+
+1. Lower worst-case local optimal latency with CPU-only search and pruning
+   changes that preserve admissibility.
+2. Improve benchmark tooling so promoted defaults can still be compared against
+   previous policies without changing source code.
+3. Keep embedded-oriented memory and cache behavior explicit until Raspberry Pi,
+   Jetson Nano, and Jetson Orin measurements are available.
+4. Continue separating certified optimal behavior from experimental fast-mode
+   behavior in API and documentation.
+
+## Historical Road To 3.0
 
 The `3.0` target is an adaptive optimal-engine release. It should make the
 recommended optimal path easier to use without weakening the certified

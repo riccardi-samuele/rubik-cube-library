@@ -1,12 +1,10 @@
 # API Notes
 
 The API is intentionally small while the solver internals are still evolving.
-The `2.0.0` compatibility contract is documented in
-[API Stability - 2.0.0](api-stability-2.0.0.md).
-The V3 adaptive API contract is documented in
-[API Stability - 3.0.0](api-stability-3.0.0.md).
-The V4 optimal-latency API contract is documented in
-[API Stability - 4.0.0](api-stability-4.0.0.md).
+The current `4.0.0` optimal-latency API contract is documented in
+[API Stability - 4.0.0](api-stability-4.0.0.md). Historical compatibility
+contracts remain available for [3.0.0](api-stability-3.0.0.md) and
+[2.0.0](api-stability-2.0.0.md).
 
 ## Version Metadata
 
@@ -246,8 +244,8 @@ main `Solver` API.
 
 ## Stability Policy
 
-The detailed `2.0.0` freeze is documented in
-[API Stability - 2.0.0](api-stability-2.0.0.md).
+The current `4.0.0` freeze is documented in
+[API Stability - 4.0.0](api-stability-4.0.0.md).
 
 Currently intended stable surface:
 

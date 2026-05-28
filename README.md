@@ -1,6 +1,6 @@
 # Rubik Cube Library
 
-C++20 Rubik's Cube solver library, currently at `3.0.0`.
+C++20 Rubik's Cube solver library, currently at `4.0.0`.
 
 The library is designed as an optimal 3x3x3 solver for desktop and embedded
 targets. The public API is centered on certified optimal solving first, with
@@ -126,7 +126,7 @@ scripts/check_release_archive.sh
 
 The archive check reads the default archive version from the CMake project
 version and requires the matching versioned release documents, for example
-`docs/release-1.0.0.md` and `docs/github-release-v1.0.0.md`. It also writes a
+`docs/release-4.0.0.md` and `docs/github-release-v4.0.0.md`. It also writes a
 matching `.sha256` checksum file next to the archive. Pass `--version` only when
 deliberately validating a different archive label.
 
@@ -188,7 +188,7 @@ Read the library version from C++:
 ```cpp
 #include <rubik/version.hpp>
 
-static_assert(rubik::version_major == 2);
+static_assert(rubik::version_major == 4);
 std::cout << rubik::version_string << "\n";
 ```
 
@@ -253,8 +253,8 @@ Release-candidate benchmark gates:
 scripts/release_check.sh --profile full --with-benchmarks
 ```
 
-V3 Auto release-candidate gates can be run separately from the broader desktop
-benchmark set:
+Legacy V3 Auto gates remain available for historical adaptive-profile
+regression checks:
 
 ```sh
 scripts/release_check.sh --profile quick --with-v3-auto
@@ -293,15 +293,9 @@ Additional technical notes live in `docs/`:
 
 - [Architecture](docs/architecture.md)
 - [API Notes](docs/api.md)
-- [API Stability - 3.0.0](docs/api-stability-3.0.0.md)
-- [API Stability - 2.0.0](docs/api-stability-2.0.0.md)
-- [API Stability - 1.0.0](docs/api-stability-1.0.0.md)
 - [Benchmarks](docs/benchmarks.md)
 - [Runtime Behavior](docs/runtime.md)
 - [Versioning And API Stability](docs/versioning.md)
-- [Release Checklist - 3.0.0 Draft](docs/release-3.0.0.md)
-- [Release Checklist - 2.0.0](docs/release-2.0.0.md)
-- [Release Checklist - 1.0.0](docs/release-1.0.0.md)
 - [Embedded Fast Tail-Case Diagnostics - 2026-05-25](docs/embedded-fast-tail-cases-2026-05-25.md)
 - [Embedded Multiseed Benchmark - 2026-05-25](docs/benchmark-embedded-multiseed-2026-05-25.md)
 - [Benchmark Gate Calibration - 2026-05-25](docs/benchmark-gate-calibration-2026-05-25.md)
@@ -311,6 +305,20 @@ Additional technical notes live in `docs/`:
 - [Local Optimal Profiles](docs/local-optimal-profiles.md)
 - [Random Fast Benchmark - 2026-05-25](docs/benchmark-random-fast-2026-05-25.md)
 - [Roadmap](docs/roadmap.md)
+
+Current versioned release documents:
+
+- [API Stability - 4.0.0](docs/api-stability-4.0.0.md)
+- [Release Checklist - 4.0.0](docs/release-4.0.0.md)
+
+Historical versioned release documents:
+
+- [API Stability - 3.0.0](docs/api-stability-3.0.0.md)
+- [API Stability - 2.0.0](docs/api-stability-2.0.0.md)
+- [API Stability - 1.0.0](docs/api-stability-1.0.0.md)
+- [Release Checklist - 3.0.0](docs/release-3.0.0.md)
+- [Release Checklist - 2.0.0](docs/release-2.0.0.md)
+- [Release Checklist - 1.0.0](docs/release-1.0.0.md)
 
 Release notes are tracked in [CHANGELOG.md](CHANGELOG.md).
 

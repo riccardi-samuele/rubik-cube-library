@@ -1052,6 +1052,10 @@ add_test(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/public_docs_no_unverified_hardware_estimates.sh
 )
 add_test(
+    NAME public_docs_current_version
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/public_docs_current_version.sh
+)
+add_test(
     NAME check_install_consumer_rejects_missing_values
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_install_consumer_rejects_missing_values.sh
 )

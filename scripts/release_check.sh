@@ -20,7 +20,7 @@ Profiles:
 Options:
   --profile NAME          quick|standard|full, default: standard
   --with-benchmarks       run profile-realistic, Auto, embedded-multiseed, and optimal-stress gates
-  --with-v3-auto          run Auto profile, Auto tail, and Auto hardening gates
+  --with-v3-auto          run legacy V3 Auto regression gates
   --with-large-local      also run large-local, Auto tail, and Auto hardening optimal benchmark gates
   -h, --help              show this help
 
@@ -28,8 +28,9 @@ Large-local gates use the public high-memory optimal profile and can take a
 long time on a cold cache. Auto hardening extends the adaptive optimal tail
 coverage and can add several minutes to the run.
 
-Use --with-v3-auto before a V3 release candidate when the adaptive Auto
-optimal policy changed but the full large-local suite is not needed.
+Use --with-v3-auto when checking historical adaptive Auto regression gates.
+For current local optimal release candidates, prefer --with-large-local when
+the release scope includes large-local or adaptive Auto optimal changes.
 USAGE
 }
 

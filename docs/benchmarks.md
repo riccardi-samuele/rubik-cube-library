@@ -100,6 +100,8 @@ than 24 moves.
 
 Current profile comparison:
 
+- [V4 Adaptive Deep Split Results - 2026-05-28](v4-adaptive-deep-split-results-2026-05-28.md)
+- [V4 Deep Root Splitting Results - 2026-05-28](v4-deep-root-splitting-results-2026-05-28.md)
 - [V4 Local Baseline - 2026-05-27](v4-local-baseline-2026-05-27.md)
 - [Auto Optimal Hardening - 2026-05-27](optimal-auto-hardening-2026-05-27.md)
 - [Auto Optimal Discovery - 2026-05-27](optimal-auto-discovery-2026-05-27.md)
@@ -345,7 +347,7 @@ cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-tail-
 cmake --build out/release-native-lto --target rubik-benchmark-v3-auto-gates
 ```
 
-`rubik-benchmark-v3-auto-gates` runs the current V3 Auto release gate surface:
+`rubik-benchmark-v3-auto-gates` is a legacy V3 adaptive Auto regression gate:
 shallow Auto, fixed depth-15 Auto tail replay, and Auto hardening gates.
 
 `rubik-benchmark-optimal-auto-tail-ordering-ab` compares the default ordering
@@ -353,7 +355,7 @@ against `RUBIK_EXPERIMENTAL_STRONG_OPTIMAL_ORDERING=1` on the current Auto tail
 set. It writes `summary.csv` and `comparison.csv`, including move count,
 initial lower bound, elapsed/node deltas, and the winner per seed.
 
-For V3 performance hardening, use the longer Auto diagnostic suite:
+For adaptive Auto performance hardening, use the longer Auto diagnostic suite:
 
 ```sh
 cmake --build out/release-native-lto --target rubik-benchmark-optimal-auto-hardening
@@ -365,8 +367,8 @@ This suite runs `SolveProfile::Auto` across fixed depth-14 and depth-15 random
 seeds with warm cache and a 2 GiB memory budget. It is intended for local tail
 latency analysis before changing optimal search policy.
 
-For a release-candidate V3 Auto gate without the broader desktop benchmark
-suite, run:
+For a legacy V3 adaptive Auto regression gate without the broader desktop
+benchmark suite, run:
 
 ```sh
 scripts/release_check.sh --profile quick --with-v3-auto
