@@ -1402,9 +1402,11 @@ AdaptiveDeepSplitDecision chooseAdaptiveDeepSplit(
         decision.reason = "remaining_depth_lt_5";
         return decision;
     }
-    if (initialLowerBound >= 9 && rootOrderingProfile.strongMinCount >= 4) {
+    if (initialLowerBound == 9 &&
+        rootOrderingProfile.strongMinCount >= 4 &&
+        rootOrderingProfile.strongMinCount <= 7) {
         decision.scheduler = OptimalSchedulerDecision::DeepSplit;
-        decision.reason = "high_lb_broad_strong_min";
+        decision.reason = "lb9_mid_strong_min";
         return decision;
     }
 
