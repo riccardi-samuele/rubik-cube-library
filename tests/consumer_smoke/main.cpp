@@ -9,7 +9,7 @@
 
 int main()
 {
-    static_assert(rubik::version_major == 3);
+    static_assert(rubik::version_major == 4);
     static_assert(rubik::version_minor == 0);
     static_assert(rubik::version_patch == 0);
 

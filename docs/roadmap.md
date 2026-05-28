@@ -13,8 +13,8 @@ across local hardware profiles.
 `2.0.0` added stronger local optimal profiles, benchmark gates, and release
 validation. `3.0.0` made the adaptive Auto optimal path the recommended local
 profile and added cache setup workflows for applications that need predictable
-startup behavior. The current V4 workstream focuses on CPU-only optimal
-tail-latency reduction.
+startup behavior. `4.0.0` promotes adaptive CPU root scheduling for measured
+local optimal tail-latency reduction.
 
 ## Current Status
 
@@ -41,7 +41,8 @@ Implemented:
 - example programs;
 - install/export packaging for downstream CMake projects;
 - optimized CMake presets for release, native, LTO, and sanitizer builds;
-- public API stability documentation for `1.0.0`, `2.0.0`, and `3.0.0`;
+- public API stability documentation for `1.0.0`, `2.0.0`, `3.0.0`, and
+  `4.0.0`;
 - unit tests and release validation scripts.
 
 Experimental or hardware-dependent:

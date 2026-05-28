@@ -5,6 +5,8 @@ The `2.0.0` compatibility contract is documented in
 [API Stability - 2.0.0](api-stability-2.0.0.md).
 The V3 adaptive API contract is documented in
 [API Stability - 3.0.0](api-stability-3.0.0.md).
+The V4 optimal-latency API contract is documented in
+[API Stability - 4.0.0](api-stability-4.0.0.md).
 
 ## Version Metadata
 
@@ -14,7 +16,7 @@ compile time:
 ```cpp
 #include <rubik/version.hpp>
 
-static_assert(rubik::version_major == 2);
+static_assert(rubik::version_major == 4);
 std::cout << rubik::version_string << "\n";
 ```
 

@@ -6,6 +6,35 @@ This project uses semantic versioning for public releases. The main
 `rubik::Solver` API is treated as stable, while explicitly experimental APIs
 can still change between minor releases.
 
+## 4.0.0 - 2026-05-28
+
+Fourth stable release scope:
+
+- Promote adaptive deep-split scheduling for local large-table optimal solves
+  after V4 corpus validation.
+- Keep the certified optimality contract: `SolveStatus::Optimal` means the
+  returned HTM solution is proven minimal for the requested options.
+- Add V4 tail discovery, corpus replay, and three-way comparison tooling for
+  baseline, unconditional deep split, and adaptive deep split.
+- Extend V4 comparison output with max elapsed fields.
+- Add adaptive scheduler diagnostics to `SolvePlan::rootOrderingProfile`.
+- Document V4 local benchmark results from the development desktop.
+- Keep Raspberry Pi, Jetson, Orin, GPU, cloud, and other external hardware
+  performance claims out of public release notes until direct measurements are
+  available.
+
+Known 4.0 limits:
+
+- QTM is not implemented.
+- `SolveMode::Fast` does not guarantee optimality.
+- Unconditional deep splitting remains rejected because it regressed average
+  latency in the measured corpus.
+- Raspberry Pi, Jetson, Orin, GPU, and cloud latency claims require direct
+  measurements before publication.
+- Large local optimal acceleration has a high memory footprint and is not the
+  embedded default policy.
+- Experimental environment-variable tuning flags may change in future releases.
+
 ## 3.0.0 - 2026-05-27
 
 Third stable release scope:
