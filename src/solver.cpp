@@ -538,27 +538,46 @@ std::size_t phase2OrderingPayloadBytes()
     return detail::tableProfilePayloadBytes(detail::phase2TableProfile());
 }
 
-int phase1CoordinateLowerBound(const Phase1Coordinates& coordinates, const Phase1BoundTables& tables)
+int phase1CoordinateLowerBound(
+    const Phase1Coordinates& coordinates,
+    const Phase1BoundTables& tables,
+    int pruneAbove = std::numeric_limits<int>::max())
 {
+    int bound = tables.cornerOrientation[coordinates.cornerOrientation];
+    if (bound > pruneAbove) {
+        return bound;
+    }
+    bound = std::max(bound, static_cast<int>(tables.edgeOrientation[coordinates.edgeOrientation]));
+    if (bound > pruneAbove) {
+        return bound;
+    }
+    bound = std::max(bound, static_cast<int>(tables.sliceEdges[coordinates.sliceEdges]));
+    if (bound > pruneAbove) {
+        return bound;
+    }
+
     const auto cornerOrientationSliceIndex =
         coordinates.cornerOrientation * coordinates::slice_edge_count + coordinates.sliceEdges;
+    bound = std::max(bound, static_cast<int>(tables.cornerOrientationSlice[cornerOrientationSliceIndex]));
+    if (bound > pruneAbove) {
+        return bound;
+    }
+
     const auto edgeOrientationSliceIndex =
         coordinates.edgeOrientation * coordinates::slice_edge_count + coordinates.sliceEdges;
-
-    int bound = tables.cornerOrientation[coordinates.cornerOrientation];
-    bound = std::max(bound, static_cast<int>(tables.edgeOrientation[coordinates.edgeOrientation]));
-    bound = std::max(bound, static_cast<int>(tables.sliceEdges[coordinates.sliceEdges]));
-    bound = std::max(bound, static_cast<int>(tables.cornerOrientationSlice[cornerOrientationSliceIndex]));
     bound = std::max(bound, static_cast<int>(tables.edgeOrientationSlice[edgeOrientationSliceIndex]));
     return bound;
 }
 
-int nodeThreePhase1LowerBound(const SearchNode& node)
+int nodeThreePhase1LowerBound(const SearchNode& node, int pruneAbove = std::numeric_limits<int>::max())
 {
     const Phase1BoundTables& tables = phase1BoundTables();
-    return std::max(
-        phase1CoordinateLowerBound(node.extraPhase1Directions[0], tables),
-        phase1CoordinateLowerBound(node.extraPhase1Directions[1], tables));
+    int bound = phase1CoordinateLowerBound(node.extraPhase1Directions[0], tables, pruneAbove);
+    if (bound > pruneAbove) {
+        return bound;
+    }
+    bound = std::max(bound, phase1CoordinateLowerBound(node.extraPhase1Directions[1], tables, pruneAbove));
+    return bound;
 }
 
 int nodeExperimentalSymmetryLowerBound(const SearchNode& node)
@@ -1195,7 +1214,9 @@ int collectCandidateMoves(
             if (diagnostics != nullptr) {
                 ++diagnostics->threePhaseCandidateChecks;
             }
-            candidateLowerBound = std::max(candidateLowerBound, nodeThreePhase1LowerBound(next));
+            candidateLowerBound = std::max(
+                candidateLowerBound,
+                nodeThreePhase1LowerBound(next, limit - depth - 1));
         }
         if (depth + 1 + candidateLowerBound > limit) {
             if (diagnostics != nullptr) {
@@ -1640,7 +1661,7 @@ SearchState dfs(
             if (diagnostics != nullptr) {
                 ++diagnostics->threePhaseNodeChecks;
             }
-            if (depth + std::max(cheapLowerBound, nodeThreePhase1LowerBound(node)) > limit) {
+            if (depth + std::max(cheapLowerBound, nodeThreePhase1LowerBound(node, limit - depth)) > limit) {
                 if (diagnostics != nullptr) {
                     ++diagnostics->threePhaseNodePrunes;
                 }
