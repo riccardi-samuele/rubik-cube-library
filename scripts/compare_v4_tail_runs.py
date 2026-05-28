@@ -118,6 +118,9 @@ def compare(baseline_path, candidate_path):
             "candidate_elapsed_ms": candidate_elapsed,
             "elapsed_delta_ms": elapsed_delta,
             "elapsed_delta_percent": percent(elapsed_delta, baseline_elapsed),
+            "baseline_max_elapsed_ms": baseline_elapsed,
+            "candidate_max_elapsed_ms": candidate_elapsed,
+            "max_elapsed_delta_ms": elapsed_delta,
             "baseline_nodes": baseline_nodes,
             "candidate_nodes": candidate_nodes,
             "nodes_delta": nodes_delta,
@@ -131,6 +134,8 @@ def compare(baseline_path, candidate_path):
     baseline_elapsed_avg = sum(row["baseline_elapsed_ms"] for row in rows) // len(rows)
     candidate_elapsed_avg = sum(row["candidate_elapsed_ms"] for row in rows) // len(rows)
     elapsed_delta_avg = candidate_elapsed_avg - baseline_elapsed_avg
+    baseline_max_elapsed = max(row["baseline_elapsed_ms"] for row in rows)
+    candidate_max_elapsed = max(row["candidate_elapsed_ms"] for row in rows)
     baseline_nodes_total = sum(row["baseline_nodes"] for row in rows)
     candidate_nodes_total = sum(row["candidate_nodes"] for row in rows)
     rows.append({
@@ -139,6 +144,9 @@ def compare(baseline_path, candidate_path):
         "candidate_elapsed_ms": candidate_elapsed_avg,
         "elapsed_delta_ms": elapsed_delta_avg,
         "elapsed_delta_percent": percent(elapsed_delta_avg, baseline_elapsed_avg),
+        "baseline_max_elapsed_ms": baseline_max_elapsed,
+        "candidate_max_elapsed_ms": candidate_max_elapsed,
+        "max_elapsed_delta_ms": candidate_max_elapsed - baseline_max_elapsed,
         "baseline_nodes": baseline_nodes_total,
         "candidate_nodes": candidate_nodes_total,
         "nodes_delta": candidate_nodes_total - baseline_nodes_total,
@@ -154,6 +162,9 @@ def emit(rows, output):
         "candidate_elapsed_ms",
         "elapsed_delta_ms",
         "elapsed_delta_percent",
+        "baseline_max_elapsed_ms",
+        "candidate_max_elapsed_ms",
+        "max_elapsed_delta_ms",
         "baseline_nodes",
         "candidate_nodes",
         "nodes_delta",

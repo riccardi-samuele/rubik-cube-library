@@ -1016,7 +1016,7 @@ add_test(
         --candidate ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v4_candidate.csv
 )
 set_tests_properties(compare_v4_tail_runs_fixture PROPERTIES
-    PASS_REGULAR_EXPRESSION "__summary__,8411,7300,-1111,-13.21,59590724,52000000,-7590724,candidate"
+    PASS_REGULAR_EXPRESSION "__summary__,8411,7300,-1111,-13.21,9400,7600,-1800,59590724,52000000,-7590724,candidate"
 )
 
 add_test(
