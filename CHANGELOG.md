@@ -6,6 +6,14 @@ This project uses semantic versioning for public releases. The main
 `rubik::Solver` API is treated as stable, while explicitly experimental APIs
 can still change between minor releases.
 
+## 5.0.0 - 2026-05-28
+
+- Modernized public examples around the recommended certified optimal path.
+- Moved the cache setup example to the public `prepareCache()` API.
+- Clarified the experimental non-optimal fast-mode example.
+- Added release validation for stale public examples.
+- Updated public documentation and release notes for V5.
+
 ## 4.0.0 - 2026-05-28
 
 Fourth stable release scope:
