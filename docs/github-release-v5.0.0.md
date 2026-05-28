@@ -25,10 +25,10 @@ devices.
 
 ## Verification
 
-Before publishing, record the exact results of:
+Local release validation completed on 2026-05-28:
 
-```sh
-ctest --test-dir out/release-native-lto --output-on-failure
-scripts/release_check.sh --profile quick
-scripts/release_check.sh --profile standard
-```
+- `ctest --test-dir out/release-native-lto --output-on-failure`: 85/85 passed.
+- `scripts/release_check.sh --profile quick`: passed.
+- `scripts/release_check.sh --profile standard`: passed.
+- Source archive validation, archive rebuild, archive tests, and standalone
+  install consumer validation passed.
