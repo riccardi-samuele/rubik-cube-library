@@ -1,4 +1,4 @@
-# GitHub Release Draft - v5.0.0
+# Rubik Cube Library v5.0.0
 
 V5 is a public usability release for Rubik Cube Library.
 
