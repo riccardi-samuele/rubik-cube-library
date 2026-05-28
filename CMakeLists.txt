@@ -1056,6 +1056,10 @@ add_test(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/public_docs_current_version.sh
 )
 add_test(
+    NAME public_examples_current_api
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/public_examples_current_api.sh
+)
+add_test(
     NAME check_install_consumer_rejects_missing_values
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_install_consumer_rejects_missing_values.sh
 )
