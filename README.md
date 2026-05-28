@@ -276,10 +276,16 @@ Example programs are built by default:
 
 ```sh
 ./build/example-validate-input
-./build/example-solve-fast
 ./build/example-solve-optimal
 ./build/example-cache-setup
+./build/example-solve-fast
 ```
+
+`example-solve-optimal` shows the recommended certified solver path:
+`SolveMode::Optimal`, `SolveProfile::Auto`, `CachePolicy::Auto`, and automatic
+thread planning with `threads = 0`. `example-cache-setup` uses the public
+`prepareCache()` API. `example-solve-fast` demonstrates the experimental
+non-optimal mode and prints `non_optimal: true`.
 
 Disable them with:
 

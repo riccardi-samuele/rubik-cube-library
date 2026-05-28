@@ -278,10 +278,11 @@ Currently experimental surface:
 
 The repository includes small compileable examples:
 
-- `examples/validate_input.cpp`
-- `examples/solve_fast.cpp`
-- `examples/solve_optimal.cpp`
-- `examples/cache_setup.cpp`
+- `examples/solve_optimal.cpp`: recommended certified optimal path using
+  `SolveProfile::Auto`, `CachePolicy::Auto`, and `threads = 0`.
+- `examples/cache_setup.cpp`: public cache preparation with `prepareCache()`.
+- `examples/solve_fast.cpp`: experimental non-optimal solving path.
+- `examples/validate_input.cpp`: 54-sticker input validation.
 
 They are built by default when `RUBIK_BUILD_EXAMPLES` is enabled.
 
