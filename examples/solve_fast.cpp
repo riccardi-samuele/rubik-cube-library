@@ -5,6 +5,37 @@
 #include <chrono>
 #include <iostream>
 
+namespace {
+
+const char* statusName(rubik::SolveStatus status)
+{
+    switch (status) {
+    case rubik::SolveStatus::Solved:
+        return "Solved";
+    case rubik::SolveStatus::Found:
+        return "Found";
+    case rubik::SolveStatus::Optimal:
+        return "Optimal";
+    case rubik::SolveStatus::Timeout:
+        return "Timeout";
+    case rubik::SolveStatus::MemoryLimitExceeded:
+        return "MemoryLimitExceeded";
+    case rubik::SolveStatus::DepthLimitExceeded:
+        return "DepthLimitExceeded";
+    case rubik::SolveStatus::InvalidCube:
+        return "InvalidCube";
+    case rubik::SolveStatus::UnsupportedOptions:
+        return "UnsupportedOptions";
+    case rubik::SolveStatus::CacheNotReady:
+        return "CacheNotReady";
+    case rubik::SolveStatus::InternalError:
+        return "InternalError";
+    }
+    return "Unknown";
+}
+
+} // namespace
+
 int main()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -27,6 +58,8 @@ int main()
         return 1;
     }
 
+    std::cout << "non_optimal: true\n";
+    std::cout << "status: " << statusName(result.status) << "\n";
     std::cout << "moves: " << result.moveCount << "\n";
     std::cout << "solution: " << rubik::formatMoves(result.moves) << "\n";
     std::cout << "elapsed_ms: " << result.elapsed.count() << "\n";
