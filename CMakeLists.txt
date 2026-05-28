@@ -939,7 +939,7 @@ add_test(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_deep_split_ab.sh --help
 )
 set_tests_properties(run_v4_deep_split_ab_help PROPERTIES
-    PASS_REGULAR_EXPRESSION "Usage: scripts/run_v4_deep_split_ab.sh"
+    PASS_REGULAR_EXPRESSION "Variants: baseline, deep-split, adaptive"
 )
 add_test(
     NAME run_v4_deep_split_ab_rejects_missing_values

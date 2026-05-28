@@ -30,6 +30,8 @@ Options:
   --slowest-limit N    slowest rows to extract, default: 50
   --cache-mode MODE    warm|cold|reuse, default: warm
   -h, --help           show this help
+
+Variants: baseline, deep-split, adaptive
 USAGE
 }
 
@@ -129,7 +131,10 @@ mkdir -p "${output_dir}"
 
 baseline_dir="${output_dir}/baseline"
 candidate_dir="${output_dir}/deep-split"
+adaptive_dir="${output_dir}/adaptive"
 comparison_file="${output_dir}/comparison.csv"
+deep_split_comparison_file="${output_dir}/deep-split-comparison.csv"
+adaptive_comparison_file="${output_dir}/adaptive-comparison.csv"
 
 "${script_dir}/run_v4_tail_corpus.sh" \
     --cases-file "${cases_file}" \
@@ -155,11 +160,33 @@ RUBIK_EXPERIMENTAL_DEEP_ROOT_SPLIT=1 "${script_dir}/run_v4_tail_corpus.sh" \
     --slowest-limit "${slowest_limit}" \
     --cache-mode reuse
 
+RUBIK_EXPERIMENTAL_ADAPTIVE_DEEP_SPLIT=1 "${script_dir}/run_v4_tail_corpus.sh" \
+    --cases-file "${cases_file}" \
+    --build-dir "${build_dir}" \
+    --cache-dir "${cache_dir}" \
+    --output-dir "${adaptive_dir}" \
+    --timeout-ms "${timeout_ms}" \
+    --max-depth "${max_depth}" \
+    --threads "${threads}" \
+    --max-memory-mb "${max_memory_mb}" \
+    --slowest-limit "${slowest_limit}" \
+    --cache-mode reuse
+
 "${script_dir}/compare_v4_tail_runs.py" \
     --baseline "${baseline_dir}/summary.csv" \
     --candidate "${candidate_dir}/summary.csv" \
-    --output "${comparison_file}"
+    --output "${deep_split_comparison_file}"
+
+"${script_dir}/compare_v4_tail_runs.py" \
+    --baseline "${baseline_dir}/summary.csv" \
+    --candidate "${adaptive_dir}/summary.csv" \
+    --output "${adaptive_comparison_file}"
+
+cp "${adaptive_comparison_file}" "${comparison_file}"
 
 echo "v4 deep split baseline summary: ${baseline_dir}/summary.csv"
 echo "v4 deep split candidate summary: ${candidate_dir}/summary.csv"
-echo "v4 deep split comparison: ${comparison_file}"
+echo "v4 adaptive summary: ${adaptive_dir}/summary.csv"
+echo "v4 deep split comparison: ${deep_split_comparison_file}"
+echo "v4 adaptive comparison: ${adaptive_comparison_file}"
+echo "v4 active comparison alias: ${comparison_file}"
