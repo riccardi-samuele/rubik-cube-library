@@ -611,7 +611,8 @@ int nodeLowerBoundWithoutThreePhase1(
     bool includeExperimentalSymmetryBounds,
     bool includeExperimentalCornerStateBounds,
     bool includeExperimentalCornerUpEdgeBounds,
-    bool includeExperimentalCornerDownEdgeBounds)
+    bool includeExperimentalCornerDownEdgeBounds,
+    int* baseLowerBound = nullptr)
 {
     const auto cornerOrientationPermutationIndex =
         node.cornerOrientation * coordinates::corner_permutation_count + node.cornerPermutation;
@@ -632,6 +633,9 @@ int nodeLowerBoundWithoutThreePhase1(
     const auto upDownEdgeIndex = node.upEdgePermutation * coordinates::edge_group_permutation_count + node.downEdgePermutation;
 
     int bound = nodeBaseLowerBound(node);
+    if (baseLowerBound != nullptr) {
+        *baseLowerBound = bound;
+    }
 
     if (profile == SolveProfile::Performance || profile == SolveProfile::LargeLocal) {
         bound = std::max(
@@ -1131,16 +1135,18 @@ int collectCandidateMoves(
         }
 
         SearchNode next = moved(node, move, includeThreePhase1Bounds);
+        int candidateBaseLowerBound = 0;
         const int candidateCheapLowerBound = nodeLowerBoundWithoutThreePhase1(
             next,
             profile,
             includeExperimentalSymmetryBounds,
             includeExperimentalCornerStateBounds,
             includeExperimentalCornerUpEdgeBounds,
-            includeExperimentalCornerDownEdgeBounds);
+            includeExperimentalCornerDownEdgeBounds,
+            &candidateBaseLowerBound);
         const int candidateOrderBound = useStrongMoveOrdering
             ? -1
-            : nodeBaseLowerBound(next);
+            : candidateBaseLowerBound;
         const int candidatePhase2OrderBound = usePhase2MoveOrdering
             ? nodePhase2OrderingLowerBound(next)
             : -1;
