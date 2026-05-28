@@ -54,6 +54,31 @@ Experimental or hardware-dependent:
 Hardware-specific performance claims stay unpublished until they are measured
 on the real target devices.
 
+## Road To 5.0
+
+The `5.0.0` target is a public usability release. It should make the library
+easier to integrate correctly without changing the certified optimality
+contract.
+
+Primary goals:
+
+1. Make examples the executable source of truth for recommended integration.
+2. Keep `SolveMode::Optimal`, `SolveProfile::Auto`, `CachePolicy::Auto`, and
+   `threads = 0` visible in the primary solving example.
+3. Move cache setup examples to the public `prepareCache()` API.
+4. Keep experimental fast solving clearly separated from certified optimal
+   solving.
+5. Add release gates that catch stale public docs and stale public examples.
+
+Out of scope for `5.0.0`:
+
+- new hardware latency claims;
+- GPU acceleration;
+- cloud solving;
+- QTM;
+- camera recognition;
+- hardware control.
+
 ## Current 4.0 Release
 
 The `4.0.0` release is a CPU-only optimal tail-latency release. It reduces
