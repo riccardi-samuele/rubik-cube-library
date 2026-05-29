@@ -9,7 +9,7 @@ USAGE = "Usage: scripts/analyze_root_search_profile.py [options]"
 
 
 def parse_args():
-    value_options = {"--input-dir", "--output", "--limit"}
+    value_options = {"--input-dir", "--output", "--limit", "--reason", "--sort-by"}
     argv = sys.argv[1:]
     for index, token in enumerate(argv):
         if token in value_options and (index + 1 >= len(argv) or argv[index + 1].startswith("-")):
@@ -24,6 +24,9 @@ def parse_args():
     parser.add_argument("--input-dir", default="benchmark-results")
     parser.add_argument("--output", default="")
     parser.add_argument("--limit", default="0")
+    parser.add_argument("--reason", default="")
+    parser.add_argument("--sort-by", default="")
+    parser.add_argument("--sort-desc", action="store_true")
     parser.add_argument("--summary", action="store_true")
     parser.add_argument("-h", "--help", action="store_true")
 
@@ -35,6 +38,9 @@ def parse_args():
             "  --input-dir DIR    directory containing rubik-bench CSV output, default: benchmark-results\n"
             "  --output FILE      write CSV output to FILE instead of stdout\n"
             "  --limit N          maximum number of root rows to emit, default: all\n"
+            "  --reason NAME      keep rows whose adaptive_reason matches NAME\n"
+            "  --sort-by FIELD    sort emitted rows by FIELD\n"
+            "  --sort-desc        sort descending when --sort-by is set\n"
             "  --summary          emit one aggregate row per benchmark case\n"
             "  -h, --help         show this help"
         )
@@ -42,7 +48,13 @@ def parse_args():
     if unknown:
         print(USAGE, file=sys.stderr)
         sys.exit(2)
-    if args.input_dir.startswith("-") or args.output.startswith("-") or args.limit.startswith("-"):
+    if (
+        args.input_dir.startswith("-") or
+        args.output.startswith("-") or
+        args.limit.startswith("-") or
+        args.reason.startswith("-") or
+        args.sort_by.startswith("-")
+    ):
         print(USAGE, file=sys.stderr)
         sys.exit(2)
     try:
@@ -53,7 +65,14 @@ def parse_args():
     if limit < 0:
         print(USAGE, file=sys.stderr)
         sys.exit(2)
-    return Path(args.input_dir), Path(args.output) if args.output else None, limit, args.summary
+    return (
+        Path(args.input_dir),
+        Path(args.output) if args.output else None,
+        limit,
+        args.summary,
+        args.reason,
+        args.sort_by,
+        args.sort_desc)
 
 
 def profile_value(profile, key):
@@ -128,6 +147,25 @@ def integer_ratio(numerator, denominator, scale=1):
     if numerator_value is None or denominator_value is None or denominator_value <= 0:
         return ""
     return str((numerator_value * scale) // denominator_value)
+
+
+def sort_value(row, field):
+    value = row.get(field, "")
+    integer = int_value(value)
+    if integer is not None:
+        return (0, integer)
+    return (1, value)
+
+
+def filter_and_sort_rows(rows, reason, sort_by, sort_desc):
+    if reason:
+        rows = [row for row in rows if row.get("adaptive_reason", "") == reason]
+    if sort_by:
+        if rows and sort_by not in rows[0]:
+            print(f"root search analysis failed: unknown sort field: {sort_by}", file=sys.stderr)
+            sys.exit(2)
+        rows = sorted(rows, key=lambda row: sort_value(row, sort_by), reverse=sort_desc)
+    return rows
 
 
 def file_wall_elapsed_ms(path):
@@ -508,10 +546,11 @@ def emit_summary(rows, output):
 
 
 def main():
-    input_dir, output, limit, summary = parse_args()
+    input_dir, output, limit, summary, reason, sort_by, sort_desc = parse_args()
     rows = collect_rows(input_dir)
     if summary:
         rows = summarize_rows(rows)
+    rows = filter_and_sort_rows(rows, reason, sort_by, sort_desc)
     if limit:
         rows = rows[:limit]
     if summary:

@@ -989,6 +989,12 @@ add_test(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/analyze_root_search_profile_rejects_missing_values.sh
 )
 add_test(
+    NAME analyze_root_search_profile_filters_and_sorts
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/analyze_root_search_profile_filters_and_sorts.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/analyze_root_search_profile.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results
+)
+add_test(
     NAME analyze_root_search_profile_summary
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/analyze_root_search_profile.py
         --input-dir ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results
