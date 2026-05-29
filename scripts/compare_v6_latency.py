@@ -70,6 +70,14 @@ def winner(delta):
     return "candidate" if delta < 0 else "baseline"
 
 
+def percentile(values, fraction):
+    if not values:
+        return 0
+    ordered = sorted(values)
+    index = int((len(ordered) - 1) * fraction)
+    return ordered[index]
+
+
 def profile_value(profile, key):
     prefix = f"{key}="
     for piece in profile.split(";"):
@@ -171,6 +179,12 @@ def compare(baseline_dir, candidate_dir):
     baseline_elapsed = sum(row["baseline_elapsed_ms"] for row in rows)
     candidate_elapsed = sum(row["candidate_elapsed_ms"] for row in rows)
     elapsed_delta = candidate_elapsed - baseline_elapsed
+    baseline_p50 = percentile([row["baseline_elapsed_ms"] for row in rows], 0.50)
+    candidate_p50 = percentile([row["candidate_elapsed_ms"] for row in rows], 0.50)
+    baseline_p90 = percentile([row["baseline_elapsed_ms"] for row in rows], 0.90)
+    candidate_p90 = percentile([row["candidate_elapsed_ms"] for row in rows], 0.90)
+    baseline_p95 = percentile([row["baseline_elapsed_ms"] for row in rows], 0.95)
+    candidate_p95 = percentile([row["candidate_elapsed_ms"] for row in rows], 0.95)
     baseline_nodes = sum(row["baseline_nodes"] for row in rows)
     candidate_nodes = sum(row["candidate_nodes"] for row in rows)
     baseline_wall = max(row["baseline_wall_ms"] for row in rows)
@@ -182,6 +196,15 @@ def compare(baseline_dir, candidate_dir):
         "candidate_elapsed_ms": candidate_elapsed,
         "elapsed_delta_ms": elapsed_delta,
         "elapsed_delta_percent": percent(elapsed_delta, baseline_elapsed),
+        "baseline_p50_ms": baseline_p50,
+        "candidate_p50_ms": candidate_p50,
+        "p50_delta_ms": candidate_p50 - baseline_p50,
+        "baseline_p90_ms": baseline_p90,
+        "candidate_p90_ms": candidate_p90,
+        "p90_delta_ms": candidate_p90 - baseline_p90,
+        "baseline_p95_ms": baseline_p95,
+        "candidate_p95_ms": candidate_p95,
+        "p95_delta_ms": candidate_p95 - baseline_p95,
         "baseline_nodes": baseline_nodes,
         "candidate_nodes": candidate_nodes,
         "nodes_delta": candidate_nodes - baseline_nodes,
@@ -205,6 +228,15 @@ def emit(rows, output):
         "candidate_elapsed_ms",
         "elapsed_delta_ms",
         "elapsed_delta_percent",
+        "baseline_p50_ms",
+        "candidate_p50_ms",
+        "p50_delta_ms",
+        "baseline_p90_ms",
+        "candidate_p90_ms",
+        "p90_delta_ms",
+        "baseline_p95_ms",
+        "candidate_p95_ms",
+        "p95_delta_ms",
         "baseline_nodes",
         "candidate_nodes",
         "nodes_delta",
