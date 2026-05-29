@@ -1046,7 +1046,7 @@ add_test(
         --candidate-dir ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-candidate
 )
 set_tests_properties(compare_v6_latency_fixture PROPERTIES
-    PASS_REGULAR_EXPRESSION "__summary__,3,3300,3200,-100,-3.03,1000,900,-100,1000,900,-100,1000,900,-100,33000,35000,2000,2700,2850,150,candidate"
+    PASS_REGULAR_EXPRESSION "__summary__,3,3300,3200,-100,-3.03,1000,900,-100,1000,900,-100,1000,900,-100,1000,900,-100,2000,2100,100,33000,35000,2000,2700,2850,150,candidate"
 )
 
 add_test(

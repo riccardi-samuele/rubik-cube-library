@@ -185,6 +185,10 @@ def compare(baseline_dir, candidate_dir):
     candidate_p90 = percentile([row["candidate_elapsed_ms"] for row in rows], 0.90)
     baseline_p95 = percentile([row["baseline_elapsed_ms"] for row in rows], 0.95)
     candidate_p95 = percentile([row["candidate_elapsed_ms"] for row in rows], 0.95)
+    baseline_p99 = percentile([row["baseline_elapsed_ms"] for row in rows], 0.99)
+    candidate_p99 = percentile([row["candidate_elapsed_ms"] for row in rows], 0.99)
+    baseline_max_elapsed = max(row["baseline_elapsed_ms"] for row in rows)
+    candidate_max_elapsed = max(row["candidate_elapsed_ms"] for row in rows)
     baseline_nodes = sum(row["baseline_nodes"] for row in rows)
     candidate_nodes = sum(row["candidate_nodes"] for row in rows)
     baseline_wall = max(row["baseline_wall_ms"] for row in rows)
@@ -205,6 +209,12 @@ def compare(baseline_dir, candidate_dir):
         "baseline_p95_ms": baseline_p95,
         "candidate_p95_ms": candidate_p95,
         "p95_delta_ms": candidate_p95 - baseline_p95,
+        "baseline_p99_ms": baseline_p99,
+        "candidate_p99_ms": candidate_p99,
+        "p99_delta_ms": candidate_p99 - baseline_p99,
+        "baseline_max_elapsed_ms": baseline_max_elapsed,
+        "candidate_max_elapsed_ms": candidate_max_elapsed,
+        "max_elapsed_delta_ms": candidate_max_elapsed - baseline_max_elapsed,
         "baseline_nodes": baseline_nodes,
         "candidate_nodes": candidate_nodes,
         "nodes_delta": candidate_nodes - baseline_nodes,
@@ -237,6 +247,12 @@ def emit(rows, output):
         "baseline_p95_ms",
         "candidate_p95_ms",
         "p95_delta_ms",
+        "baseline_p99_ms",
+        "candidate_p99_ms",
+        "p99_delta_ms",
+        "baseline_max_elapsed_ms",
+        "candidate_max_elapsed_ms",
+        "max_elapsed_delta_ms",
         "baseline_nodes",
         "candidate_nodes",
         "nodes_delta",
