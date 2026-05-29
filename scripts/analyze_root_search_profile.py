@@ -254,7 +254,11 @@ def summarize_rows(rows):
             "cheap_candidate_prunes": 0,
             "three_phase_candidate_checks": 0,
             "three_phase_candidate_prunes": 0,
+            "before_solution_root_nodes": 0,
+            "before_solution_root_elapsed_ms": 0,
+            "solution_root_nodes": "",
             "solution_root_elapsed_ms": "",
+            "max_root_nodes": 0,
             "max_root_elapsed_ms": 0,
             "worker_roots": {},
             "worker_elapsed_ms": {},
@@ -277,6 +281,9 @@ def summarize_rows(rows):
         group["before_solution_roots"] += 1 if row["before_solution"] == "true" else 0
         group["total_root_nodes"] += nodes
         group["total_root_elapsed_ms"] += elapsed
+        if row["before_solution"] == "true":
+            group["before_solution_root_nodes"] += nodes
+            group["before_solution_root_elapsed_ms"] += elapsed
         if not group["solver_elapsed_ms"]:
             group["solver_elapsed_ms"] = row["elapsed_ms"]
         if not group["wall_elapsed_ms"]:
@@ -302,11 +309,13 @@ def summarize_rows(rows):
         group["cheap_candidate_prunes"] += cheap_prunes
         group["three_phase_candidate_checks"] += three_phase_checks
         group["three_phase_candidate_prunes"] += three_phase_prunes
+        group["max_root_nodes"] = max(group["max_root_nodes"], nodes)
         group["max_root_elapsed_ms"] = max(group["max_root_elapsed_ms"], elapsed)
         if worker_index.isdigit():
             group["worker_roots"][worker_index] = group["worker_roots"].get(worker_index, 0) + 1
             group["worker_elapsed_ms"][worker_index] = group["worker_elapsed_ms"].get(worker_index, 0) + elapsed
         if row["outcome"] == "found":
+            group["solution_root_nodes"] = row["nodes_expanded"]
             group["solution_root_elapsed_ms"] = row["root_elapsed_ms"]
 
     result = []
@@ -368,6 +377,26 @@ def summarize_rows(rows):
             "adaptive_threads": group["adaptive_threads"],
             "adaptive_strong_min_count": group["adaptive_strong_min_count"],
             "adaptive_first_diff": group["adaptive_first_diff"],
+            "before_solution_root_nodes": str(group["before_solution_root_nodes"]),
+            "before_solution_root_elapsed_ms": str(group["before_solution_root_elapsed_ms"]),
+            "before_solution_nodes_share_ppm": integer_ratio(
+                str(group["before_solution_root_nodes"]),
+                total_nodes,
+                1_000_000),
+            "before_solution_elapsed_share_ppm": integer_ratio(
+                str(group["before_solution_root_elapsed_ms"]),
+                total_elapsed,
+                1_000_000),
+            "solution_root_nodes": group["solution_root_nodes"],
+            "solution_root_nodes_share_ppm": integer_ratio(
+                group["solution_root_nodes"],
+                total_nodes,
+                1_000_000),
+            "max_root_nodes": str(group["max_root_nodes"]),
+            "max_root_nodes_share_ppm": integer_ratio(
+                str(group["max_root_nodes"]),
+                total_nodes,
+                1_000_000),
         })
     return result
 
@@ -455,6 +484,14 @@ def emit_summary(rows, output):
         "adaptive_threads",
         "adaptive_strong_min_count",
         "adaptive_first_diff",
+        "before_solution_root_nodes",
+        "before_solution_root_elapsed_ms",
+        "before_solution_nodes_share_ppm",
+        "before_solution_elapsed_share_ppm",
+        "solution_root_nodes",
+        "solution_root_nodes_share_ppm",
+        "max_root_nodes",
+        "max_root_nodes_share_ppm",
     ]
     if output is None:
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")
