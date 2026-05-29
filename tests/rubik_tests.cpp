@@ -1508,6 +1508,20 @@ void testAdaptiveSchedulerKeepsV6Lb8DivergentTailCaseOnRoot()
     expect(decision.scheduler == rubik::detail::OptimalSchedulerDecision::Root);
 }
 
+void testAdaptiveSchedulerSelectsV6Depth14ConservativeCase()
+{
+    const auto decision = rubik::detail::chooseAdaptiveDeepSplit({
+        .initialLowerBound = 8,
+        .maxDepth = 14,
+        .threads = 16,
+        .strongMinCount = 11,
+        .firstMoveDiffers = true,
+    });
+
+    expect(decision.scheduler == rubik::detail::OptimalSchedulerDecision::DeepSplit);
+    expect(decision.reason == "depth14_conservative_root");
+}
+
 void testAdaptiveSchedulerSelectsV6Lb9LowStrongMinTailCase()
 {
     const auto decision = rubik::detail::chooseAdaptiveDeepSplit({
@@ -1726,6 +1740,7 @@ int main()
     testAutoOptimalReportsAdaptiveSchedulerDecision();
     testAdaptiveSchedulerSelectsV6Lb8StableTailCase();
     testAdaptiveSchedulerKeepsV6Lb8DivergentTailCaseOnRoot();
+    testAdaptiveSchedulerSelectsV6Depth14ConservativeCase();
     testAdaptiveSchedulerSelectsV6Lb9LowStrongMinTailCase();
     testAdaptiveRootOrderingSelectsV6Lb9StableMidStrongMinCase();
     testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault();

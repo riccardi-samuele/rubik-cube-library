@@ -73,6 +73,14 @@ inline AdaptiveDeepSplitDecision chooseAdaptiveDeepSplit(const AdaptiveDeepSplit
         decision.reason = "lb9_mid_strong_min";
         return decision;
     }
+    if (inputs.maxDepth == 14 &&
+        inputs.initialLowerBound >= 8 &&
+        inputs.initialLowerBound <= 9 &&
+        inputs.strongMinCount >= 2) {
+        decision.scheduler = OptimalSchedulerDecision::DeepSplit;
+        decision.reason = "depth14_conservative_root";
+        return decision;
+    }
 
     return decision;
 }
