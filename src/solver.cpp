@@ -489,6 +489,7 @@ bool experimentalAdaptiveDeepRootSplitEnabled()
 enum class RootOrderingMode {
     Default,
     ReverseTie,
+    HighBoundFirst,
     Phase2TieBreak,
 };
 
@@ -502,6 +503,9 @@ RootOrderingMode experimentalRootOrderingMode()
     const std::string mode(value);
     if (mode == "reverse_tie") {
         return RootOrderingMode::ReverseTie;
+    }
+    if (mode == "high_bound_first") {
+        return RootOrderingMode::HighBoundFirst;
     }
     if (mode == "phase2_tiebreak") {
         return RootOrderingMode::Phase2TieBreak;
@@ -1312,6 +1316,12 @@ int collectCandidateMoves(
 
 bool candidateMoveLess(const CandidateMove& lhs, const CandidateMove& rhs, RootOrderingMode mode)
 {
+    if (mode == RootOrderingMode::HighBoundFirst) {
+        if (lhs.orderBound != rhs.orderBound) {
+            return lhs.orderBound > rhs.orderBound;
+        }
+        return lhs.order < rhs.order;
+    }
     if (lhs.orderBound != rhs.orderBound) {
         return lhs.orderBound < rhs.orderBound;
     }
@@ -1388,6 +1398,9 @@ std::string solutionRootOrderingProfile(
         break;
     case RootOrderingMode::ReverseTie:
         out << "reverse_tie";
+        break;
+    case RootOrderingMode::HighBoundFirst:
+        out << "high_bound_first";
         break;
     case RootOrderingMode::Phase2TieBreak:
         out << "phase2_tiebreak";

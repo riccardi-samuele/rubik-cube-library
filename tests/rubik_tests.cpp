@@ -1356,6 +1356,39 @@ void testExperimentalRootOrderingReverseTieChangesRootOrderOnly()
     expect(defaultResult.plan.rootOrderingProfile != reverseTieResult.plan.rootOrderingProfile);
 }
 
+void testExperimentalRootOrderingHighBoundFirstChangesRootOrderOnly()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R U F"));
+
+    const rubik::Solver solver;
+    unsetenv("RUBIK_EXPERIMENTAL_ROOT_ORDERING");
+    const auto defaultResult = solver.solve(cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .maxDepth = 5,
+        .threads = 4,
+        .profile = rubik::SolveProfile::Default,
+    });
+
+    setenv("RUBIK_EXPERIMENTAL_ROOT_ORDERING", "high_bound_first", 1);
+    const auto highBoundResult = solver.solve(cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .maxDepth = 5,
+        .threads = 4,
+        .profile = rubik::SolveProfile::Default,
+    });
+    unsetenv("RUBIK_EXPERIMENTAL_ROOT_ORDERING");
+
+    expect(defaultResult.status == rubik::SolveStatus::Optimal);
+    expect(highBoundResult.status == rubik::SolveStatus::Optimal);
+    expect(defaultResult.isOptimal);
+    expect(highBoundResult.isOptimal);
+    expect(defaultResult.moveCount == highBoundResult.moveCount);
+    expect(defaultResult.plan.rootOrderingProfile.find("root_ordering_mode=default") != std::string::npos);
+    expect(highBoundResult.plan.rootOrderingProfile.find("root_ordering_mode=high_bound_first") != std::string::npos);
+    expect(defaultResult.plan.rootOrderingProfile != highBoundResult.plan.rootOrderingProfile);
+}
+
 void testParallelOptimalReportsRootSearchProfile()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -1733,6 +1766,7 @@ int main()
     testOptimalThreadedTinyScramble();
     testOptimalRootOrderingReportsSolutionRank();
     testExperimentalRootOrderingReverseTieChangesRootOrderOnly();
+    testExperimentalRootOrderingHighBoundFirstChangesRootOrderOnly();
     testParallelOptimalReportsRootSearchProfile();
     testParallelOptimalReportsRootBoundDiagnosticsWhenCollected();
     testExperimentalDeepRootSplitReportsDiagnostics();

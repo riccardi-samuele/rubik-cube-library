@@ -38,3 +38,8 @@ if ! grep -q 'cache_setup_elapsed_ms' "${script}"; then
     echo "benchmark_root_ordering_experiments.sh must report cache setup elapsed time" >&2
     exit 1
 fi
+
+if ! grep -q 'high_bound_first' "${script}"; then
+    echo "benchmark_root_ordering_experiments.sh must support the high_bound_first variant" >&2
+    exit 1
+fi
