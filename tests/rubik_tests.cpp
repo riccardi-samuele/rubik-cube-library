@@ -1584,6 +1584,7 @@ void testAdaptiveRootOrderingSelectsV6Lb9StableMidStrongMinCase()
 
 void testAdaptiveRootOrderingSelectsV6Lb8StableMidStrongMinCase()
 {
+    unsetenv("RUBIK_DISABLE_ADAPTIVE_HIGH_BOUND_ROOT_ORDERING");
     const auto decision = rubik::detail::chooseAdaptiveRootOrdering({
         .initialLowerBound = 8,
         .maxDepth = 15,
@@ -1593,6 +1594,21 @@ void testAdaptiveRootOrderingSelectsV6Lb8StableMidStrongMinCase()
     });
 
     expect(decision == rubik::detail::AdaptiveRootOrderingDecision::HighBoundFirst);
+}
+
+void testAdaptiveRootOrderingCanDisableV6Lb8HighBoundFirst()
+{
+    setenv("RUBIK_DISABLE_ADAPTIVE_HIGH_BOUND_ROOT_ORDERING", "1", 1);
+    const auto decision = rubik::detail::chooseAdaptiveRootOrdering({
+        .initialLowerBound = 8,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 7,
+        .firstMoveDiffers = false,
+    });
+    unsetenv("RUBIK_DISABLE_ADAPTIVE_HIGH_BOUND_ROOT_ORDERING");
+
+    expect(decision == rubik::detail::AdaptiveRootOrderingDecision::Default);
 }
 
 void testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault()
@@ -1791,6 +1807,7 @@ int main()
     testAdaptiveSchedulerSelectsV6Lb9LowStrongMinTailCase();
     testAdaptiveRootOrderingSelectsV6Lb9StableMidStrongMinCase();
     testAdaptiveRootOrderingSelectsV6Lb8StableMidStrongMinCase();
+    testAdaptiveRootOrderingCanDisableV6Lb8HighBoundFirst();
     testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault();
     testSolveMemoryLimit();
     testFastTinyScramble();

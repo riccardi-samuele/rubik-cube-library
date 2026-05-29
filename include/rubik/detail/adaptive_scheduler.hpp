@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <string>
 
 namespace rubik::detail {
@@ -32,6 +33,12 @@ enum class AdaptiveRootOrderingDecision {
     ReverseTie,
     HighBoundFirst,
 };
+
+inline bool adaptiveHighBoundRootOrderingDisabled()
+{
+    const char* value = std::getenv("RUBIK_DISABLE_ADAPTIVE_HIGH_BOUND_ROOT_ORDERING");
+    return value != nullptr && value[0] != '\0' && std::string(value) != "0";
+}
 
 inline AdaptiveDeepSplitDecision chooseAdaptiveDeepSplit(const AdaptiveDeepSplitInputs& inputs)
 {
@@ -98,6 +105,7 @@ inline AdaptiveRootOrderingDecision chooseAdaptiveRootOrdering(const AdaptiveDee
     }
 
     if (inputs.initialLowerBound == 8 &&
+        !adaptiveHighBoundRootOrderingDisabled() &&
         !inputs.firstMoveDiffers &&
         inputs.strongMinCount >= 6 &&
         inputs.strongMinCount <= 8) {
