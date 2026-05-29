@@ -1055,6 +1055,13 @@ add_test(
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-baseline
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-candidate
 )
+add_test(
+    NAME compare_v6_latency_groups_by_reason
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_v6_latency_groups_by_reason.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_v6_latency.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-baseline
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-candidate
+)
 
 add_test(
     NAME benchmark_root_ordering_experiments_contract

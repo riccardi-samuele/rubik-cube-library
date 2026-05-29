@@ -28,6 +28,7 @@ def parse_args():
     parser.add_argument("--output", default="")
     parser.add_argument("--sort-by", default="")
     parser.add_argument("--sort-desc", action="store_true")
+    parser.add_argument("--group-by-reason", action="store_true")
     parser.add_argument("-h", "--help", action="store_true")
     args, unknown = parser.parse_known_args()
 
@@ -40,6 +41,7 @@ def parse_args():
             "  --output FILE        write comparison CSV to file instead of stdout\n"
             "  --sort-by FIELD      sort case rows by a numeric comparison field\n"
             "  --sort-desc          sort case rows descending instead of ascending\n"
+            "  --group-by-reason    aggregate case rows by baseline adaptive reason\n"
             "  -h, --help           show this help"
         )
         sys.exit(0)
@@ -61,6 +63,7 @@ def parse_args():
         Path(args.output) if args.output else None,
         args.sort_by,
         args.sort_desc,
+        args.group_by_reason,
     )
 
 
@@ -241,6 +244,81 @@ def compare(baseline_dir, candidate_dir):
     return rows
 
 
+def aggregate_rows(rows, group_by_reason):
+    if not group_by_reason:
+        return rows
+
+    groups = {}
+    order = []
+    for row in rows:
+        if row["case_key"] == "__summary__":
+            continue
+        reason = row["baseline_reason"]
+        key = f"__reason__:{reason}"
+        if key not in groups:
+            groups[key] = {
+                "case_key": key,
+                "common_cases": 0,
+                "baseline_elapsed_ms": 0,
+                "candidate_elapsed_ms": 0,
+                "elapsed_delta_ms": 0,
+                "elapsed_delta_percent": "0.00",
+                "baseline_p50_ms": "",
+                "candidate_p50_ms": "",
+                "p50_delta_ms": "",
+                "baseline_p90_ms": "",
+                "candidate_p90_ms": "",
+                "p90_delta_ms": "",
+                "baseline_p95_ms": "",
+                "candidate_p95_ms": "",
+                "p95_delta_ms": "",
+                "baseline_p99_ms": "",
+                "candidate_p99_ms": "",
+                "p99_delta_ms": "",
+                "baseline_max_elapsed_ms": 0,
+                "candidate_max_elapsed_ms": 0,
+                "max_elapsed_delta_ms": 0,
+                "baseline_nodes": 0,
+                "candidate_nodes": 0,
+                "nodes_delta": 0,
+                "baseline_wall_ms": 0,
+                "candidate_wall_ms": 0,
+                "wall_delta_ms": 0,
+                "winner": "",
+                "baseline_ordering": "",
+                "candidate_ordering": "",
+                "baseline_reason": reason,
+                "candidate_reason": "",
+            }
+            order.append(key)
+        group = groups[key]
+        group["common_cases"] += 1
+        group["baseline_elapsed_ms"] += row["baseline_elapsed_ms"]
+        group["candidate_elapsed_ms"] += row["candidate_elapsed_ms"]
+        group["baseline_max_elapsed_ms"] = max(group["baseline_max_elapsed_ms"], row["baseline_elapsed_ms"])
+        group["candidate_max_elapsed_ms"] = max(group["candidate_max_elapsed_ms"], row["candidate_elapsed_ms"])
+        group["baseline_nodes"] += row["baseline_nodes"]
+        group["candidate_nodes"] += row["candidate_nodes"]
+        group["baseline_wall_ms"] = max(group["baseline_wall_ms"], row["baseline_wall_ms"])
+        group["candidate_wall_ms"] = max(group["candidate_wall_ms"], row["candidate_wall_ms"])
+
+    grouped = []
+    for key in order:
+        group = groups[key]
+        group["elapsed_delta_ms"] = group["candidate_elapsed_ms"] - group["baseline_elapsed_ms"]
+        group["elapsed_delta_percent"] = percent(group["elapsed_delta_ms"], group["baseline_elapsed_ms"])
+        group["max_elapsed_delta_ms"] = (
+            group["candidate_max_elapsed_ms"] - group["baseline_max_elapsed_ms"]
+        )
+        group["nodes_delta"] = group["candidate_nodes"] - group["baseline_nodes"]
+        group["wall_delta_ms"] = group["candidate_wall_ms"] - group["baseline_wall_ms"]
+        group["winner"] = winner(group["elapsed_delta_ms"])
+        grouped.append(group)
+
+    summary = [row for row in rows if row["case_key"] == "__summary__"]
+    return grouped + summary
+
+
 def sort_rows(rows, sort_by, sort_desc):
     if not sort_by:
         return rows
@@ -252,7 +330,8 @@ def sort_rows(rows, sort_by, sort_desc):
     return sorted(cases, key=lambda row: int_value(row.get(sort_by)), reverse=sort_desc) + summary
 
 
-def emit(rows, output, sort_by, sort_desc):
+def emit(rows, output, sort_by, sort_desc, group_by_reason):
+    rows = aggregate_rows(rows, group_by_reason)
     rows = sort_rows(rows, sort_by, sort_desc)
     fieldnames = [
         "case_key",
@@ -303,8 +382,8 @@ def emit(rows, output, sort_by, sort_desc):
 
 
 def main():
-    baseline_dir, candidate_dir, output, sort_by, sort_desc = parse_args()
-    emit(compare(baseline_dir, candidate_dir), output, sort_by, sort_desc)
+    baseline_dir, candidate_dir, output, sort_by, sort_desc, group_by_reason = parse_args()
+    emit(compare(baseline_dir, candidate_dir), output, sort_by, sort_desc, group_by_reason)
 
 
 if __name__ == "__main__":
