@@ -167,6 +167,14 @@ def case_rows(path):
             root_bound_diagnostics = parse_root_bound_diagnostics(profile)
             root_workers = parse_root_workers(profile)
             solution_rank = profile_value(profile, "solution_rank")
+            root_ordering_mode = profile_value(profile, "root_ordering_mode")
+            adaptive_decision = profile_value(profile, "adaptive_decision")
+            adaptive_reason = profile_value(profile, "adaptive_reason")
+            adaptive_lb = profile_value(profile, "adaptive_lb")
+            adaptive_max_depth = profile_value(profile, "adaptive_max_depth")
+            adaptive_threads = profile_value(profile, "adaptive_threads")
+            adaptive_strong_min_count = profile_value(profile, "adaptive_strong_min_count")
+            adaptive_first_diff = profile_value(profile, "adaptive_first_diff")
             for root_rank, move, outcome, nodes, elapsed_ms in root_rows:
                 diagnostics = root_bound_diagnostics.get(root_rank, {})
                 yield {
@@ -184,6 +192,14 @@ def case_rows(path):
                     "nodes_expanded": nodes,
                     "root_elapsed_ms": elapsed_ms,
                     "root_nodes_per_ms": integer_ratio(nodes, elapsed_ms),
+                    "root_ordering_mode": root_ordering_mode,
+                    "adaptive_decision": adaptive_decision,
+                    "adaptive_reason": adaptive_reason,
+                    "adaptive_lb": adaptive_lb,
+                    "adaptive_max_depth": adaptive_max_depth,
+                    "adaptive_threads": adaptive_threads,
+                    "adaptive_strong_min_count": adaptive_strong_min_count,
+                    "adaptive_first_diff": adaptive_first_diff,
                     "cheap_node_prunes": diagnostics.get("cheap_node_prunes", ""),
                     "three_phase_node_checks": diagnostics.get("three_phase_node_checks", ""),
                     "three_phase_node_prunes": diagnostics.get("three_phase_node_prunes", ""),
@@ -242,6 +258,14 @@ def summarize_rows(rows):
             "max_root_elapsed_ms": 0,
             "worker_roots": {},
             "worker_elapsed_ms": {},
+            "root_ordering_mode": "",
+            "adaptive_decision": "",
+            "adaptive_reason": "",
+            "adaptive_lb": "",
+            "adaptive_max_depth": "",
+            "adaptive_threads": "",
+            "adaptive_strong_min_count": "",
+            "adaptive_first_diff": "",
         })
         nodes = int_value(row["nodes_expanded"]) or 0
         elapsed = int_value(row["root_elapsed_ms"]) or 0
@@ -263,6 +287,18 @@ def summarize_rows(rows):
             group["cache_setup_elapsed_ms"] = row["cache_setup_elapsed_ms"]
         if not group["cache_warm"]:
             group["cache_warm"] = row["cache_warm"]
+        for key in [
+            "root_ordering_mode",
+            "adaptive_decision",
+            "adaptive_reason",
+            "adaptive_lb",
+            "adaptive_max_depth",
+            "adaptive_threads",
+            "adaptive_strong_min_count",
+            "adaptive_first_diff",
+        ]:
+            if not group[key]:
+                group[key] = row[key]
         group["cheap_candidate_prunes"] += cheap_prunes
         group["three_phase_candidate_checks"] += three_phase_checks
         group["three_phase_candidate_prunes"] += three_phase_prunes
@@ -324,6 +360,14 @@ def summarize_rows(rows):
             "worker_roots_max": str(worker_roots_max),
             "max_worker_elapsed_ms": str(max_worker_elapsed),
             "worker_elapsed_imbalance_ms": str(worker_elapsed_imbalance),
+            "root_ordering_mode": group["root_ordering_mode"],
+            "adaptive_decision": group["adaptive_decision"],
+            "adaptive_reason": group["adaptive_reason"],
+            "adaptive_lb": group["adaptive_lb"],
+            "adaptive_max_depth": group["adaptive_max_depth"],
+            "adaptive_threads": group["adaptive_threads"],
+            "adaptive_strong_min_count": group["adaptive_strong_min_count"],
+            "adaptive_first_diff": group["adaptive_first_diff"],
         })
     return result
 
@@ -356,6 +400,14 @@ def emit(rows, output):
         "three_phase_candidate_prune_rate_ppm",
         "before_solution",
         "worker_index",
+        "root_ordering_mode",
+        "adaptive_decision",
+        "adaptive_reason",
+        "adaptive_lb",
+        "adaptive_max_depth",
+        "adaptive_threads",
+        "adaptive_strong_min_count",
+        "adaptive_first_diff",
     ]
     if output is None:
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")
@@ -395,6 +447,14 @@ def emit_summary(rows, output):
         "worker_roots_max",
         "max_worker_elapsed_ms",
         "worker_elapsed_imbalance_ms",
+        "root_ordering_mode",
+        "adaptive_decision",
+        "adaptive_reason",
+        "adaptive_lb",
+        "adaptive_max_depth",
+        "adaptive_threads",
+        "adaptive_strong_min_count",
+        "adaptive_first_diff",
     ]
     if output is None:
         writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")

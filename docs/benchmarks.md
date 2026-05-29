@@ -160,7 +160,11 @@ how much work is spent before the solution root in parallel optimal searches and
 which pruning counters dominate that work. It also reports derived integer
 metrics such as root nodes per millisecond, cheap candidate prunes per node in
 parts per million, and three-phase candidate prune rate in parts per million.
-Add `--summary` to emit one aggregate row per benchmark case.
+Add `--summary` to emit one aggregate row per benchmark case. The detail and
+summary outputs include adaptive scheduler fields from `rootOrderingProfile`
+when present, including `root_ordering_mode`, `adaptive_decision`,
+`adaptive_reason`, `adaptive_lb`, `adaptive_max_depth`, `adaptive_threads`,
+`adaptive_strong_min_count`, and `adaptive_first_diff`.
 
 When the input directory also contains `cache_setup.csv`, the analyzer includes
 `cache_setup_status`, `cache_setup_elapsed_ms`, and `cache_warm` in both detail
