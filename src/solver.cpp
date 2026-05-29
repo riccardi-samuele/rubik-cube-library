@@ -521,9 +521,16 @@ RootOrderingMode adaptiveRootOrderingMode(
         return requestedMode;
     }
 
-    return detail::chooseAdaptiveRootOrdering(inputs) == detail::AdaptiveRootOrderingDecision::ReverseTie
-        ? RootOrderingMode::ReverseTie
-        : RootOrderingMode::Default;
+    switch (detail::chooseAdaptiveRootOrdering(inputs)) {
+    case detail::AdaptiveRootOrderingDecision::ReverseTie:
+        return RootOrderingMode::ReverseTie;
+    case detail::AdaptiveRootOrderingDecision::HighBoundFirst:
+        return RootOrderingMode::HighBoundFirst;
+    case detail::AdaptiveRootOrderingDecision::Default:
+        return RootOrderingMode::Default;
+    }
+
+    return RootOrderingMode::Default;
 }
 
 bool experimentalCornerStateBoundsEnabled()

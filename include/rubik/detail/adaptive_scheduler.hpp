@@ -30,6 +30,7 @@ struct AdaptiveDeepSplitDecision {
 enum class AdaptiveRootOrderingDecision {
     Default,
     ReverseTie,
+    HighBoundFirst,
 };
 
 inline AdaptiveDeepSplitDecision chooseAdaptiveDeepSplit(const AdaptiveDeepSplitInputs& inputs)
@@ -94,6 +95,13 @@ inline AdaptiveRootOrderingDecision chooseAdaptiveRootOrdering(const AdaptiveDee
     const int remainingDepth = inputs.maxDepth - inputs.initialLowerBound;
     if (remainingDepth < 5) {
         return AdaptiveRootOrderingDecision::Default;
+    }
+
+    if (inputs.initialLowerBound == 8 &&
+        !inputs.firstMoveDiffers &&
+        inputs.strongMinCount >= 6 &&
+        inputs.strongMinCount <= 8) {
+        return AdaptiveRootOrderingDecision::HighBoundFirst;
     }
 
     if (inputs.initialLowerBound == 9 &&

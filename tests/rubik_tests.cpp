@@ -1582,6 +1582,19 @@ void testAdaptiveRootOrderingSelectsV6Lb9StableMidStrongMinCase()
     expect(decision == rubik::detail::AdaptiveRootOrderingDecision::ReverseTie);
 }
 
+void testAdaptiveRootOrderingSelectsV6Lb8StableMidStrongMinCase()
+{
+    const auto decision = rubik::detail::chooseAdaptiveRootOrdering({
+        .initialLowerBound = 8,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 7,
+        .firstMoveDiffers = false,
+    });
+
+    expect(decision == rubik::detail::AdaptiveRootOrderingDecision::HighBoundFirst);
+}
+
 void testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault()
 {
     const auto decision = rubik::detail::chooseAdaptiveRootOrdering({
@@ -1777,6 +1790,7 @@ int main()
     testAdaptiveSchedulerSelectsV6Depth14ConservativeCase();
     testAdaptiveSchedulerSelectsV6Lb9LowStrongMinTailCase();
     testAdaptiveRootOrderingSelectsV6Lb9StableMidStrongMinCase();
+    testAdaptiveRootOrderingSelectsV6Lb8StableMidStrongMinCase();
     testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault();
     testSolveMemoryLimit();
     testFastTinyScramble();
