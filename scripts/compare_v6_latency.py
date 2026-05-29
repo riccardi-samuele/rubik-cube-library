@@ -10,7 +10,7 @@ USAGE = "Usage: scripts/compare_v6_latency.py [options]"
 
 
 def parse_args():
-    value_options = {"--baseline-dir", "--candidate-dir", "--output"}
+    value_options = {"--baseline-dir", "--candidate-dir", "--output", "--sort-by"}
     argv = sys.argv[1:]
     for index, token in enumerate(argv):
         if token in value_options and (index + 1 >= len(argv) or argv[index + 1].startswith("-")):
@@ -26,6 +26,8 @@ def parse_args():
     parser.add_argument("--baseline-dir", default="")
     parser.add_argument("--candidate-dir", default="")
     parser.add_argument("--output", default="")
+    parser.add_argument("--sort-by", default="")
+    parser.add_argument("--sort-desc", action="store_true")
     parser.add_argument("-h", "--help", action="store_true")
     args, unknown = parser.parse_known_args()
 
@@ -36,13 +38,20 @@ def parse_args():
             "  --baseline-dir DIR   baseline V6 benchmark output directory\n"
             "  --candidate-dir DIR  candidate V6 benchmark output directory\n"
             "  --output FILE        write comparison CSV to file instead of stdout\n"
+            "  --sort-by FIELD      sort case rows by a numeric comparison field\n"
+            "  --sort-desc          sort case rows descending instead of ascending\n"
             "  -h, --help           show this help"
         )
         sys.exit(0)
     if unknown or not args.baseline_dir or not args.candidate_dir:
         print(USAGE, file=sys.stderr)
         sys.exit(2)
-    if args.baseline_dir.startswith("-") or args.candidate_dir.startswith("-") or args.output.startswith("-"):
+    if (
+        args.baseline_dir.startswith("-")
+        or args.candidate_dir.startswith("-")
+        or args.output.startswith("-")
+        or args.sort_by.startswith("-")
+    ):
         print(USAGE, file=sys.stderr)
         sys.exit(2)
 
@@ -50,6 +59,8 @@ def parse_args():
         Path(args.baseline_dir),
         Path(args.candidate_dir),
         Path(args.output) if args.output else None,
+        args.sort_by,
+        args.sort_desc,
     )
 
 
@@ -230,7 +241,19 @@ def compare(baseline_dir, candidate_dir):
     return rows
 
 
-def emit(rows, output):
+def sort_rows(rows, sort_by, sort_desc):
+    if not sort_by:
+        return rows
+    summary = [row for row in rows if row["case_key"] == "__summary__"]
+    cases = [row for row in rows if row["case_key"] != "__summary__"]
+    if not cases or sort_by not in cases[0]:
+        print(f"comparison failed: unknown sort field: {sort_by}", file=sys.stderr)
+        sys.exit(2)
+    return sorted(cases, key=lambda row: int_value(row.get(sort_by)), reverse=sort_desc) + summary
+
+
+def emit(rows, output, sort_by, sort_desc):
+    rows = sort_rows(rows, sort_by, sort_desc)
     fieldnames = [
         "case_key",
         "common_cases",
@@ -280,8 +303,8 @@ def emit(rows, output):
 
 
 def main():
-    baseline_dir, candidate_dir, output = parse_args()
-    emit(compare(baseline_dir, candidate_dir), output)
+    baseline_dir, candidate_dir, output, sort_by, sort_desc = parse_args()
+    emit(compare(baseline_dir, candidate_dir), output, sort_by, sort_desc)
 
 
 if __name__ == "__main__":
