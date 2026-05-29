@@ -646,20 +646,44 @@ int nodeExperimentalSymmetryLowerBound(const NodeLike& node)
 }
 
 template <typename NodeLike>
-int nodeBaseLowerBound(const NodeLike& node)
+int nodeBaseLowerBound(const NodeLike& node, int pruneAbove = std::numeric_limits<int>::max())
 {
     const auto cornerOrientationSliceIndex = node.cornerOrientation * coordinates::slice_edge_count + node.sliceEdges;
     const auto edgeOrientationSliceIndex = node.edgeOrientation * coordinates::slice_edge_count + node.sliceEdges;
     const auto cornerPermutationSliceIndex = node.cornerPermutation * coordinates::slice_edge_count + node.sliceEdges;
 
     int bound = static_cast<int>(pruning_tables::cornerOrientation()[node.cornerOrientation]);
+    if (bound > pruneAbove) {
+        return bound;
+    }
     bound = std::max(bound, static_cast<int>(pruning_tables::edgeOrientation()[node.edgeOrientation]));
+    if (bound > pruneAbove) {
+        return bound;
+    }
     bound = std::max(bound, static_cast<int>(pruning_tables::sliceEdges()[node.sliceEdges]));
+    if (bound > pruneAbove) {
+        return bound;
+    }
     bound = std::max(bound, static_cast<int>(pruning_tables::cornerPermutation()[node.cornerPermutation]));
+    if (bound > pruneAbove) {
+        return bound;
+    }
     bound = std::max(bound, static_cast<int>(pruning_tables::upEdgePermutation()[node.upEdgePermutation]));
+    if (bound > pruneAbove) {
+        return bound;
+    }
     bound = std::max(bound, static_cast<int>(pruning_tables::downEdgePermutation()[node.downEdgePermutation]));
+    if (bound > pruneAbove) {
+        return bound;
+    }
     bound = std::max(bound, static_cast<int>(pruning_tables::cornerOrientationSlice()[cornerOrientationSliceIndex]));
+    if (bound > pruneAbove) {
+        return bound;
+    }
     bound = std::max(bound, static_cast<int>(pruning_tables::edgeOrientationSlice()[edgeOrientationSliceIndex]));
+    if (bound > pruneAbove) {
+        return bound;
+    }
     bound = std::max(bound, static_cast<int>(pruning_tables::cornerPermutationSlice()[cornerPermutationSliceIndex]));
     return bound;
 }
@@ -675,7 +699,7 @@ int nodeLowerBoundWithoutThreePhase1(
     int* baseLowerBound = nullptr,
     int pruneAbove = std::numeric_limits<int>::max())
 {
-    int bound = nodeBaseLowerBound(node);
+    int bound = nodeBaseLowerBound(node, pruneAbove);
     if (baseLowerBound != nullptr) {
         *baseLowerBound = bound;
     }
