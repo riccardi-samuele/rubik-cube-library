@@ -1,0 +1,4 @@
+benchmark,name,optimal_auto_tail_auto_random_1_depth_15_seed_101
+benchmark,wall_elapsed_ms,1450
+case,case_depth,scramble,status,optimal,moves,initial_lower_bound,elapsed_ms,nodes_expanded,nodes_per_ms,max_depth,timeout_ms,nodes_by_depth,solution,optimal_move_ordering,root_ordering_profile
+random_101_1,15,"R U",Optimal,true,15,9,900,9500,10.5,15,30000,"1|2","U R",base_bound,"root_ordering_mode=phase2_tiebreak;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=9;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=14;adaptive_first_diff=0"

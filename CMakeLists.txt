@@ -1034,6 +1034,20 @@ add_test(
 set_tests_properties(compare_v4_tail_runs_fixture PROPERTIES
     PASS_REGULAR_EXPRESSION "__summary__,8411,7300,-1111,-13.21,9400,7600,-1800,59590724,52000000,-7590724,candidate"
 )
+add_test(
+    NAME compare_v6_latency_rejects_missing_values
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_v6_latency_rejects_missing_values.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_v6_latency.py
+)
+add_test(
+    NAME compare_v6_latency_fixture
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_v6_latency.py
+        --baseline-dir ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-baseline
+        --candidate-dir ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-candidate
+)
+set_tests_properties(compare_v6_latency_fixture PROPERTIES
+    PASS_REGULAR_EXPRESSION "__summary__,3,3300,3200,-100,-3.03,33000,35000,2000,2700,2850,150,candidate"
+)
 
 add_test(
     NAME benchmark_root_ordering_experiments_contract
