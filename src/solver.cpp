@@ -66,6 +66,16 @@ struct SearchNode {
     std::array<Phase1Coordinates, 2> extraPhase1Directions{};
 };
 
+struct SearchNodeCoordinates {
+    std::uint32_t cornerOrientation = 0;
+    std::uint32_t edgeOrientation = 0;
+    std::uint32_t sliceEdges = 0;
+    std::uint32_t cornerPermutation = 0;
+    std::uint32_t upEdgePermutation = 0;
+    std::uint32_t downEdgePermutation = 0;
+    std::array<Phase1Coordinates, 2> extraPhase1Directions{};
+};
+
 struct CubieCubeKey {
     std::uint64_t low = 0;
     std::uint64_t high = 0;
@@ -379,22 +389,43 @@ SearchNode makeSearchNode(const CubieCube& cube, bool includePhase1Directions)
     };
 }
 
-SearchNode moved(const SearchNode& node, Move move, bool includePhase1Directions)
+SearchNode makeSearchNode(const CubieCube& cube, const SearchNodeCoordinates& coordinates)
+{
+    return {
+        .cube = cube,
+        .cornerOrientation = coordinates.cornerOrientation,
+        .edgeOrientation = coordinates.edgeOrientation,
+        .sliceEdges = coordinates.sliceEdges,
+        .cornerPermutation = coordinates.cornerPermutation,
+        .upEdgePermutation = coordinates.upEdgePermutation,
+        .downEdgePermutation = coordinates.downEdgePermutation,
+        .extraPhase1Directions = coordinates.extraPhase1Directions,
+    };
+}
+
+SearchNodeCoordinates movedCoordinates(const SearchNode& node, Move move)
 {
     const int moveIndex = static_cast<int>(move);
 
     return {
-        .cube = node.cube.moved(move),
         .cornerOrientation = move_tables::cornerOrientation()[node.cornerOrientation][moveIndex],
         .edgeOrientation = move_tables::edgeOrientation()[node.edgeOrientation][moveIndex],
         .sliceEdges = move_tables::sliceEdges()[node.sliceEdges][moveIndex],
         .cornerPermutation = move_tables::cornerPermutation()[node.cornerPermutation][moveIndex],
         .upEdgePermutation = move_tables::upEdgePermutation()[node.upEdgePermutation][moveIndex],
         .downEdgePermutation = move_tables::downEdgePermutation()[node.downEdgePermutation][moveIndex],
-        .extraPhase1Directions = includePhase1Directions
-            ? movedExtraPhase1Directions(node, move)
-            : std::array<Phase1Coordinates, 2>{},
+        .extraPhase1Directions = {},
     };
+}
+
+SearchNode moved(const SearchNode& node, Move move, bool includePhase1Directions)
+{
+    SearchNodeCoordinates coordinates = movedCoordinates(node, move);
+    if (includePhase1Directions) {
+        coordinates.extraPhase1Directions = movedExtraPhase1Directions(node, move);
+    }
+
+    return makeSearchNode(node.cube.moved(move), coordinates);
 }
 
 bool experimentalSymmetryBoundsEnabled()
@@ -575,7 +606,8 @@ int phase1CoordinateLowerBound(
     return bound;
 }
 
-int nodeThreePhase1LowerBound(const SearchNode& node, int pruneAbove = std::numeric_limits<int>::max())
+template <typename NodeLike>
+int nodeThreePhase1LowerBound(const NodeLike& node, int pruneAbove = std::numeric_limits<int>::max())
 {
     const Phase1BoundTables& tables = phase1BoundTables();
     int bound = phase1CoordinateLowerBound(node.extraPhase1Directions[0], tables, pruneAbove);
@@ -586,7 +618,8 @@ int nodeThreePhase1LowerBound(const SearchNode& node, int pruneAbove = std::nume
     return bound;
 }
 
-int nodeExperimentalSymmetryLowerBound(const SearchNode& node)
+template <typename NodeLike>
+int nodeExperimentalSymmetryLowerBound(const NodeLike& node)
 {
     const auto cornerEdgeState =
         node.cornerOrientation * coordinates::edge_orientation_count +
@@ -612,7 +645,8 @@ int nodeExperimentalSymmetryLowerBound(const SearchNode& node)
     });
 }
 
-int nodeBaseLowerBound(const SearchNode& node)
+template <typename NodeLike>
+int nodeBaseLowerBound(const NodeLike& node)
 {
     const auto cornerOrientationSliceIndex = node.cornerOrientation * coordinates::slice_edge_count + node.sliceEdges;
     const auto edgeOrientationSliceIndex = node.edgeOrientation * coordinates::slice_edge_count + node.sliceEdges;
@@ -630,8 +664,9 @@ int nodeBaseLowerBound(const SearchNode& node)
     return bound;
 }
 
+template <typename NodeLike>
 int nodeLowerBoundWithoutThreePhase1(
-    const SearchNode& node,
+    const NodeLike& node,
     SolveProfile profile,
     bool includeExperimentalSymmetryBounds,
     bool includeExperimentalCornerStateBounds,
@@ -1190,10 +1225,10 @@ int collectCandidateMoves(
             continue;
         }
 
-        SearchNode next = moved(node, move, false);
+        SearchNodeCoordinates nextCoordinates = movedCoordinates(node, move);
         int candidateBaseLowerBound = 0;
         const int candidateCheapLowerBound = nodeLowerBoundWithoutThreePhase1(
-            next,
+            nextCoordinates,
             profile,
             includeExperimentalSymmetryBounds,
             includeExperimentalCornerStateBounds,
@@ -1204,9 +1239,6 @@ int collectCandidateMoves(
         const int candidateOrderBound = useStrongMoveOrdering
             ? -1
             : candidateBaseLowerBound;
-        const int candidatePhase2OrderBound = usePhase2MoveOrdering
-            ? nodePhase2OrderingLowerBound(next)
-            : -1;
 
         if (depth + 1 + candidateCheapLowerBound > limit) {
             if (diagnostics != nullptr) {
@@ -1216,7 +1248,7 @@ int collectCandidateMoves(
         }
 
         if (includeThreePhase1Bounds) {
-            next.extraPhase1Directions = movedExtraPhase1Directions(node, move);
+            nextCoordinates.extraPhase1Directions = movedExtraPhase1Directions(node, move);
         }
 
         int candidateLowerBound = candidateCheapLowerBound;
@@ -1226,7 +1258,7 @@ int collectCandidateMoves(
             }
             candidateLowerBound = std::max(
                 candidateLowerBound,
-                nodeThreePhase1LowerBound(next, limit - depth - 1));
+                nodeThreePhase1LowerBound(nextCoordinates, limit - depth - 1));
         }
         if (depth + 1 + candidateLowerBound > limit) {
             if (diagnostics != nullptr) {
@@ -1234,6 +1266,11 @@ int collectCandidateMoves(
             }
             continue;
         }
+
+        SearchNode next = makeSearchNode(node.cube.moved(move), nextCoordinates);
+        const int candidatePhase2OrderBound = usePhase2MoveOrdering
+            ? nodePhase2OrderingLowerBound(next)
+            : -1;
 
         candidates[candidateCount] = {
             .move = move,
