@@ -101,6 +101,7 @@ than 24 moves.
 Current profile comparison:
 
 - [V4 Adaptive Deep Split Results - 2026-05-28](v4-adaptive-deep-split-results-2026-05-28.md)
+- [V6 Require-Warm Benchmark Guard - 2026-05-30](v6-optimal-latency-pass36-2026-05-30.md)
 - [V4 Deep Root Splitting Results - 2026-05-28](v4-deep-root-splitting-results-2026-05-28.md)
 - [V4 Local Baseline - 2026-05-27](v4-local-baseline-2026-05-27.md)
 - [Auto Optimal Hardening - 2026-05-27](optimal-auto-hardening-2026-05-27.md)
@@ -341,6 +342,9 @@ scripts/run_v6_tail_baseline.sh \
   --cache-dir /tmp/rubik_cube_library_v6_tail_baseline_cache \
   --cache-mode require-warm
 ```
+
+The same guard is available through the
+`rubik-benchmark-v6-tail-baseline-require-warm` CMake target.
 
 `--cache-mode require-warm` runs a dry cache check and exits before creating
 benchmark output directories if required table files are missing. This mode is
