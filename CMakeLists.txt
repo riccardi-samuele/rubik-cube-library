@@ -955,6 +955,11 @@ add_test(
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_tail_baseline.sh
 )
 add_test(
+    NAME run_v6_tail_baseline_require_warm_rejects_cold_cache
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v6_tail_baseline_require_warm_rejects_cold_cache.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_tail_baseline.sh
+)
+add_test(
     NAME run_v4_deep_split_ab_help
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_deep_split_ab.sh --help
 )

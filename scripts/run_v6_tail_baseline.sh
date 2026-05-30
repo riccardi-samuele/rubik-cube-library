@@ -31,7 +31,7 @@ Options:
   --max-memory-mb N      solver memory limit, default: 2048
   --deep-opt14-count N   hardening depth-14 cases per seed, default: 2
   --deep-opt15-count N   depth-15 cases per seed, default: 1
-  --cache-mode MODE      warm|cold|reuse, default: warm
+  --cache-mode MODE      warm|cold|reuse|require-warm, default: warm
   -h, --help             show this help
 USAGE
 }
@@ -123,7 +123,10 @@ if (( timeout_ms < 1 || max_memory_mb < 1 || deep_opt14_count < 1 || deep_opt15_
     exit 2
 fi
 
-if [[ "${cache_mode}" != "warm" && "${cache_mode}" != "cold" && "${cache_mode}" != "reuse" ]]; then
+if [[ "${cache_mode}" != "warm" &&
+      "${cache_mode}" != "cold" &&
+      "${cache_mode}" != "reuse" &&
+      "${cache_mode}" != "require-warm" ]]; then
     usage >&2
     exit 2
 fi
@@ -181,6 +184,21 @@ if [[ "${cache_mode}" == "reuse" ]]; then
         echo "cache_setup,status,Skipped"
         echo "cache_setup,message,cache setup skipped by cache-mode reuse"
     } > "${cache_setup_output}"
+elif [[ "${cache_mode}" == "require-warm" ]]; then
+    "${cache_setup}" \
+        --profile auto \
+        --threads "${threads}" \
+        --max-memory-mb "${max_memory_mb}" \
+        --cache-dir "${cache_dir}" \
+        --dry-run \
+        --format csv \
+        | tee "${cache_setup_output}"
+    cache_warm="$(awk -F, '$1 == "cache_setup" && $2 == "cache_warm" { print $3; exit }' "${cache_setup_output}")"
+    bytes_missing="$(awk -F, '$1 == "cache_setup" && $2 == "bytes_missing" { print $3; exit }' "${cache_setup_output}")"
+    if [[ "${cache_warm}" != "true" ]]; then
+        echo "cache is not warm for V6 tail baseline; run rubik-cache-setup first (bytes_missing=${bytes_missing:-unknown})" >&2
+        exit 1
+    fi
 else
     "${cache_setup}" \
         --profile auto \
