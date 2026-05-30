@@ -162,6 +162,8 @@ if [[ "${cache_mode}" == "cold" ]]; then
 fi
 
 manifest_file="${output_dir}/manifest.csv"
+cache_setup_output="${output_dir}/cache_setup.csv"
+cache_setup_elapsed_ms="0"
 {
     echo "key,value"
     echo "git_revision,$(git -C "${repo_root}" rev-parse --short HEAD 2>/dev/null || echo unknown)"
@@ -176,15 +178,17 @@ manifest_file="${output_dir}/manifest.csv"
     echo "deep_opt14_count,${deep_opt14_count}"
     echo "deep_opt15_count,${deep_opt15_count}"
     echo "cache_mode,${cache_mode}"
+    echo "cache_setup_output,${cache_setup_output}"
+    echo "cache_setup_elapsed_ms,${cache_setup_elapsed_ms}"
 } > "${manifest_file}"
 
-cache_setup_output="${output_dir}/cache_setup.csv"
 if [[ "${cache_mode}" == "reuse" ]]; then
     {
         echo "cache_setup,status,Skipped"
         echo "cache_setup,message,cache setup skipped by cache-mode reuse"
     } > "${cache_setup_output}"
 elif [[ "${cache_mode}" == "require-warm" ]]; then
+    cache_setup_started_at="$(date +%s%3N)"
     "${cache_setup}" \
         --profile auto \
         --threads "${threads}" \
@@ -193,6 +197,9 @@ elif [[ "${cache_mode}" == "require-warm" ]]; then
         --dry-run \
         --format csv \
         | tee "${cache_setup_output}"
+    cache_setup_ended_at="$(date +%s%3N)"
+    cache_setup_elapsed_ms="$((cache_setup_ended_at - cache_setup_started_at))"
+    sed -i "s/^cache_setup_elapsed_ms,.*/cache_setup_elapsed_ms,${cache_setup_elapsed_ms}/" "${manifest_file}"
     cache_warm="$(awk -F, '$1 == "cache_setup" && $2 == "cache_warm" { print $3; exit }' "${cache_setup_output}")"
     bytes_missing="$(awk -F, '$1 == "cache_setup" && $2 == "bytes_missing" { print $3; exit }' "${cache_setup_output}")"
     if [[ "${cache_warm}" != "true" ]]; then
@@ -200,6 +207,7 @@ elif [[ "${cache_mode}" == "require-warm" ]]; then
         exit 1
     fi
 else
+    cache_setup_started_at="$(date +%s%3N)"
     "${cache_setup}" \
         --profile auto \
         --threads "${threads}" \
@@ -207,6 +215,9 @@ else
         --cache-dir "${cache_dir}" \
         --format csv \
         | tee "${cache_setup_output}"
+    cache_setup_ended_at="$(date +%s%3N)"
+    cache_setup_elapsed_ms="$((cache_setup_ended_at - cache_setup_started_at))"
+    sed -i "s/^cache_setup_elapsed_ms,.*/cache_setup_elapsed_ms,${cache_setup_elapsed_ms}/" "${manifest_file}"
 fi
 
 tail_output_dir="${output_dir}/optimal-auto-tail"

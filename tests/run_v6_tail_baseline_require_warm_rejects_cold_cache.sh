@@ -34,6 +34,16 @@ if ! grep -q "cache is not warm" "${output_file}"; then
     exit 1
 fi
 
+manifest_file="${tmp_dir}/out/manifest.csv"
+if [[ ! -f "${manifest_file}" ]]; then
+    find "${tmp_dir}/out" -maxdepth 2 -type f >&2 || true
+    echo "expected manifest before cold cache rejection" >&2
+    exit 1
+fi
+
+grep -q "cache_setup_output,${tmp_dir}/out/cache_setup.csv" "${manifest_file}"
+grep -Eq "cache_setup_elapsed_ms,[0-9]+" "${manifest_file}"
+
 if [[ -d "${tmp_dir}/out/optimal-auto-tail" || -d "${tmp_dir}/out/optimal-auto-hardening" ]]; then
     find "${tmp_dir}/out" -maxdepth 2 -type d >&2
     echo "benchmark directories should not be created after cold cache rejection" >&2
