@@ -36,6 +36,8 @@ Implemented:
 - CLI solver;
 - CLI benchmark runner;
 - V4 CPU tail discovery, replay, and A/B comparison tooling;
+- V6 local optimal-latency comparison tooling, including a `require-warm`
+  benchmark path for cache-sensitive tail probes;
 - profile-smoke, profile-realistic, Auto, embedded-multiseed, optimal-stress,
   Auto tail, and large local benchmark suites;
 - example programs;
@@ -129,9 +131,11 @@ Candidate focus areas:
    changes that preserve admissibility.
 2. Improve benchmark tooling so promoted defaults can still be compared against
    previous policies without changing source code.
-3. Keep embedded-oriented memory and cache behavior explicit until Raspberry Pi,
+3. Keep latency-sensitive benchmark runs separated from first-run table
+   generation by using explicit cache setup or `require-warm` checks.
+4. Keep embedded-oriented memory and cache behavior explicit until Raspberry Pi,
    Jetson Nano, and Jetson Orin measurements are available.
-4. Continue separating certified optimal behavior from experimental fast-mode
+5. Continue separating certified optimal behavior from experimental fast-mode
    behavior in API and documentation.
 
 ## Historical Road To 3.0
@@ -313,6 +317,10 @@ Available suites:
   embedded-multiseed, optimal-stress, optimal-tail-cases, optimal-deep-probe,
   embedded-fast-tail-cases, embedded-fast-failures, fast-100, optimal-depth,
   and tail-diagnostics.
+
+Additional CMake benchmark targets include
+`rubik-benchmark-v6-tail-baseline-require-warm`, a V6 local optimal
+tail-latency probe that rejects incomplete large-local caches before solving.
 
 ## Release Discipline
 
