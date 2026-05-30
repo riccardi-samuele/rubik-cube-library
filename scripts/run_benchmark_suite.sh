@@ -19,6 +19,7 @@ deep_optimal_depth14_count="2"
 deep_optimal_depth15_count="1"
 benchmark_threads="1"
 benchmark_max_memory_mb="1024"
+command_timeout_ms="${RUBIK_BENCH_COMMAND_TIMEOUT_MS:-0}"
 
 usage() {
     cat <<'USAGE'
@@ -177,6 +178,11 @@ if (( fast_max_depth < 1 || benchmark_threads < 0 || benchmark_max_memory_mb < 1
     exit 2
 fi
 
+if [[ ! "${command_timeout_ms}" =~ ^[0-9]+$ ]]; then
+    echo "RUBIK_BENCH_COMMAND_TIMEOUT_MS must be a non-negative integer" >&2
+    exit 2
+fi
+
 IFS=',' read -r -a seed_list <<< "${seeds}"
 for seed_value in "${seed_list[@]}"; do
     if [[ -z "${seed_value}" ]]; then
@@ -220,12 +226,23 @@ run_benchmark() {
     started_at="$(date +%s%3N)"
 
     set +e
-    RUBIK_TABLE_CACHE_DIR="${cache_dir}" "${bench}" "$@" | tee -a "${output_file}"
+    if (( command_timeout_ms > 0 )); then
+        command_timeout_seconds="$(
+            awk -v ms="${command_timeout_ms}" 'BEGIN { printf "%.3f", ms / 1000.0 }'
+        )"
+        timeout --kill-after=5s "${command_timeout_seconds}s" \
+            env RUBIK_TABLE_CACHE_DIR="${cache_dir}" "${bench}" "$@" | tee -a "${output_file}"
+    else
+        RUBIK_TABLE_CACHE_DIR="${cache_dir}" "${bench}" "$@" | tee -a "${output_file}"
+    fi
     local status="${PIPESTATUS[0]}"
     set -e
 
     local ended_at
     ended_at="$(date +%s%3N)"
+    if [[ "${status}" -eq 124 || "${status}" -eq 137 ]]; then
+        echo "benchmark,error,command hard timeout after ${command_timeout_ms} ms" | tee -a "${output_file}"
+    fi
     echo "benchmark,wall_elapsed_ms,$((ended_at - started_at))" | tee -a "${output_file}"
 
     return "${status}"
