@@ -326,6 +326,28 @@ The CMake `optimal-auto-tail` and `optimal-auto-hardening` targets run
 `rubik-cache-setup` before solving so their gated rows track search latency, not
 first-run table generation.
 
+For V6 tail-latency probes that must not spend time creating missing large-local
+tables, prewarm the cache first and then require it to be complete:
+
+```sh
+./build/rubik-cache-setup \
+  --profile auto \
+  --threads 0 \
+  --max-memory-mb 2048 \
+  --cache-dir /tmp/rubik_cube_library_v6_tail_baseline_cache
+
+scripts/run_v6_tail_baseline.sh \
+  --build-dir out/release-native-lto \
+  --cache-dir /tmp/rubik_cube_library_v6_tail_baseline_cache \
+  --cache-mode require-warm
+```
+
+`--cache-mode require-warm` runs a dry cache check and exits before creating
+benchmark output directories if required table files are missing. This mode is
+for latency-sensitive comparison runs. Use `--cache-mode warm` when the runner
+should prepare the cache as part of the benchmark workflow and record that setup
+separately in `cache_setup.csv`.
+
 The root-ordering experiment runner prepares cache by default:
 
 ```sh
