@@ -565,6 +565,18 @@ add_custom_target(rubik-benchmark-v6-tail-baseline
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running V6 optimal local tail baseline"
 )
+add_custom_target(rubik-benchmark-v6-tail-baseline-require-warm
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_tail_baseline.sh
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cache-dir /tmp/rubik_cube_library_v6_tail_baseline_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/v6-tail-baseline-require-warm
+        --threads 0
+        --max-memory-mb 2048
+        --cache-mode require-warm
+    DEPENDS rubik-bench rubik-cache-setup
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running V6 optimal local tail baseline with a prewarmed cache requirement"
+)
 add_custom_target(rubik-benchmark-v4-tail-discovery
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_tail_discovery.sh
         --build-dir ${CMAKE_CURRENT_BINARY_DIR}
@@ -958,6 +970,11 @@ add_test(
     NAME run_v6_tail_baseline_require_warm_rejects_cold_cache
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v6_tail_baseline_require_warm_rejects_cold_cache.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_tail_baseline.sh
+)
+add_test(
+    NAME cmake_v6_require_warm_target
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake_v6_require_warm_target.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 )
 add_test(
     NAME run_v4_deep_split_ab_help
