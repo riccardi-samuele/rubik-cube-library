@@ -577,6 +577,19 @@ add_custom_target(rubik-benchmark-v6-tail-baseline-require-warm
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running V6 optimal local tail baseline with a prewarmed cache requirement"
 )
+add_custom_target(rubik-benchmark-v6-conservative-root-probe
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_conservative_root_probe.sh
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cache-dir /tmp/rubik_cube_library_v6_tail_baseline_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/v6-conservative-root-probe
+        --corpus-file ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/v6_conservative_root_corpus.csv
+        --threads 0
+        --max-memory-mb 2048
+        --cache-mode require-warm
+    DEPENDS rubik-bench rubik-cache-setup
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running V6 conservative-root local optimal probe"
+)
 add_custom_target(rubik-benchmark-v4-tail-discovery
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_tail_discovery.sh
         --build-dir ${CMAKE_CURRENT_BINARY_DIR}
@@ -970,6 +983,16 @@ add_test(
     NAME run_v6_tail_baseline_require_warm_rejects_cold_cache
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v6_tail_baseline_require_warm_rejects_cold_cache.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_tail_baseline.sh
+)
+add_test(
+    NAME run_v6_conservative_root_probe_rejects_missing_values
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v6_conservative_root_probe_rejects_missing_values.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_conservative_root_probe.sh
+)
+add_test(
+    NAME run_v6_conservative_root_probe_rejects_invalid_corpus
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v6_conservative_root_probe_rejects_invalid_corpus.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_conservative_root_probe.sh
 )
 add_test(
     NAME cmake_v6_require_warm_target
