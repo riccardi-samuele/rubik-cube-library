@@ -107,12 +107,79 @@ def rank_bucket(rank):
     return "10+"
 
 
+def dominant_share_bucket(share):
+    if share < 0:
+        return "unknown"
+    if share >= 60:
+        return "high"
+    if share >= 35:
+        return "medium"
+    return "low"
+
+
 def case_key(row):
     return f"hardening:depth15:seed{row['seed']}:{row['case_name']}"
 
 
 def bucket_name(lb, strong_min_count, first_diff):
     return f"lb{lb}_s{strong_min_bucket(strong_min_count)}_fd{first_diff}"
+
+
+def move_from_order_entry(entry):
+    return entry.split("/", 1)[0]
+
+
+def solution_order_rank(root_order, solution_first):
+    if not root_order or not solution_first:
+        return 0
+    for index, entry in enumerate(root_order.split("|"), start=1):
+        if move_from_order_entry(entry) == solution_first:
+            return index
+    return 0
+
+
+def parse_root_search(root_search):
+    rows = []
+    if not root_search:
+        return rows
+    for entry in root_search.split("|"):
+        pieces = entry.split(":")
+        if len(pieces) < 4:
+            continue
+        rows.append({
+            "move": pieces[0],
+            "status": pieces[1],
+            "nodes": int_value(pieces[2]),
+            "elapsed": int_value(pieces[3]),
+        })
+    return rows
+
+
+def root_search_features(root_search, solution_first):
+    search_rows = parse_root_search(root_search)
+    if not search_rows:
+        return {
+            "solution_root_status": "unknown",
+            "dominant_child_share_percent": "-1",
+            "dominant_child_share_bucket": "unknown",
+            "dominant_child_move": "unknown",
+        }
+
+    total_nodes = sum(row["nodes"] for row in search_rows)
+    dominant = max(search_rows, key=lambda row: row["nodes"])
+    share = round(dominant["nodes"] * 100.0 / total_nodes) if total_nodes else 0
+    solution_status = "missing"
+    for row in search_rows:
+        if row["move"] == solution_first:
+            solution_status = row["status"]
+            break
+
+    return {
+        "solution_root_status": solution_status,
+        "dominant_child_share_percent": str(share),
+        "dominant_child_share_bucket": dominant_share_bucket(share),
+        "dominant_child_move": dominant["move"],
+    }
 
 
 def summarize(rows):
@@ -123,6 +190,10 @@ def summarize(rows):
         grouped[("solution_rank_bucket", row["solution_rank_bucket"])].append(row)
         grouped[("solution_matches_base_first", row["solution_matches_base_first"])].append(row)
         grouped[("solution_matches_strong_first", row["solution_matches_strong_first"])].append(row)
+        grouped[("solution_order_rank_bucket", row["solution_order_rank_bucket"])].append(row)
+        grouped[("solution_root_status", row["solution_root_status"])].append(row)
+        grouped[("dominant_child_share_bucket", row["dominant_child_share_bucket"])].append(row)
+        grouped[("dominant_child_move", row["dominant_child_move"])].append(row)
 
     summary_rows = []
     for (feature, value) in sorted(grouped):
@@ -173,6 +244,8 @@ def analyze(run_dirs):
             solution_first = profile_values.get("solution_first", "")
             base_first = profile_values.get("base_first", "")
             strong_first = profile_values.get("strong_first", "")
+            root_features = root_search_features(profile_values.get("root_search", ""), solution_first)
+            order_rank = solution_order_rank(profile_values.get("root_order", ""), solution_first)
             case_rows.append({
                 "case_key": key,
                 "profile": comparison["profile"],
@@ -181,6 +254,12 @@ def analyze(run_dirs):
                 "solution_rank_bucket": rank_bucket(solution_rank),
                 "solution_matches_base_first": "1" if solution_first == base_first else "0",
                 "solution_matches_strong_first": "1" if solution_first == strong_first else "0",
+                "solution_order_rank": str(order_rank),
+                "solution_order_rank_bucket": rank_bucket(order_rank),
+                "solution_root_status": root_features["solution_root_status"],
+                "dominant_child_share_percent": root_features["dominant_child_share_percent"],
+                "dominant_child_share_bucket": root_features["dominant_child_share_bucket"],
+                "dominant_child_move": root_features["dominant_child_move"],
                 "baseline_elapsed_ms": comparison["baseline_elapsed_ms"],
                 "candidate_elapsed_ms": comparison["candidate_elapsed_ms"],
                 "elapsed_delta_ms": comparison["elapsed_delta_ms"],
@@ -222,6 +301,12 @@ def main():
         "solution_rank_bucket",
         "solution_matches_base_first",
         "solution_matches_strong_first",
+        "solution_order_rank",
+        "solution_order_rank_bucket",
+        "solution_root_status",
+        "dominant_child_share_percent",
+        "dominant_child_share_bucket",
+        "dominant_child_move",
         "elapsed_delta_ms",
         "elapsed_delta_percent",
         "nodes_delta",
