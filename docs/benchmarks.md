@@ -126,6 +126,7 @@ Current profile comparison:
 - [V6 Conservative-Root Bucket Replay - 2026-05-31](v6-optimal-latency-pass52-2026-05-31.md)
 - [V6 Conservative-Root 9-12 Bucket Replay - 2026-05-31](v6-optimal-latency-pass53-2026-05-31.md)
 - [V6 Conservative-Root 13-16 Bucket Replay - 2026-05-31](v6-optimal-latency-pass54-2026-05-31.md)
+- [V6 Conservative-Root Phase2 Tiebreak Closeout - 2026-05-31](v6-optimal-latency-pass55-2026-05-31.md)
 - [V4 Deep Root Splitting Results - 2026-05-28](v4-deep-root-splitting-results-2026-05-28.md)
 - [V4 Local Baseline - 2026-05-27](v4-local-baseline-2026-05-27.md)
 - [Auto Optimal Hardening - 2026-05-27](optimal-auto-hardening-2026-05-27.md)
