@@ -1,0 +1,2 @@
+case_key,common_cases,baseline_elapsed_ms,candidate_elapsed_ms,elapsed_delta_ms,elapsed_delta_percent,baseline_nodes,candidate_nodes,nodes_delta,winner
+hardening:depth15:seed42:missing_case,,1000,900,-100,-10.00,5000,4500,-500,candidate

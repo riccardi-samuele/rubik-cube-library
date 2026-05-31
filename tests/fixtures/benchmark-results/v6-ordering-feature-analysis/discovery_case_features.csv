@@ -1,0 +1,3 @@
+case_key,profile,bucket,solution_rank,solution_rank_bucket,solution_matches_base_first,solution_matches_strong_first,solution_order_rank,solution_order_rank_bucket,solution_root_status,dominant_child_share_percent,dominant_child_share_bucket,dominant_child_move,discovery_elapsed_ms,discovery_nodes
+hardening:depth15:seed42:random_42_1,8:7:1,lb8_s5-8_fd1,13,10+,0,0,3,1-3,found,70,high,D,1000,5000
+hardening:depth15:seed42:random_42_2,8:11:1,lb8_s9-12_fd1,1,1-3,1,1,1,1-3,found,40,medium,U,2000,10000
