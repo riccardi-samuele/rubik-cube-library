@@ -17,6 +17,10 @@ overlaps the existing `reverse_tie` adaptive rule. The replayed positive cases
 in that bucket had `strongMinCount` values of 2 and 3, so the promoted rule keeps
 the existing `strongMinCount == 4` path unchanged.
 
+`RUBIK_DISABLE_POSITIVE_HIGH_BOUND_ROOT_ORDERING=1` disables only these promoted
+positive high-bound buckets. It does not disable the older adaptive
+`high_bound_first` rule for `lb8_s6-8_fd0`.
+
 ## Replay command
 
 ```bash

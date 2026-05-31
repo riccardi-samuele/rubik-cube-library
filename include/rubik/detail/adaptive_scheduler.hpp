@@ -40,6 +40,12 @@ inline bool adaptiveHighBoundRootOrderingDisabled()
     return value != nullptr && value[0] != '\0' && std::string(value) != "0";
 }
 
+inline bool positiveHighBoundRootOrderingDisabled()
+{
+    const char* value = std::getenv("RUBIK_DISABLE_POSITIVE_HIGH_BOUND_ROOT_ORDERING");
+    return value != nullptr && value[0] != '\0' && std::string(value) != "0";
+}
+
 inline bool positiveHighBoundRootOrderingCandidate(const AdaptiveDeepSplitInputs& inputs)
 {
     if (inputs.threads < 4) {
@@ -145,6 +151,7 @@ inline AdaptiveRootOrderingDecision chooseAdaptiveRootOrdering(const AdaptiveDee
     }
 
     if (!adaptiveHighBoundRootOrderingDisabled() &&
+        !positiveHighBoundRootOrderingDisabled() &&
         positiveHighBoundRootOrderingCandidate(inputs)) {
         return AdaptiveRootOrderingDecision::HighBoundFirst;
     }
