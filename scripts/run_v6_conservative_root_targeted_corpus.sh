@@ -17,6 +17,7 @@ random_start_index="1"
 random_start_indices=""
 target_profiles="8:7:1,8:11:1,9:14:0"
 target_buckets=""
+target_feature=""
 min_target_cases="1"
 discovery_only="false"
 sweep_script="${script_dir}/run_v6_conservative_root_ordering_sweep.sh"
@@ -40,6 +41,7 @@ Options:
   --random-start-indices L  comma-separated first case indices; overrides --random-start-index
   --target-profiles LIST    comma-separated lb:strong_min:first_diff profiles, or all
   --target-buckets LIST     comma-separated buckets like lb8_s5-8_fd1
+  --target-feature SPEC     feature filter, currently solution_rank_bucket=10+
   --min-target-cases N      minimum matching cases required, default: 1
   --discovery-only          stop after writing targeted corpus and profile counts
   --sweep-script FILE       ordering sweep runner
@@ -122,6 +124,11 @@ while [[ $# -gt 0 ]]; do
             target_buckets="$2"
             shift 2
             ;;
+        --target-feature)
+            require_value "$@"
+            target_feature="$2"
+            shift 2
+            ;;
         --min-target-cases)
             require_value "$@"
             min_target_cases="$2"
@@ -184,6 +191,11 @@ if [[ -n "${target_buckets}" && ! "${target_buckets}" =~ ^lb[0-9]+_s(0-4|5-8|9-1
     exit 2
 fi
 
+if [[ -n "${target_feature}" && ! "${target_feature}" =~ ^solution_rank_bucket=(1-3|4-6|7-9|10\+)$ ]]; then
+    usage >&2
+    exit 2
+fi
+
 if [[ -z "${random_start_indices}" ]]; then
     random_start_indices="${random_start_index}"
 fi
@@ -232,6 +244,7 @@ target_profile_counts="${output_dir}/targeted_profile_counts.csv"
     echo "random_start_indices,${random_start_indices}"
     echo "target_profiles,${target_profiles}"
     echo "target_buckets,${target_buckets}"
+    echo "target_feature,${target_feature}"
     echo "min_target_cases,${min_target_cases}"
     echo "discovery_only,${discovery_only}"
     echo "sweep_script,${sweep_script}"
@@ -275,12 +288,40 @@ strong_min_bucket() {
     fi
 }
 
+solution_rank_bucket() {
+    local rank="$1"
+    if (( rank <= 3 )); then
+        echo "1-3"
+    elif (( rank <= 6 )); then
+        echo "4-6"
+    elif (( rank <= 9 )); then
+        echo "7-9"
+    else
+        echo "10+"
+    fi
+}
+
 profile_is_targeted() {
     local profile="$1"
-    local lb strong_min first_diff candidate bucket strong_bucket
+    local lb strong_min first_diff candidate bucket strong_bucket feature_name feature_value solution_rank solution_bucket
     lb="$(extract_profile_value "${profile}" "adaptive_lb")"
     strong_min="$(extract_profile_value "${profile}" "adaptive_strong_min_count")"
     first_diff="$(extract_profile_value "${profile}" "adaptive_first_diff")"
+
+    if [[ -n "${target_feature}" ]]; then
+        feature_name="${target_feature%%=*}"
+        feature_value="${target_feature#*=}"
+        if [[ "${feature_name}" == "solution_rank_bucket" ]]; then
+            solution_rank="$(extract_profile_value "${profile}" "solution_rank")"
+            if [[ -z "${solution_rank}" || ! "${solution_rank}" =~ ^[0-9]+$ ]]; then
+                return 1
+            fi
+            solution_bucket="$(solution_rank_bucket "${solution_rank}")"
+            [[ "${solution_bucket}" == "${feature_value}" ]]
+            return
+        fi
+        return 1
+    fi
 
     if [[ -n "${target_buckets}" ]]; then
         strong_bucket="$(strong_min_bucket "${strong_min}")"

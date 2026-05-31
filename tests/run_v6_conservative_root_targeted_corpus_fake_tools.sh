@@ -66,16 +66,16 @@ for ((offset = 0; offset < count; offset += 1)); do
     case_index=$((start_index + offset))
     case "${case_index}" in
         1|4)
-            profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=8;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=11;adaptive_first_diff=1"
+            profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=8;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=11;adaptive_first_diff=1;solution_rank=13"
             ;;
         2)
-            profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=8;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=7;adaptive_first_diff=1"
+            profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=8;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=7;adaptive_first_diff=1;solution_rank=1"
             ;;
         3)
-            profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=9;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=4;adaptive_first_diff=0"
+            profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=9;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=4;adaptive_first_diff=0;solution_rank=4"
             ;;
         5)
-            profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=8;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=5;adaptive_first_diff=1"
+            profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=8;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=5;adaptive_first_diff=1;solution_rank=10"
             ;;
         *)
             profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=deep_split;adaptive_reason=lb9_mid_strong_min;adaptive_lb=9;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=4;adaptive_first_diff=0"
@@ -226,5 +226,31 @@ if grep -q "42,1,random_42_1,8,11,1" "${tmp_dir}/bucket-filter/targeted_cases.cs
 fi
 if grep -q "42,3,random_42_3,9,4,0" "${tmp_dir}/bucket-filter/targeted_cases.csv"; then
     echo "non-bucket lower bound entered corpus" >&2
+    exit 1
+fi
+
+FAKE_TARGETED_LOG="${log_file}" PATH="${bin_dir}:${PATH}" "${script}" \
+    --build-dir "${build_dir}" \
+    --cache-dir "${tmp_dir}/cache" \
+    --output-dir "${tmp_dir}/late-rank-feature" \
+    --seeds 42 \
+    --random-count 5 \
+    --random-start-indices 1 \
+    --target-feature solution_rank_bucket=10+ \
+    --min-target-cases 3 \
+    --discovery-only \
+    --sweep-script "${tmp_dir}/does-not-exist.sh" \
+    --summary-script "${tmp_dir}/does-not-exist.py" \
+    > "${tmp_dir}/late-rank-feature.out" 2>&1
+
+grep -q "42,1,random_42_1,8,11,1,1001,20000" "${tmp_dir}/late-rank-feature/targeted_cases.csv"
+grep -q "42,4,random_42_4,8,11,1,1004,20000" "${tmp_dir}/late-rank-feature/targeted_cases.csv"
+grep -q "42,5,random_42_5,8,5,1,1005,20000" "${tmp_dir}/late-rank-feature/targeted_cases.csv"
+if grep -q "42,2,random_42_2,8,7,1" "${tmp_dir}/late-rank-feature/targeted_cases.csv"; then
+    echo "early solution rank entered feature corpus" >&2
+    exit 1
+fi
+if grep -q "42,3,random_42_3,9,4,0" "${tmp_dir}/late-rank-feature/targeted_cases.csv"; then
+    echo "mid solution rank entered feature corpus" >&2
     exit 1
 fi
