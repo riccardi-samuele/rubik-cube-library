@@ -1624,6 +1624,33 @@ void testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault()
     expect(decision == rubik::detail::AdaptiveRootOrderingDecision::Default);
 }
 
+void testAdaptiveRootOrderingSelectsPositiveHighBoundBuckets()
+{
+    unsetenv("RUBIK_DISABLE_ADAPTIVE_HIGH_BOUND_ROOT_ORDERING");
+
+    expect(rubik::detail::chooseAdaptiveRootOrdering({
+        .initialLowerBound = 8,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 14,
+        .firstMoveDiffers = true,
+    }) == rubik::detail::AdaptiveRootOrderingDecision::HighBoundFirst);
+    expect(rubik::detail::chooseAdaptiveRootOrdering({
+        .initialLowerBound = 9,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 2,
+        .firstMoveDiffers = false,
+    }) == rubik::detail::AdaptiveRootOrderingDecision::HighBoundFirst);
+    expect(rubik::detail::chooseAdaptiveRootOrdering({
+        .initialLowerBound = 10,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 14,
+        .firstMoveDiffers = true,
+    }) == rubik::detail::AdaptiveRootOrderingDecision::HighBoundFirst);
+}
+
 void testPositiveHighBoundCandidateSelectsMeasuredWinBuckets()
 {
     expect(rubik::detail::positiveHighBoundRootOrderingCandidate({
@@ -1656,6 +1683,13 @@ void testPositiveHighBoundCandidateRejectsNegativeAndUnsupportedBuckets()
         .maxDepth = 15,
         .threads = 16,
         .strongMinCount = 14,
+        .firstMoveDiffers = false,
+    }));
+    expect(!rubik::detail::positiveHighBoundRootOrderingCandidate({
+        .initialLowerBound = 9,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 4,
         .firstMoveDiffers = false,
     }));
     expect(!rubik::detail::positiveHighBoundRootOrderingCandidate({
@@ -1859,6 +1893,7 @@ int main()
     testAdaptiveRootOrderingSelectsV6Lb8StableMidStrongMinCase();
     testAdaptiveRootOrderingCanDisableV6Lb8HighBoundFirst();
     testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault();
+    testAdaptiveRootOrderingSelectsPositiveHighBoundBuckets();
     testPositiveHighBoundCandidateSelectsMeasuredWinBuckets();
     testPositiveHighBoundCandidateRejectsNegativeAndUnsupportedBuckets();
     testSolveMemoryLimit();

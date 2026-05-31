@@ -59,7 +59,7 @@ inline bool positiveHighBoundRootOrderingCandidate(const AdaptiveDeepSplitInputs
     }
     if (inputs.initialLowerBound == 9 &&
         !inputs.firstMoveDiffers &&
-        inputs.strongMinCount <= 4) {
+        inputs.strongMinCount <= 3) {
         return true;
     }
     if (inputs.initialLowerBound == 10 &&
@@ -141,6 +141,11 @@ inline AdaptiveRootOrderingDecision chooseAdaptiveRootOrdering(const AdaptiveDee
         !inputs.firstMoveDiffers &&
         inputs.strongMinCount >= 6 &&
         inputs.strongMinCount <= 8) {
+        return AdaptiveRootOrderingDecision::HighBoundFirst;
+    }
+
+    if (!adaptiveHighBoundRootOrderingDisabled() &&
+        positiveHighBoundRootOrderingCandidate(inputs)) {
         return AdaptiveRootOrderingDecision::HighBoundFirst;
     }
 
