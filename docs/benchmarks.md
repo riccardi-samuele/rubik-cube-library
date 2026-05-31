@@ -69,7 +69,7 @@ scripts/run_benchmark_suite.sh --suite optimal-auto-tail --seeds 987654321,42424
 scripts/run_auto_tail_ordering_ab.sh --build-dir out/release-native-lto --cache-dir /tmp/rubik_cube_library_optimal_auto_tail_cache --output-dir out/release-native-lto/benchmark-results/optimal-auto-tail-ordering-ab --seeds 987654321,424242,1009,2016,666,555,99,888 --threads 0 --max-memory-mb 2048
 scripts/run_benchmark_suite.sh --suite optimal-auto-hardening --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525 --threads 0 --max-memory-mb 2048 --deep-opt14-count 2 --deep-opt15-count 1
 scripts/check_benchmark_gates.sh --summary-file out/release-native-lto/benchmark-results/optimal-auto-hardening/warm_optimal_auto_hardening_summary.csv --gate auto,optimal,random_seed_987654321_depth_15_count_1,1,12000,12000,12000
-scripts/run_v6_conservative_root_targeted_corpus.sh --build-dir out/release-native-lto --cache-dir /tmp/rubik_cube_library_v6_tail_baseline_cache --output-dir out/release-native-lto/benchmark-results/v6-conservative-root-targeted-corpus --threads 0 --max-memory-mb 2048
+scripts/run_v6_conservative_root_targeted_corpus.sh --build-dir out/release-native-lto --cache-dir /tmp/rubik_cube_library_v6_tail_baseline_cache --output-dir out/release-native-lto/benchmark-results/v6-conservative-root-targeted-corpus --random-start-indices 1,3,5 --threads 0 --max-memory-mb 2048
 scripts/run_v4_tail_discovery.sh --build-dir out/release-native-lto --output-dir out/release-native-lto/benchmark-results/v4-tail-discovery --cache-dir /tmp/rubik_cube_library_v4_tail_discovery_cache --threads 0 --max-memory-mb 2048
 scripts/run_v4_tail_corpus.sh --build-dir out/release-native-lto --cases-file out/release-native-lto/benchmark-results/v4-tail-discovery/slowest.csv --output-dir out/release-native-lto/benchmark-results/v4-tail-corpus --cache-dir /tmp/rubik_cube_library_v4_tail_discovery_cache --threads 0 --max-memory-mb 2048 --cache-mode reuse
 scripts/compare_v4_tail_runs.py --baseline out/release-native-lto/benchmark-results/v4-tail-corpus-baseline/summary.csv --candidate out/release-native-lto/benchmark-results/v4-tail-corpus/summary.csv
@@ -113,6 +113,7 @@ Current profile comparison:
 - [V6 Conservative-Root Discriminator Mining - 2026-05-31](v6-optimal-latency-pass43-2026-05-31.md)
 - [V6 Conservative-Root Targeted Corpus - 2026-05-31](v6-optimal-latency-pass44-2026-05-31.md)
 - [V6 Conservative-Root Profile Summary - 2026-05-31](v6-optimal-latency-pass45-2026-05-31.md)
+- [V6 Conservative-Root Start-Index Sweep - 2026-05-31](v6-optimal-latency-pass46-2026-05-31.md)
 - [V4 Deep Root Splitting Results - 2026-05-28](v4-deep-root-splitting-results-2026-05-28.md)
 - [V4 Local Baseline - 2026-05-27](v4-local-baseline-2026-05-27.md)
 - [Auto Optimal Hardening - 2026-05-27](optimal-auto-hardening-2026-05-27.md)

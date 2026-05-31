@@ -14,6 +14,7 @@ depth="15"
 seeds="42,99,424242,12345,20260525,314159,271828,987654321,7,123456789"
 random_count="2"
 random_start_index="1"
+random_start_indices=""
 target_profiles="8:7:1,8:11:1,9:14:0"
 min_target_cases="1"
 sweep_script="${script_dir}/run_v6_conservative_root_ordering_sweep.sh"
@@ -34,6 +35,7 @@ Options:
   --seeds LIST              comma-separated random seeds
   --random-count N          generated cases per seed, default: 2
   --random-start-index N    first generated case index, default: 1
+  --random-start-indices L  comma-separated first case indices; overrides --random-start-index
   --target-profiles LIST    comma-separated lb:strong_min:first_diff profiles
   --min-target-cases N      minimum matching cases required, default: 1
   --sweep-script FILE       ordering sweep runner
@@ -101,6 +103,11 @@ while [[ $# -gt 0 ]]; do
             random_start_index="$2"
             shift 2
             ;;
+        --random-start-indices)
+            require_value "$@"
+            random_start_indices="$2"
+            shift 2
+            ;;
         --target-profiles)
             require_value "$@"
             target_profiles="$2"
@@ -149,9 +156,18 @@ if [[ ! "${seeds}" =~ ^[0-9]+(,[0-9]+)*$ ]]; then
     exit 2
 fi
 
+if [[ -n "${random_start_indices}" && ! "${random_start_indices}" =~ ^[0-9]+(,[0-9]+)*$ ]]; then
+    usage >&2
+    exit 2
+fi
+
 if [[ ! "${target_profiles}" =~ ^[0-9]+:[0-9]+:[01](,[0-9]+:[0-9]+:[01])*$ ]]; then
     usage >&2
     exit 2
+fi
+
+if [[ -z "${random_start_indices}" ]]; then
+    random_start_indices="${random_start_index}"
 fi
 
 if [[ ! -x "${sweep_script}" ]]; then
@@ -194,6 +210,7 @@ target_summary="${output_dir}/targeted_cases.csv"
     echo "seeds,${seeds}"
     echo "random_count,${random_count}"
     echo "random_start_index,${random_start_index}"
+    echo "random_start_indices,${random_start_indices}"
     echo "target_profiles,${target_profiles}"
     echo "min_target_cases,${min_target_cases}"
     echo "sweep_script,${sweep_script}"
@@ -245,54 +262,57 @@ profile_is_targeted() {
 } > "${target_summary}"
 
 IFS=',' read -r -a seed_list <<< "${seeds}"
+IFS=',' read -r -a start_index_list <<< "${random_start_indices}"
 for seed in "${seed_list[@]}"; do
-    output_file="${discovery_dir}/warm_v6_conservative_root_target_depth_${depth}_seed_${seed}_start_${random_start_index}_count_${random_count}.csv"
-    {
-        echo "benchmark,name,v6_conservative_root_target_depth_${depth}_seed_${seed}_start_${random_start_index}_count_${random_count}"
-        echo "benchmark,variant,discovery"
-        echo "benchmark,cache_dir,${cache_dir}"
-    } > "${output_file}"
+    for start_index in "${start_index_list[@]}"; do
+        output_file="${discovery_dir}/warm_v6_conservative_root_target_depth_${depth}_seed_${seed}_start_${start_index}_count_${random_count}.csv"
+        {
+            echo "benchmark,name,v6_conservative_root_target_depth_${depth}_seed_${seed}_start_${start_index}_count_${random_count}"
+            echo "benchmark,variant,discovery"
+            echo "benchmark,cache_dir,${cache_dir}"
+        } > "${output_file}"
 
-    env RUBIK_TABLE_CACHE_DIR="${cache_dir}" "${bench}" \
-        --mode optimal \
-        --profile auto \
-        --threads "${threads}" \
-        --max-memory-mb "${max_memory_mb}" \
-        --timeout-ms "${timeout_ms}" \
-        --max-depth "${depth}" \
-        --case-set random \
-        --random-count "${random_count}" \
-        --random-depth "${depth}" \
-        --random-seed "${seed}" \
-        --random-start-index "${random_start_index}" \
-        --slowest-count "${random_count}" \
-        --diagnose-optimal \
-        >> "${output_file}"
+        env RUBIK_TABLE_CACHE_DIR="${cache_dir}" "${bench}" \
+            --mode optimal \
+            --profile auto \
+            --threads "${threads}" \
+            --max-memory-mb "${max_memory_mb}" \
+            --timeout-ms "${timeout_ms}" \
+            --max-depth "${depth}" \
+            --case-set random \
+            --random-count "${random_count}" \
+            --random-depth "${depth}" \
+            --random-seed "${seed}" \
+            --random-start-index "${start_index}" \
+            --slowest-count "${random_count}" \
+            --diagnose-optimal \
+            >> "${output_file}"
 
-    while IFS=, read -r case_name case_depth scramble status optimal moves initial_lower_bound elapsed_ms nodes_expanded nodes_per_ms max_depth timeout nodes_by_depth solution ordering profile; do
-        if [[ "${case_name}" == "case" || ! "${case_name}" =~ ^random_ ]]; then
-            continue
-        fi
-        if [[ "${status}" != "Optimal" || "${optimal}" != "true" ]]; then
-            continue
-        fi
-        adaptive_reason="$(extract_profile_value "${profile}" "adaptive_reason")"
-        if [[ "${adaptive_reason}" != "conservative_root" ]]; then
-            continue
-        fi
-        if ! profile_is_targeted "${profile}"; then
-            continue
-        fi
-        case_index="$(sed -n 's/^random_[0-9][0-9]*_\([0-9][0-9]*\)$/\1/p' <<< "${case_name}")"
-        if [[ -z "${case_index}" ]]; then
-            continue
-        fi
-        lb="$(extract_profile_value "${profile}" "adaptive_lb")"
-        strong_min="$(extract_profile_value "${profile}" "adaptive_strong_min_count")"
-        first_diff="$(extract_profile_value "${profile}" "adaptive_first_diff")"
-        echo "hardening,${seed},${case_index},${depth},1,conservative_root" >> "${target_corpus}"
-        echo "${seed},${case_index},${case_name},${lb},${strong_min},${first_diff},${elapsed_ms},${nodes_expanded},${profile}" >> "${target_summary}"
-    done < "${output_file}"
+        while IFS=, read -r case_name case_depth scramble status optimal moves initial_lower_bound elapsed_ms nodes_expanded nodes_per_ms max_depth timeout nodes_by_depth solution ordering profile; do
+            if [[ "${case_name}" == "case" || ! "${case_name}" =~ ^random_ ]]; then
+                continue
+            fi
+            if [[ "${status}" != "Optimal" || "${optimal}" != "true" ]]; then
+                continue
+            fi
+            adaptive_reason="$(extract_profile_value "${profile}" "adaptive_reason")"
+            if [[ "${adaptive_reason}" != "conservative_root" ]]; then
+                continue
+            fi
+            if ! profile_is_targeted "${profile}"; then
+                continue
+            fi
+            case_index="$(sed -n 's/^random_[0-9][0-9]*_\([0-9][0-9]*\)$/\1/p' <<< "${case_name}")"
+            if [[ -z "${case_index}" ]]; then
+                continue
+            fi
+            lb="$(extract_profile_value "${profile}" "adaptive_lb")"
+            strong_min="$(extract_profile_value "${profile}" "adaptive_strong_min_count")"
+            first_diff="$(extract_profile_value "${profile}" "adaptive_first_diff")"
+            echo "hardening,${seed},${case_index},${depth},1,conservative_root" >> "${target_corpus}"
+            echo "${seed},${case_index},${case_name},${lb},${strong_min},${first_diff},${elapsed_ms},${nodes_expanded},${profile}" >> "${target_summary}"
+        done < "${output_file}"
+    done
 done
 
 target_count="$(($(wc -l < "${target_corpus}") - 1))"

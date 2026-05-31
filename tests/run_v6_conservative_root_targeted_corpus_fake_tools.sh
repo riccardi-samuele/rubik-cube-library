@@ -65,7 +65,7 @@ echo "case,case_depth,scramble,status,optimal,moves,initial_lower_bound,elapsed_
 for ((offset = 0; offset < count; offset += 1)); do
     case_index=$((start_index + offset))
     case "${case_index}" in
-        1)
+        1|4)
             profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=8;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=11;adaptive_first_diff=1"
             ;;
         2)
@@ -113,6 +113,7 @@ fi
 
 grep -q "hardening,42,1,15,1,conservative_root" "${corpus_file}"
 grep -q "hardening,42,2,15,1,conservative_root" "${corpus_file}"
+grep -q "hardening,42,4,15,1,conservative_root" "${corpus_file}"
 if grep -q "hardening,42,3,15,1,conservative_root" "${corpus_file}"; then
     echo "non-target profile entered corpus" >&2
     exit 1
@@ -128,7 +129,8 @@ cat > "${output_dir}/phase2_tiebreak/comparison.csv" <<'CSV'
 case_key,common_cases,baseline_elapsed_ms,candidate_elapsed_ms,elapsed_delta_ms,elapsed_delta_percent,baseline_nodes,candidate_nodes,nodes_delta,baseline_wall_ms,candidate_wall_ms,wall_delta_ms,winner,baseline_ordering,candidate_ordering,baseline_reason,candidate_reason
 hardening:depth15:seed42:random_42_1,,1001,950,-51,-5.09,20000,19000,-1000,0,0,0,candidate,default,phase2_tiebreak,conservative_root,conservative_root
 hardening:depth15:seed42:random_42_2,,1002,1050,48,4.79,20000,20100,100,0,0,0,baseline,default,phase2_tiebreak,conservative_root,conservative_root
-__summary__,2,2003,2000,-3,-0.15,40000,39100,-900,0,0,0,candidate,,,,
+hardening:depth15:seed42:random_42_4,,1004,960,-44,-4.38,20000,19100,-900,0,0,0,candidate,default,phase2_tiebreak,conservative_root,conservative_root
+__summary__,3,3007,2960,-47,-1.56,60000,58200,-1800,0,0,0,candidate,,,,
 CSV
 SWEEP
 
@@ -140,9 +142,9 @@ FAKE_TARGETED_LOG="${log_file}" PATH="${bin_dir}:${PATH}" "${script}" \
     --output-dir "${tmp_dir}/out" \
     --seeds 42 \
     --random-count 3 \
-    --random-start-index 1 \
+    --random-start-indices 1,4 \
     --target-profiles 8:7:1,8:11:1 \
-    --min-target-cases 2 \
+    --min-target-cases 3 \
     --sweep-script "${tmp_dir}/fake_sweep.sh" \
     --summary-script "${summary_script}" \
     > "${tmp_dir}/run.out" 2>&1
@@ -150,6 +152,8 @@ FAKE_TARGETED_LOG="${log_file}" PATH="${bin_dir}:${PATH}" "${script}" \
 grep -q "fake cmake --build ${build_dir} --target rubik-bench rubik-cache-setup" "${log_file}"
 grep -q "42,1,random_42_1,8,11,1,1001,20000" "${tmp_dir}/out/targeted_cases.csv"
 grep -q "42,2,random_42_2,8,7,1,1002,20000" "${tmp_dir}/out/targeted_cases.csv"
+grep -q "42,4,random_42_4,8,11,1,1004,20000" "${tmp_dir}/out/targeted_cases.csv"
 test -f "${tmp_dir}/out/ordering-sweep/summary.csv"
 grep -q "8:11:1,8,11,1,hardening:depth15:seed42:random_42_1" "${tmp_dir}/out/case_summary.csv"
 grep -q "8:7:1,8,7,1,1,0,1" "${tmp_dir}/out/profile_summary.csv"
+grep -q "8:11:1,8,11,1,2,2,0" "${tmp_dir}/out/profile_summary.csv"
