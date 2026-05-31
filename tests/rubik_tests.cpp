@@ -1624,6 +1624,56 @@ void testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault()
     expect(decision == rubik::detail::AdaptiveRootOrderingDecision::Default);
 }
 
+void testPositiveHighBoundCandidateSelectsMeasuredWinBuckets()
+{
+    expect(rubik::detail::positiveHighBoundRootOrderingCandidate({
+        .initialLowerBound = 8,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 14,
+        .firstMoveDiffers = true,
+    }));
+    expect(rubik::detail::positiveHighBoundRootOrderingCandidate({
+        .initialLowerBound = 9,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 2,
+        .firstMoveDiffers = false,
+    }));
+    expect(rubik::detail::positiveHighBoundRootOrderingCandidate({
+        .initialLowerBound = 10,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 14,
+        .firstMoveDiffers = true,
+    }));
+}
+
+void testPositiveHighBoundCandidateRejectsNegativeAndUnsupportedBuckets()
+{
+    expect(!rubik::detail::positiveHighBoundRootOrderingCandidate({
+        .initialLowerBound = 9,
+        .maxDepth = 15,
+        .threads = 16,
+        .strongMinCount = 14,
+        .firstMoveDiffers = false,
+    }));
+    expect(!rubik::detail::positiveHighBoundRootOrderingCandidate({
+        .initialLowerBound = 8,
+        .maxDepth = 15,
+        .threads = 2,
+        .strongMinCount = 14,
+        .firstMoveDiffers = true,
+    }));
+    expect(!rubik::detail::positiveHighBoundRootOrderingCandidate({
+        .initialLowerBound = 8,
+        .maxDepth = 12,
+        .threads = 16,
+        .strongMinCount = 14,
+        .firstMoveDiffers = true,
+    }));
+}
+
 void testSolveMemoryLimit()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -1809,6 +1859,8 @@ int main()
     testAdaptiveRootOrderingSelectsV6Lb8StableMidStrongMinCase();
     testAdaptiveRootOrderingCanDisableV6Lb8HighBoundFirst();
     testAdaptiveRootOrderingKeepsHighStrongMinCaseOnDefault();
+    testPositiveHighBoundCandidateSelectsMeasuredWinBuckets();
+    testPositiveHighBoundCandidateRejectsNegativeAndUnsupportedBuckets();
     testSolveMemoryLimit();
     testFastTinyScramble();
     testPhase1TinyScramble();

@@ -10,7 +10,7 @@ corpus_file="benchmarks/v6_conservative_root_corpus.csv"
 timeout_ms="30000"
 threads="0"
 max_memory_mb="2048"
-candidates="reverse_tie,high_bound_first,phase2_tiebreak"
+candidates="reverse_tie,high_bound_first,phase2_tiebreak,positive_high_bound"
 probe_script="${script_dir}/run_v6_conservative_root_probe.sh"
 compare_script="${script_dir}/compare_v6_latency.py"
 
@@ -26,7 +26,7 @@ Options:
   --timeout-ms N         per-case timeout, default: 30000
   --threads N            solver threads, default: 0
   --max-memory-mb N      solver memory limit, default: 2048
-  --candidates LIST      comma-separated candidates: reverse_tie,high_bound_first,phase2_tiebreak
+  --candidates LIST      comma-separated candidates: reverse_tie,high_bound_first,phase2_tiebreak,positive_high_bound
   --probe-script FILE    probe runner, default: scripts/run_v6_conservative_root_probe.sh
   --compare-script FILE  comparison script, default: scripts/compare_v6_latency.py
   -h, --help             show this help
@@ -133,7 +133,7 @@ fi
 
 for candidate in "${candidate_list[@]}"; do
     case "${candidate}" in
-        reverse_tie|high_bound_first|phase2_tiebreak)
+        reverse_tie|high_bound_first|phase2_tiebreak|positive_high_bound)
             ;;
         *)
             echo "unsupported root ordering candidate: ${candidate}" >&2

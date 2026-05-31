@@ -73,12 +73,14 @@ delta = {
     "reverse_tie": -100,
     "high_bound_first": 25,
     "phase2_tiebreak": -50,
+    "positive_high_bound": -75,
 }[name]
 candidate_elapsed = 1000 + delta
 nodes_delta = {
     "reverse_tie": -200,
     "high_bound_first": 50,
     "phase2_tiebreak": 0,
+    "positive_high_bound": -125,
 }[name]
 candidate_nodes = 10000 + nodes_delta
 
@@ -165,15 +167,17 @@ FAKE_SWEEP_LOG="${log_file}" "${script}" \
     --corpus-file benchmarks/v6_conservative_root_corpus.csv \
     --probe-script "${probe_script}" \
     --compare-script "${compare_script}" \
-    --candidates reverse_tie,high_bound_first,phase2_tiebreak \
+    --candidates reverse_tie,high_bound_first,phase2_tiebreak,positive_high_bound \
     > "${tmp_dir}/run.out" 2>&1
 
 grep -q "RUBIK_EXPERIMENTAL_ROOT_ORDERING=reverse_tie" "${log_file}"
 grep -q "RUBIK_EXPERIMENTAL_ROOT_ORDERING=high_bound_first" "${log_file}"
 grep -q "RUBIK_EXPERIMENTAL_ROOT_ORDERING=phase2_tiebreak" "${log_file}"
+grep -q "RUBIK_EXPERIMENTAL_ROOT_ORDERING=positive_high_bound" "${log_file}"
 
 summary="${tmp_dir}/out/summary.csv"
 test -f "${summary}"
 grep -q "reverse_tie,5,1000,900,-100,-10.00,500,500,0,10000,9800,-200,candidate" "${summary}"
 grep -q "high_bound_first,5,1000,1025,25,2.50,500,525,25,10000,10050,50,baseline" "${summary}"
 grep -q "phase2_tiebreak,5,1000,950,-50,-5.00,500,500,0,10000,10000,0,candidate" "${summary}"
+grep -q "positive_high_bound,5,1000,925,-75,-7.50,500,500,0,10000,9875,-125,candidate" "${summary}"

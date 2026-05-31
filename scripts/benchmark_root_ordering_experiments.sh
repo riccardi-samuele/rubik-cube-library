@@ -11,7 +11,7 @@ max_depth="15"
 random_depth="15"
 threads="0"
 max_memory_mb="2048"
-variants="default,reverse_tie,high_bound_first,phase2_tiebreak"
+variants="default,reverse_tie,high_bound_first,phase2_tiebreak,positive_high_bound"
 smoke=0
 
 usage() {
@@ -29,7 +29,7 @@ Options:
   --random-depth N      random scramble depth, default: 15
   --threads N           solver threads, default: 0
   --max-memory-mb N     solver memory limit, default: 2048
-  --variants LIST       comma-separated variants. Variants: default,reverse_tie,high_bound_first,phase2_tiebreak
+  --variants LIST       comma-separated variants. Variants: default,reverse_tie,high_bound_first,phase2_tiebreak,positive_high_bound
   --smoke               run one short validation case
   -h, --help            show this help
 USAGE
@@ -150,7 +150,7 @@ done
 IFS=',' read -r -a variant_list <<< "${variants}"
 for variant in "${variant_list[@]}"; do
     case "${variant}" in
-        default|reverse_tie|high_bound_first|phase2_tiebreak)
+        default|reverse_tie|high_bound_first|phase2_tiebreak|positive_high_bound)
             ;;
         *)
             usage >&2
@@ -236,6 +236,9 @@ variant_env() {
             ;;
         phase2_tiebreak)
             echo "RUBIK_EXPERIMENTAL_ROOT_ORDERING=phase2_tiebreak"
+            ;;
+        positive_high_bound)
+            echo "RUBIK_EXPERIMENTAL_ROOT_ORDERING=positive_high_bound"
             ;;
     esac
 }
@@ -326,12 +329,13 @@ awk -F, '
         seen[seed] = 1
     }
     END {
-        print "seed,default_elapsed_ms,reverse_tie_elapsed_ms,high_bound_first_elapsed_ms,phase2_tiebreak_elapsed_ms,default_nodes,reverse_tie_nodes,high_bound_first_nodes,phase2_tiebreak_nodes,default_rank,reverse_tie_rank,high_bound_first_rank,phase2_tiebreak_rank,winner"
+        print "seed,default_elapsed_ms,reverse_tie_elapsed_ms,high_bound_first_elapsed_ms,phase2_tiebreak_elapsed_ms,positive_high_bound_elapsed_ms,default_nodes,reverse_tie_nodes,high_bound_first_nodes,phase2_tiebreak_nodes,positive_high_bound_nodes,default_rank,reverse_tie_rank,high_bound_first_rank,phase2_tiebreak_rank,positive_high_bound_rank,winner"
         for (seed in seen) {
             default_elapsed = elapsed[seed, "default"] + 0
             reverse_elapsed = elapsed[seed, "reverse_tie"] + 0
             high_elapsed = elapsed[seed, "high_bound_first"] + 0
             phase2_elapsed = elapsed[seed, "phase2_tiebreak"] + 0
+            positive_elapsed = elapsed[seed, "positive_high_bound"] + 0
             winner = "default"
             best = default_elapsed
             if (reverse_elapsed > 0 && (best == 0 || reverse_elapsed < best)) {
@@ -343,22 +347,30 @@ awk -F, '
                 winner = "high_bound_first"
             }
             if (phase2_elapsed > 0 && (best == 0 || phase2_elapsed < best)) {
+                best = phase2_elapsed
                 winner = "phase2_tiebreak"
             }
-            printf "%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s\n",
+            if (positive_elapsed > 0 && (best == 0 || positive_elapsed < best)) {
+                best = positive_elapsed
+                winner = "positive_high_bound"
+            }
+            printf "%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s\n",
                 seed,
                 default_elapsed,
                 reverse_elapsed,
                 high_elapsed,
                 phase2_elapsed,
+                positive_elapsed,
                 nodes[seed, "default"] + 0,
                 nodes[seed, "reverse_tie"] + 0,
                 nodes[seed, "high_bound_first"] + 0,
                 nodes[seed, "phase2_tiebreak"] + 0,
+                nodes[seed, "positive_high_bound"] + 0,
                 rank[seed, "default"] + 0,
                 rank[seed, "reverse_tie"] + 0,
                 rank[seed, "high_bound_first"] + 0,
                 rank[seed, "phase2_tiebreak"] + 0,
+                rank[seed, "positive_high_bound"] + 0,
                 winner
         }
     }

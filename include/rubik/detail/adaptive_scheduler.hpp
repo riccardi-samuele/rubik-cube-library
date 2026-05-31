@@ -40,6 +40,38 @@ inline bool adaptiveHighBoundRootOrderingDisabled()
     return value != nullptr && value[0] != '\0' && std::string(value) != "0";
 }
 
+inline bool positiveHighBoundRootOrderingCandidate(const AdaptiveDeepSplitInputs& inputs)
+{
+    if (inputs.threads < 4) {
+        return false;
+    }
+
+    const int remainingDepth = inputs.maxDepth - inputs.initialLowerBound;
+    if (remainingDepth < 5) {
+        return false;
+    }
+
+    if (inputs.initialLowerBound == 8 &&
+        inputs.firstMoveDiffers &&
+        inputs.strongMinCount >= 13 &&
+        inputs.strongMinCount <= 16) {
+        return true;
+    }
+    if (inputs.initialLowerBound == 9 &&
+        !inputs.firstMoveDiffers &&
+        inputs.strongMinCount <= 4) {
+        return true;
+    }
+    if (inputs.initialLowerBound == 10 &&
+        inputs.firstMoveDiffers &&
+        inputs.strongMinCount >= 13 &&
+        inputs.strongMinCount <= 16) {
+        return true;
+    }
+
+    return false;
+}
+
 inline AdaptiveDeepSplitDecision chooseAdaptiveDeepSplit(const AdaptiveDeepSplitInputs& inputs)
 {
     AdaptiveDeepSplitDecision decision{

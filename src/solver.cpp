@@ -491,6 +491,7 @@ enum class RootOrderingMode {
     ReverseTie,
     HighBoundFirst,
     Phase2TieBreak,
+    PositiveHighBoundCandidate,
 };
 
 RootOrderingMode experimentalRootOrderingMode()
@@ -510,6 +511,9 @@ RootOrderingMode experimentalRootOrderingMode()
     if (mode == "phase2_tiebreak") {
         return RootOrderingMode::Phase2TieBreak;
     }
+    if (mode == "positive_high_bound") {
+        return RootOrderingMode::PositiveHighBoundCandidate;
+    }
     return RootOrderingMode::Default;
 }
 
@@ -517,6 +521,11 @@ RootOrderingMode adaptiveRootOrderingMode(
     RootOrderingMode requestedMode,
     const detail::AdaptiveDeepSplitInputs& inputs)
 {
+    if (requestedMode == RootOrderingMode::PositiveHighBoundCandidate) {
+        return detail::positiveHighBoundRootOrderingCandidate(inputs)
+            ? RootOrderingMode::HighBoundFirst
+            : RootOrderingMode::Default;
+    }
     if (requestedMode != RootOrderingMode::Default) {
         return requestedMode;
     }
@@ -1411,6 +1420,9 @@ std::string solutionRootOrderingProfile(
         break;
     case RootOrderingMode::Phase2TieBreak:
         out << "phase2_tiebreak";
+        break;
+    case RootOrderingMode::PositiveHighBoundCandidate:
+        out << "positive_high_bound";
         break;
     }
     out

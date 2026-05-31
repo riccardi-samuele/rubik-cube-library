@@ -43,3 +43,8 @@ if ! grep -q 'high_bound_first' "${script}"; then
     echo "benchmark_root_ordering_experiments.sh must support the high_bound_first variant" >&2
     exit 1
 fi
+
+if ! grep -q 'positive_high_bound' "${script}"; then
+    echo "benchmark_root_ordering_experiments.sh must support the positive_high_bound variant" >&2
+    exit 1
+fi
