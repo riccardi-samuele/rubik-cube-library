@@ -19,3 +19,13 @@ grep -q "solution_matches_strong_first,0,1,1,0,1000,900,-100,-10.00,5000,4500,-5
 grep -q "dominant_child_share_bucket,high,1,1,0,1000,900,-100,-10.00,5000,4500,-500,candidate" "${tmp_dir}/feature_summary.csv"
 grep -q "solution_root_status,found,2,1,1,3000,3000,0,0.00,15000,14800,-200,baseline" "${tmp_dir}/feature_summary.csv"
 grep -q "solution_order_rank_bucket,1-3,2,1,1,3000,3000,0,0.00,15000,14800,-200,baseline" "${tmp_dir}/feature_summary.csv"
+
+"${script}" \
+    --run-dir "${fixture_dir}" \
+    --discovery-only \
+    --case-output "${tmp_dir}/discovery_case_features.csv" \
+    --feature-output "${tmp_dir}/discovery_feature_summary.csv"
+
+grep -q "hardening:depth15:seed42:random_42_1,8:7:1,lb8_s5-8_fd1,13,10+,0,0,3,1-3,found,70,high,D,1000,5000" "${tmp_dir}/discovery_case_features.csv"
+grep -q "bucket,lb8_s5-8_fd1,1,1000,5000" "${tmp_dir}/discovery_feature_summary.csv"
+grep -q "solution_root_status,found,2,3000,15000" "${tmp_dir}/discovery_feature_summary.csv"

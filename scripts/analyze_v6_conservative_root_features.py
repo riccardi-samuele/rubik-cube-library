@@ -24,6 +24,7 @@ def parse_args():
         allow_abbrev=False,
     )
     parser.add_argument("--run-dir", action="append", default=[])
+    parser.add_argument("--discovery-only", action="store_true")
     parser.add_argument("--case-output", default="")
     parser.add_argument("--feature-output", default="")
     parser.add_argument("-h", "--help", action="store_true")
@@ -34,6 +35,7 @@ def parse_args():
             f"{USAGE}\n\n"
             "Options:\n"
             "  --run-dir DIR       directory containing targeted_cases.csv and case_summary.csv\n"
+            "  --discovery-only    analyze targeted_cases.csv without replay comparison data\n"
             "  --case-output FILE  write per-case feature CSV\n"
             "  --feature-output FILE  write grouped feature CSV\n"
             "  -h, --help          show this help"
@@ -49,6 +51,7 @@ def parse_args():
 
     return (
         [Path(run_dir) for run_dir in args.run_dir],
+        args.discovery_only,
         Path(args.case_output) if args.case_output else None,
         Path(args.feature_output) if args.feature_output else None,
     )
@@ -125,6 +128,14 @@ def bucket_name(lb, strong_min_count, first_diff):
     return f"lb{lb}_s{strong_min_bucket(strong_min_count)}_fd{first_diff}"
 
 
+def profile_name(row):
+    return (
+        f"{row['adaptive_lb']}:"
+        f"{row['adaptive_strong_min_count']}:"
+        f"{row['adaptive_first_diff']}"
+    )
+
+
 def move_from_order_entry(entry):
     return entry.split("/", 1)[0]
 
@@ -182,18 +193,51 @@ def root_search_features(root_search, solution_first):
     }
 
 
+def feature_fields_to_group():
+    return [
+        "bucket",
+        "profile",
+        "solution_rank_bucket",
+        "solution_matches_base_first",
+        "solution_matches_strong_first",
+        "solution_order_rank_bucket",
+        "solution_root_status",
+        "dominant_child_share_bucket",
+        "dominant_child_move",
+    ]
+
+
+def add_profile_features(target, profile):
+    lb = int_value(target["adaptive_lb"])
+    strong_min_count = int_value(target["adaptive_strong_min_count"])
+    first_diff = int_value(target["adaptive_first_diff"])
+    solution_rank = int_value(profile.get("solution_rank"))
+    solution_first = profile.get("solution_first", "")
+    base_first = profile.get("base_first", "")
+    strong_first = profile.get("strong_first", "")
+    root_features = root_search_features(profile.get("root_search", ""), solution_first)
+    order_rank = solution_order_rank(profile.get("root_order", ""), solution_first)
+    return {
+        "profile": profile_name(target),
+        "bucket": bucket_name(lb, strong_min_count, first_diff),
+        "solution_rank": str(solution_rank),
+        "solution_rank_bucket": rank_bucket(solution_rank),
+        "solution_matches_base_first": "1" if solution_first == base_first else "0",
+        "solution_matches_strong_first": "1" if solution_first == strong_first else "0",
+        "solution_order_rank": str(order_rank),
+        "solution_order_rank_bucket": rank_bucket(order_rank),
+        "solution_root_status": root_features["solution_root_status"],
+        "dominant_child_share_percent": root_features["dominant_child_share_percent"],
+        "dominant_child_share_bucket": root_features["dominant_child_share_bucket"],
+        "dominant_child_move": root_features["dominant_child_move"],
+    }
+
+
 def summarize(rows):
     grouped = defaultdict(list)
     for row in rows:
-        grouped[("bucket", row["bucket"])].append(row)
-        grouped[("profile", row["profile"])].append(row)
-        grouped[("solution_rank_bucket", row["solution_rank_bucket"])].append(row)
-        grouped[("solution_matches_base_first", row["solution_matches_base_first"])].append(row)
-        grouped[("solution_matches_strong_first", row["solution_matches_strong_first"])].append(row)
-        grouped[("solution_order_rank_bucket", row["solution_order_rank_bucket"])].append(row)
-        grouped[("solution_root_status", row["solution_root_status"])].append(row)
-        grouped[("dominant_child_share_bucket", row["dominant_child_share_bucket"])].append(row)
-        grouped[("dominant_child_move", row["dominant_child_move"])].append(row)
+        for field in feature_fields_to_group():
+            grouped[(field, row[field])].append(row)
 
     summary_rows = []
     for (feature, value) in sorted(grouped):
@@ -224,6 +268,27 @@ def summarize(rows):
     return summary_rows
 
 
+def summarize_discovery(rows):
+    grouped = defaultdict(list)
+    for row in rows:
+        for field in feature_fields_to_group():
+            grouped[(field, row[field])].append(row)
+
+    summary_rows = []
+    for (feature, value) in sorted(grouped):
+        feature_rows = grouped[(feature, value)]
+        elapsed = sum(int_value(row["discovery_elapsed_ms"]) for row in feature_rows)
+        nodes = sum(int_value(row["discovery_nodes"]) for row in feature_rows)
+        summary_rows.append({
+            "feature": feature,
+            "feature_value": value,
+            "cases": str(len(feature_rows)),
+            "total_discovery_elapsed_ms": str(elapsed),
+            "total_discovery_nodes": str(nodes),
+        })
+    return summary_rows
+
+
 def analyze(run_dirs):
     case_rows = []
     for run_dir in run_dirs:
@@ -237,29 +302,10 @@ def analyze(run_dirs):
             if target is None:
                 continue
             profile_values = parse_profile(target.get("profile", ""))
-            lb = int_value(target["adaptive_lb"])
-            strong_min_count = int_value(target["adaptive_strong_min_count"])
-            first_diff = int_value(target["adaptive_first_diff"])
-            solution_rank = int_value(profile_values.get("solution_rank"))
-            solution_first = profile_values.get("solution_first", "")
-            base_first = profile_values.get("base_first", "")
-            strong_first = profile_values.get("strong_first", "")
-            root_features = root_search_features(profile_values.get("root_search", ""), solution_first)
-            order_rank = solution_order_rank(profile_values.get("root_order", ""), solution_first)
-            case_rows.append({
+            features = add_profile_features(target, profile_values)
+            features.update({
                 "case_key": key,
                 "profile": comparison["profile"],
-                "bucket": bucket_name(lb, strong_min_count, first_diff),
-                "solution_rank": str(solution_rank),
-                "solution_rank_bucket": rank_bucket(solution_rank),
-                "solution_matches_base_first": "1" if solution_first == base_first else "0",
-                "solution_matches_strong_first": "1" if solution_first == strong_first else "0",
-                "solution_order_rank": str(order_rank),
-                "solution_order_rank_bucket": rank_bucket(order_rank),
-                "solution_root_status": root_features["solution_root_status"],
-                "dominant_child_share_percent": root_features["dominant_child_share_percent"],
-                "dominant_child_share_bucket": root_features["dominant_child_share_bucket"],
-                "dominant_child_move": root_features["dominant_child_move"],
                 "baseline_elapsed_ms": comparison["baseline_elapsed_ms"],
                 "candidate_elapsed_ms": comparison["candidate_elapsed_ms"],
                 "elapsed_delta_ms": comparison["elapsed_delta_ms"],
@@ -269,12 +315,33 @@ def analyze(run_dirs):
                 "nodes_delta": comparison["nodes_delta"],
                 "winner": comparison["winner"],
             })
+            case_rows.append(features)
 
     if not case_rows:
         print("conservative-root feature analysis failed: no joined cases", file=sys.stderr)
         sys.exit(1)
 
     return case_rows, summarize(case_rows)
+
+
+def analyze_discovery(run_dirs):
+    case_rows = []
+    for run_dir in run_dirs:
+        for target in load_csv(run_dir / "targeted_cases.csv"):
+            profile_values = parse_profile(target.get("profile", ""))
+            features = add_profile_features(target, profile_values)
+            features.update({
+                "case_key": case_key(target),
+                "discovery_elapsed_ms": target.get("elapsed_ms", "0"),
+                "discovery_nodes": target.get("nodes_expanded", "0"),
+            })
+            case_rows.append(features)
+
+    if not case_rows:
+        print("conservative-root feature analysis failed: no discovery cases", file=sys.stderr)
+        sys.exit(1)
+
+    return case_rows, summarize_discovery(case_rows)
 
 
 def write_rows(path, rows, fields):
@@ -291,7 +358,37 @@ def write_rows(path, rows, fields):
 
 
 def main():
-    run_dirs, case_output, feature_output = parse_args()
+    run_dirs, discovery_only, case_output, feature_output = parse_args()
+    if discovery_only:
+        case_rows, feature_rows = analyze_discovery(run_dirs)
+        case_fields = [
+            "case_key",
+            "profile",
+            "bucket",
+            "solution_rank",
+            "solution_rank_bucket",
+            "solution_matches_base_first",
+            "solution_matches_strong_first",
+            "solution_order_rank",
+            "solution_order_rank_bucket",
+            "solution_root_status",
+            "dominant_child_share_percent",
+            "dominant_child_share_bucket",
+            "dominant_child_move",
+            "discovery_elapsed_ms",
+            "discovery_nodes",
+        ]
+        feature_fields = [
+            "feature",
+            "feature_value",
+            "cases",
+            "total_discovery_elapsed_ms",
+            "total_discovery_nodes",
+        ]
+        write_rows(case_output, case_rows, case_fields)
+        write_rows(feature_output, feature_rows, feature_fields)
+        return
+
     case_rows, feature_rows = analyze(run_dirs)
     case_fields = [
         "case_key",
