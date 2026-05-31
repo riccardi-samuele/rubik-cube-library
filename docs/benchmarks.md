@@ -108,6 +108,7 @@ Current profile comparison:
 - [V6 Conservative-Root Probe - 2026-05-31](v6-optimal-latency-pass40-2026-05-31.md)
 - [V6 Conservative-Root Ordering Sweep - 2026-05-31](v6-optimal-latency-pass41-2026-05-31.md)
 - [V6 Conservative-Root Diagnostics - 2026-05-31](v6-optimal-latency-pass42-2026-05-31.md)
+- [V6 Conservative-Root Discriminator Mining - 2026-05-31](v6-optimal-latency-pass43-2026-05-31.md)
 - [V4 Deep Root Splitting Results - 2026-05-28](v4-deep-root-splitting-results-2026-05-28.md)
 - [V4 Local Baseline - 2026-05-27](v4-local-baseline-2026-05-27.md)
 - [Auto Optimal Hardening - 2026-05-27](optimal-auto-hardening-2026-05-27.md)
