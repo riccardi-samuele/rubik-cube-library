@@ -602,6 +602,17 @@ add_custom_target(rubik-benchmark-v6-conservative-root-ordering-sweep
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running V6 conservative-root root-ordering sweep"
 )
+add_custom_target(rubik-benchmark-v6-conservative-root-targeted-corpus
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_conservative_root_targeted_corpus.sh
+        --build-dir ${CMAKE_CURRENT_BINARY_DIR}
+        --cache-dir /tmp/rubik_cube_library_v6_tail_baseline_cache
+        --output-dir ${CMAKE_CURRENT_BINARY_DIR}/benchmark-results/v6-conservative-root-targeted-corpus
+        --threads 0
+        --max-memory-mb 2048
+    DEPENDS rubik-bench rubik-cache-setup
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running V6 conservative-root targeted corpus expansion"
+)
 add_custom_target(rubik-benchmark-v4-tail-discovery
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v4_tail_discovery.sh
         --build-dir ${CMAKE_CURRENT_BINARY_DIR}
@@ -1020,6 +1031,16 @@ add_test(
     NAME run_v6_conservative_root_ordering_sweep_fake_tools
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v6_conservative_root_ordering_sweep_fake_tools.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_conservative_root_ordering_sweep.sh
+)
+add_test(
+    NAME run_v6_conservative_root_targeted_corpus_rejects_missing_values
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v6_conservative_root_targeted_corpus_rejects_missing_values.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_conservative_root_targeted_corpus.sh
+)
+add_test(
+    NAME run_v6_conservative_root_targeted_corpus_fake_tools
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_v6_conservative_root_targeted_corpus_fake_tools.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_v6_conservative_root_targeted_corpus.sh
 )
 add_test(
     NAME cmake_v6_require_warm_target
