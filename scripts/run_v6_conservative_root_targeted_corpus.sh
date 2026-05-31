@@ -37,7 +37,7 @@ Options:
   --random-count N          generated cases per seed, default: 2
   --random-start-index N    first generated case index, default: 1
   --random-start-indices L  comma-separated first case indices; overrides --random-start-index
-  --target-profiles LIST    comma-separated lb:strong_min:first_diff profiles
+  --target-profiles LIST    comma-separated lb:strong_min:first_diff profiles, or all
   --min-target-cases N      minimum matching cases required, default: 1
   --discovery-only          stop after writing targeted corpus and profile counts
   --sweep-script FILE       ordering sweep runner
@@ -167,7 +167,7 @@ if [[ -n "${random_start_indices}" && ! "${random_start_indices}" =~ ^[0-9]+(,[0
     exit 2
 fi
 
-if [[ ! "${target_profiles}" =~ ^[0-9]+:[0-9]+:[01](,[0-9]+:[0-9]+:[01])*$ ]]; then
+if [[ "${target_profiles}" != "all" && ! "${target_profiles}" =~ ^[0-9]+:[0-9]+:[01](,[0-9]+:[0-9]+:[01])*$ ]]; then
     usage >&2
     exit 2
 fi
@@ -250,6 +250,9 @@ extract_profile_value() {
 profile_is_targeted() {
     local profile="$1"
     local lb strong_min first_diff candidate
+    if [[ "${target_profiles}" == "all" ]]; then
+        return 0
+    fi
     lb="$(extract_profile_value "${profile}" "adaptive_lb")"
     strong_min="$(extract_profile_value "${profile}" "adaptive_strong_min_count")"
     first_diff="$(extract_profile_value "${profile}" "adaptive_first_diff")"

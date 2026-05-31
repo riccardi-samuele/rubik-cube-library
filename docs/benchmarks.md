@@ -117,6 +117,7 @@ Current profile comparison:
 - [V6 Conservative-Root Discovery-Only Density - 2026-05-31](v6-optimal-latency-pass47-2026-05-31.md)
 - [V6 Conservative-Root Targeted Replay - 2026-05-31](v6-optimal-latency-pass48-2026-05-31.md)
 - [V6 Conservative-Root 8:7:1 Replay - 2026-05-31](v6-optimal-latency-pass49-2026-05-31.md)
+- [V6 Conservative-Root All-Profile Density - 2026-05-31](v6-optimal-latency-pass50-2026-05-31.md)
 - [V4 Deep Root Splitting Results - 2026-05-28](v4-deep-root-splitting-results-2026-05-28.md)
 - [V4 Local Baseline - 2026-05-27](v4-local-baseline-2026-05-27.md)
 - [Auto Optimal Hardening - 2026-05-27](optimal-auto-hardening-2026-05-27.md)
