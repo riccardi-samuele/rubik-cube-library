@@ -1,0 +1,5 @@
+case_key,common_cases,baseline_elapsed_ms,candidate_elapsed_ms,elapsed_delta_ms,elapsed_delta_percent,baseline_nodes,candidate_nodes,nodes_delta,baseline_wall_ms,candidate_wall_ms,wall_delta_ms,winner,baseline_ordering,candidate_ordering,baseline_reason,candidate_reason
+hardening:depth15:seed42:random_42_1,,2000,1800,-200,-10.00,10000,9500,-500,0,0,0,candidate,default,phase2_tiebreak,conservative_root,conservative_root
+hardening:depth15:seed99:random_99_1,,1000,1100,100,10.00,5000,4900,-100,0,0,0,baseline,default,phase2_tiebreak,conservative_root,conservative_root
+hardening:depth15:seed424242:random_424242_1,,1500,1450,-50,-3.33,8000,8100,100,0,0,0,candidate,default,phase2_tiebreak,conservative_root,conservative_root
+__summary__,3,4500,4350,-150,-3.33,23000,22500,-500,0,0,0,candidate,,,,

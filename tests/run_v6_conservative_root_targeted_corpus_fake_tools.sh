@@ -2,6 +2,8 @@
 set -euo pipefail
 
 script="${1:-scripts/run_v6_conservative_root_targeted_corpus.sh}"
+script_dir="$(cd "$(dirname "${script}")" && pwd)"
+summary_script="${script_dir}/summarize_v6_targeted_corpus.py"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
 
@@ -121,6 +123,13 @@ cat > "${output_dir}/summary.csv" <<'CSV'
 candidate,common_cases,baseline_elapsed_ms,candidate_elapsed_ms,elapsed_delta_ms,elapsed_delta_percent,baseline_max_elapsed_ms,candidate_max_elapsed_ms,max_elapsed_delta_ms,baseline_nodes,candidate_nodes,nodes_delta,winner,comparison_file
 phase2_tiebreak,2,2000,1900,-100,-5.00,1001,950,-51,40000,39000,-1000,candidate,comparison.csv
 CSV
+mkdir -p "${output_dir}/phase2_tiebreak"
+cat > "${output_dir}/phase2_tiebreak/comparison.csv" <<'CSV'
+case_key,common_cases,baseline_elapsed_ms,candidate_elapsed_ms,elapsed_delta_ms,elapsed_delta_percent,baseline_nodes,candidate_nodes,nodes_delta,baseline_wall_ms,candidate_wall_ms,wall_delta_ms,winner,baseline_ordering,candidate_ordering,baseline_reason,candidate_reason
+hardening:depth15:seed42:random_42_1,,1001,950,-51,-5.09,20000,19000,-1000,0,0,0,candidate,default,phase2_tiebreak,conservative_root,conservative_root
+hardening:depth15:seed42:random_42_2,,1002,1050,48,4.79,20000,20100,100,0,0,0,baseline,default,phase2_tiebreak,conservative_root,conservative_root
+__summary__,2,2003,2000,-3,-0.15,40000,39100,-900,0,0,0,candidate,,,,
+CSV
 SWEEP
 
 chmod +x "${bin_dir}/cmake" "${build_dir}/rubik-cache-setup" "${build_dir}/rubik-bench" "${tmp_dir}/fake_sweep.sh"
@@ -135,9 +144,12 @@ FAKE_TARGETED_LOG="${log_file}" PATH="${bin_dir}:${PATH}" "${script}" \
     --target-profiles 8:7:1,8:11:1 \
     --min-target-cases 2 \
     --sweep-script "${tmp_dir}/fake_sweep.sh" \
+    --summary-script "${summary_script}" \
     > "${tmp_dir}/run.out" 2>&1
 
 grep -q "fake cmake --build ${build_dir} --target rubik-bench rubik-cache-setup" "${log_file}"
 grep -q "42,1,random_42_1,8,11,1,1001,20000" "${tmp_dir}/out/targeted_cases.csv"
 grep -q "42,2,random_42_2,8,7,1,1002,20000" "${tmp_dir}/out/targeted_cases.csv"
 test -f "${tmp_dir}/out/ordering-sweep/summary.csv"
+grep -q "8:11:1,8,11,1,hardening:depth15:seed42:random_42_1" "${tmp_dir}/out/case_summary.csv"
+grep -q "8:7:1,8,7,1,1,0,1" "${tmp_dir}/out/profile_summary.csv"

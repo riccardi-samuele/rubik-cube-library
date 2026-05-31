@@ -1,0 +1,4 @@
+seed,start_index,case_name,adaptive_lb,adaptive_strong_min_count,adaptive_first_diff,elapsed_ms,nodes_expanded,profile
+42,1,random_42_1,8,11,1,2000,10000,profile_a
+99,1,random_99_1,8,7,1,1000,5000,profile_b
+424242,1,random_424242_1,9,14,0,1500,8000,profile_c

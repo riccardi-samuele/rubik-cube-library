@@ -1165,6 +1165,12 @@ add_test(
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-baseline
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-candidate
 )
+add_test(
+    NAME summarize_v6_targeted_corpus_fixture
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/summarize_v6_targeted_corpus_fixture.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/summarize_v6_targeted_corpus.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-targeted
+)
 
 add_test(
     NAME benchmark_root_ordering_experiments_contract

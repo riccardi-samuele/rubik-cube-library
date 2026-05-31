@@ -17,6 +17,7 @@ random_start_index="1"
 target_profiles="8:7:1,8:11:1,9:14:0"
 min_target_cases="1"
 sweep_script="${script_dir}/run_v6_conservative_root_ordering_sweep.sh"
+summary_script="${script_dir}/summarize_v6_targeted_corpus.py"
 
 usage() {
     cat <<'USAGE'
@@ -36,6 +37,7 @@ Options:
   --target-profiles LIST    comma-separated lb:strong_min:first_diff profiles
   --min-target-cases N      minimum matching cases required, default: 1
   --sweep-script FILE       ordering sweep runner
+  --summary-script FILE     targeted corpus summary script
   -h, --help                show this help
 USAGE
 }
@@ -114,6 +116,11 @@ while [[ $# -gt 0 ]]; do
             sweep_script="$2"
             shift 2
             ;;
+        --summary-script)
+            require_value "$@"
+            summary_script="$2"
+            shift 2
+            ;;
         -h|--help)
             usage
             exit 0
@@ -152,6 +159,11 @@ if [[ ! -x "${sweep_script}" ]]; then
     exit 1
 fi
 
+if [[ ! -x "${summary_script}" ]]; then
+    echo "v6 conservative root targeted corpus failed: summary script is not executable: ${summary_script}" >&2
+    exit 1
+fi
+
 cmake --build "${build_dir}" --target rubik-bench rubik-cache-setup
 
 bench="${build_dir}/rubik-bench"
@@ -185,6 +197,7 @@ target_summary="${output_dir}/targeted_cases.csv"
     echo "target_profiles,${target_profiles}"
     echo "min_target_cases,${min_target_cases}"
     echo "sweep_script,${sweep_script}"
+    echo "summary_script,${summary_script}"
     echo "cache_setup_output,${cache_setup_output}"
 } > "${manifest_file}"
 
@@ -298,7 +311,15 @@ fi
     --max-memory-mb "${max_memory_mb}" \
     --candidates phase2_tiebreak
 
+"${summary_script}" \
+    --targeted-cases "${target_summary}" \
+    --comparison "${output_dir}/ordering-sweep/phase2_tiebreak/comparison.csv" \
+    --case-output "${output_dir}/case_summary.csv" \
+    --profile-output "${output_dir}/profile_summary.csv"
+
 echo "v6 conservative root targeted corpus manifest: ${manifest_file}"
 echo "v6 conservative root targeted corpus: ${target_corpus}"
 echo "v6 conservative root targeted cases: ${target_summary}"
 echo "v6 conservative root targeted sweep: ${output_dir}/ordering-sweep/summary.csv"
+echo "v6 conservative root targeted case summary: ${output_dir}/case_summary.csv"
+echo "v6 conservative root targeted profile summary: ${output_dir}/profile_summary.csv"
