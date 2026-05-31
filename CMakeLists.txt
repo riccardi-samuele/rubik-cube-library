@@ -1177,6 +1177,12 @@ add_test(
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/summarize_v6_profile_buckets.py
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-targeted
 )
+add_test(
+    NAME analyze_v6_conservative_root_features_fixture
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/analyze_v6_conservative_root_features_fixture.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/analyze_v6_conservative_root_features.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-feature-mining
+)
 
 add_test(
     NAME benchmark_root_ordering_experiments_contract
