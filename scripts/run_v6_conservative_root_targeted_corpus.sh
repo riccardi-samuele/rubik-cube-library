@@ -17,6 +17,7 @@ random_start_index="1"
 random_start_indices=""
 target_profiles="8:7:1,8:11:1,9:14:0"
 min_target_cases="1"
+discovery_only="false"
 sweep_script="${script_dir}/run_v6_conservative_root_ordering_sweep.sh"
 summary_script="${script_dir}/summarize_v6_targeted_corpus.py"
 
@@ -38,6 +39,7 @@ Options:
   --random-start-indices L  comma-separated first case indices; overrides --random-start-index
   --target-profiles LIST    comma-separated lb:strong_min:first_diff profiles
   --min-target-cases N      minimum matching cases required, default: 1
+  --discovery-only          stop after writing targeted corpus and profile counts
   --sweep-script FILE       ordering sweep runner
   --summary-script FILE     targeted corpus summary script
   -h, --help                show this help
@@ -118,6 +120,10 @@ while [[ $# -gt 0 ]]; do
             min_target_cases="$2"
             shift 2
             ;;
+        --discovery-only)
+            discovery_only="true"
+            shift
+            ;;
         --sweep-script)
             require_value "$@"
             sweep_script="$2"
@@ -170,12 +176,12 @@ if [[ -z "${random_start_indices}" ]]; then
     random_start_indices="${random_start_index}"
 fi
 
-if [[ ! -x "${sweep_script}" ]]; then
+if [[ "${discovery_only}" != "true" && ! -x "${sweep_script}" ]]; then
     echo "v6 conservative root targeted corpus failed: sweep script is not executable: ${sweep_script}" >&2
     exit 1
 fi
 
-if [[ ! -x "${summary_script}" ]]; then
+if [[ "${discovery_only}" != "true" && ! -x "${summary_script}" ]]; then
     echo "v6 conservative root targeted corpus failed: summary script is not executable: ${summary_script}" >&2
     exit 1
 fi
@@ -196,6 +202,7 @@ manifest_file="${output_dir}/manifest.csv"
 cache_setup_output="${output_dir}/cache_setup.csv"
 target_corpus="${output_dir}/targeted_corpus.csv"
 target_summary="${output_dir}/targeted_cases.csv"
+target_profile_counts="${output_dir}/targeted_profile_counts.csv"
 
 {
     echo "key,value"
@@ -213,6 +220,7 @@ target_summary="${output_dir}/targeted_cases.csv"
     echo "random_start_indices,${random_start_indices}"
     echo "target_profiles,${target_profiles}"
     echo "min_target_cases,${min_target_cases}"
+    echo "discovery_only,${discovery_only}"
     echo "sweep_script,${sweep_script}"
     echo "summary_script,${summary_script}"
     echo "cache_setup_output,${cache_setup_output}"
@@ -321,6 +329,32 @@ if (( target_count < min_target_cases )); then
     exit 1
 fi
 
+echo "profile,adaptive_lb,adaptive_strong_min_count,adaptive_first_diff,cases,total_discovery_elapsed_ms,total_discovery_nodes" > "${target_profile_counts}"
+awk -F, '
+    NR == 1 { next }
+    {
+        profile = $4 ":" $5 ":" $6
+        counts[profile] += 1
+        elapsed[profile] += $7
+        nodes[profile] += $8
+    }
+    END {
+        for (profile in counts) {
+            split(profile, pieces, ":")
+            print profile "," pieces[1] "," pieces[2] "," pieces[3] "," counts[profile] "," elapsed[profile] "," nodes[profile]
+        }
+    }
+' "${target_summary}" | sort -t, -k1,1 >> "${target_profile_counts}"
+
+if [[ "${discovery_only}" == "true" ]]; then
+    echo "v6 conservative root targeted corpus manifest: ${manifest_file}"
+    echo "v6 conservative root targeted corpus: ${target_corpus}"
+    echo "v6 conservative root targeted cases: ${target_summary}"
+    echo "v6 conservative root targeted profile counts: ${target_profile_counts}"
+    echo "v6 conservative root targeted discovery-only: true"
+    exit 0
+fi
+
 "${sweep_script}" \
     --build-dir "${build_dir}" \
     --cache-dir "${cache_dir}" \
@@ -340,6 +374,7 @@ fi
 echo "v6 conservative root targeted corpus manifest: ${manifest_file}"
 echo "v6 conservative root targeted corpus: ${target_corpus}"
 echo "v6 conservative root targeted cases: ${target_summary}"
+echo "v6 conservative root targeted profile counts: ${target_profile_counts}"
 echo "v6 conservative root targeted sweep: ${output_dir}/ordering-sweep/summary.csv"
 echo "v6 conservative root targeted case summary: ${output_dir}/case_summary.csv"
 echo "v6 conservative root targeted profile summary: ${output_dir}/profile_summary.csv"

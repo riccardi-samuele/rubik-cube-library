@@ -157,3 +157,26 @@ test -f "${tmp_dir}/out/ordering-sweep/summary.csv"
 grep -q "8:11:1,8,11,1,hardening:depth15:seed42:random_42_1" "${tmp_dir}/out/case_summary.csv"
 grep -q "8:7:1,8,7,1,1,0,1" "${tmp_dir}/out/profile_summary.csv"
 grep -q "8:11:1,8,11,1,2,2,0" "${tmp_dir}/out/profile_summary.csv"
+grep -q "8:11:1,8,11,1,2,2005,40000" "${tmp_dir}/out/targeted_profile_counts.csv"
+
+FAKE_TARGETED_LOG="${log_file}" PATH="${bin_dir}:${PATH}" "${script}" \
+    --build-dir "${build_dir}" \
+    --cache-dir "${tmp_dir}/cache" \
+    --output-dir "${tmp_dir}/discovery-only" \
+    --seeds 42 \
+    --random-count 3 \
+    --random-start-indices 1,4 \
+    --target-profiles 8:7:1,8:11:1 \
+    --min-target-cases 3 \
+    --discovery-only \
+    --sweep-script "${tmp_dir}/does-not-exist.sh" \
+    --summary-script "${tmp_dir}/does-not-exist.py" \
+    > "${tmp_dir}/discovery-only.out" 2>&1
+
+grep -q "v6 conservative root targeted discovery-only: true" "${tmp_dir}/discovery-only.out"
+test -f "${tmp_dir}/discovery-only/targeted_corpus.csv"
+test -f "${tmp_dir}/discovery-only/targeted_profile_counts.csv"
+if [[ -e "${tmp_dir}/discovery-only/ordering-sweep/summary.csv" ]]; then
+    echo "discovery-only run unexpectedly executed the sweep" >&2
+    exit 1
+fi
