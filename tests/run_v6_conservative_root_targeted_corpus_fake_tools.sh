@@ -74,6 +74,9 @@ for ((offset = 0; offset < count; offset += 1)); do
         3)
             profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=9;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=4;adaptive_first_diff=0"
             ;;
+        5)
+            profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=root;adaptive_reason=conservative_root;adaptive_lb=8;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=5;adaptive_first_diff=1"
+            ;;
         *)
             profile="root_ordering_mode=default;scheduler=adaptive;adaptive_decision=deep_split;adaptive_reason=lb9_mid_strong_min;adaptive_lb=9;adaptive_max_depth=15;adaptive_threads=16;adaptive_strong_min_count=4;adaptive_first_diff=0"
             ;;
@@ -200,3 +203,28 @@ FAKE_TARGETED_LOG="${log_file}" PATH="${bin_dir}:${PATH}" "${script}" \
 
 grep -q "42,3,random_42_3,9,4,0,1003,20000" "${tmp_dir}/all-profiles/targeted_cases.csv"
 grep -q "9:4:0,9,4,0,1,1003,20000" "${tmp_dir}/all-profiles/targeted_profile_counts.csv"
+
+FAKE_TARGETED_LOG="${log_file}" PATH="${bin_dir}:${PATH}" "${script}" \
+    --build-dir "${build_dir}" \
+    --cache-dir "${tmp_dir}/cache" \
+    --output-dir "${tmp_dir}/bucket-filter" \
+    --seeds 42 \
+    --random-count 5 \
+    --random-start-indices 1 \
+    --target-buckets lb8_s5-8_fd1 \
+    --min-target-cases 2 \
+    --discovery-only \
+    --sweep-script "${tmp_dir}/does-not-exist.sh" \
+    --summary-script "${tmp_dir}/does-not-exist.py" \
+    > "${tmp_dir}/bucket-filter.out" 2>&1
+
+grep -q "42,2,random_42_2,8,7,1,1002,20000" "${tmp_dir}/bucket-filter/targeted_cases.csv"
+grep -q "42,5,random_42_5,8,5,1,1005,20000" "${tmp_dir}/bucket-filter/targeted_cases.csv"
+if grep -q "42,1,random_42_1,8,11,1" "${tmp_dir}/bucket-filter/targeted_cases.csv"; then
+    echo "non-bucket profile entered corpus" >&2
+    exit 1
+fi
+if grep -q "42,3,random_42_3,9,4,0" "${tmp_dir}/bucket-filter/targeted_cases.csv"; then
+    echo "non-bucket lower bound entered corpus" >&2
+    exit 1
+fi

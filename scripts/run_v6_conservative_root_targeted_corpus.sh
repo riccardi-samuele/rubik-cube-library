@@ -16,6 +16,7 @@ random_count="2"
 random_start_index="1"
 random_start_indices=""
 target_profiles="8:7:1,8:11:1,9:14:0"
+target_buckets=""
 min_target_cases="1"
 discovery_only="false"
 sweep_script="${script_dir}/run_v6_conservative_root_ordering_sweep.sh"
@@ -38,6 +39,7 @@ Options:
   --random-start-index N    first generated case index, default: 1
   --random-start-indices L  comma-separated first case indices; overrides --random-start-index
   --target-profiles LIST    comma-separated lb:strong_min:first_diff profiles, or all
+  --target-buckets LIST     comma-separated buckets like lb8_s5-8_fd1
   --min-target-cases N      minimum matching cases required, default: 1
   --discovery-only          stop after writing targeted corpus and profile counts
   --sweep-script FILE       ordering sweep runner
@@ -115,6 +117,11 @@ while [[ $# -gt 0 ]]; do
             target_profiles="$2"
             shift 2
             ;;
+        --target-buckets)
+            require_value "$@"
+            target_buckets="$2"
+            shift 2
+            ;;
         --min-target-cases)
             require_value "$@"
             min_target_cases="$2"
@@ -172,6 +179,11 @@ if [[ "${target_profiles}" != "all" && ! "${target_profiles}" =~ ^[0-9]+:[0-9]+:
     exit 2
 fi
 
+if [[ -n "${target_buckets}" && ! "${target_buckets}" =~ ^lb[0-9]+_s(0-4|5-8|9-12|13-16|17\+)_fd[01](,lb[0-9]+_s(0-4|5-8|9-12|13-16|17\+)_fd[01])*$ ]]; then
+    usage >&2
+    exit 2
+fi
+
 if [[ -z "${random_start_indices}" ]]; then
     random_start_indices="${random_start_index}"
 fi
@@ -219,6 +231,7 @@ target_profile_counts="${output_dir}/targeted_profile_counts.csv"
     echo "random_start_index,${random_start_index}"
     echo "random_start_indices,${random_start_indices}"
     echo "target_profiles,${target_profiles}"
+    echo "target_buckets,${target_buckets}"
     echo "min_target_cases,${min_target_cases}"
     echo "discovery_only,${discovery_only}"
     echo "sweep_script,${sweep_script}"
@@ -247,15 +260,43 @@ extract_profile_value() {
     sed -n "s/.*${key}=\\([^;\\\"]*\\).*/\\1/p" <<< "${profile}"
 }
 
+strong_min_bucket() {
+    local strong_min="$1"
+    if (( strong_min <= 4 )); then
+        echo "0-4"
+    elif (( strong_min <= 8 )); then
+        echo "5-8"
+    elif (( strong_min <= 12 )); then
+        echo "9-12"
+    elif (( strong_min <= 16 )); then
+        echo "13-16"
+    else
+        echo "17+"
+    fi
+}
+
 profile_is_targeted() {
     local profile="$1"
-    local lb strong_min first_diff candidate
-    if [[ "${target_profiles}" == "all" ]]; then
-        return 0
-    fi
+    local lb strong_min first_diff candidate bucket strong_bucket
     lb="$(extract_profile_value "${profile}" "adaptive_lb")"
     strong_min="$(extract_profile_value "${profile}" "adaptive_strong_min_count")"
     first_diff="$(extract_profile_value "${profile}" "adaptive_first_diff")"
+
+    if [[ -n "${target_buckets}" ]]; then
+        strong_bucket="$(strong_min_bucket "${strong_min}")"
+        bucket="lb${lb}_s${strong_bucket}_fd${first_diff}"
+        IFS=',' read -r -a candidate_buckets <<< "${target_buckets}"
+        for candidate in "${candidate_buckets[@]}"; do
+            if [[ "${candidate}" == "${bucket}" ]]; then
+                return 0
+            fi
+        done
+        return 1
+    fi
+
+    if [[ "${target_profiles}" == "all" ]]; then
+        return 0
+    fi
     IFS=',' read -r -a candidate_profiles <<< "${target_profiles}"
     for candidate in "${candidate_profiles[@]}"; do
         if [[ "${candidate}" == "${lb}:${strong_min}:${first_diff}" ]]; then

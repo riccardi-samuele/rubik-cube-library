@@ -70,6 +70,7 @@ scripts/run_auto_tail_ordering_ab.sh --build-dir out/release-native-lto --cache-
 scripts/run_benchmark_suite.sh --suite optimal-auto-hardening --seeds 12345,20260525,42,314159,271828,987654321,7,99,123456789,424242,8675309,20240525 --threads 0 --max-memory-mb 2048 --deep-opt14-count 2 --deep-opt15-count 1
 scripts/check_benchmark_gates.sh --summary-file out/release-native-lto/benchmark-results/optimal-auto-hardening/warm_optimal_auto_hardening_summary.csv --gate auto,optimal,random_seed_987654321_depth_15_count_1,1,12000,12000,12000
 scripts/run_v6_conservative_root_targeted_corpus.sh --build-dir out/release-native-lto --cache-dir /tmp/rubik_cube_library_v6_tail_baseline_cache --output-dir out/release-native-lto/benchmark-results/v6-conservative-root-targeted-corpus --random-start-indices 1,3,5 --threads 0 --max-memory-mb 2048
+scripts/run_v6_conservative_root_targeted_corpus.sh --build-dir out/release-native-lto --cache-dir /tmp/rubik_cube_library_v6_tail_baseline_cache --output-dir out/release-native-lto/benchmark-results/v6-conservative-root-bucket-lb8-s5-8-fd1-pass52 --seeds 42,99,424242,12345,20260525 --random-count 2 --random-start-indices 1,3,5,7 --target-buckets lb8_s5-8_fd1 --min-target-cases 6 --threads 0 --max-memory-mb 2048
 scripts/summarize_v6_profile_buckets.py --targeted-cases out/release-native-lto/benchmark-results/v6-conservative-root-all-profiles-pass50/targeted_cases.csv --output out/release-native-lto/benchmark-results/v6-conservative-root-all-profiles-pass50/bucket_summary.csv
 scripts/run_v4_tail_discovery.sh --build-dir out/release-native-lto --output-dir out/release-native-lto/benchmark-results/v4-tail-discovery --cache-dir /tmp/rubik_cube_library_v4_tail_discovery_cache --threads 0 --max-memory-mb 2048
 scripts/run_v4_tail_corpus.sh --build-dir out/release-native-lto --cases-file out/release-native-lto/benchmark-results/v4-tail-discovery/slowest.csv --output-dir out/release-native-lto/benchmark-results/v4-tail-corpus --cache-dir /tmp/rubik_cube_library_v4_tail_discovery_cache --threads 0 --max-memory-mb 2048 --cache-mode reuse
@@ -120,6 +121,7 @@ Current profile comparison:
 - [V6 Conservative-Root 8:7:1 Replay - 2026-05-31](v6-optimal-latency-pass49-2026-05-31.md)
 - [V6 Conservative-Root All-Profile Density - 2026-05-31](v6-optimal-latency-pass50-2026-05-31.md)
 - [V6 Conservative-Root Bucket Density - 2026-05-31](v6-optimal-latency-pass51-2026-05-31.md)
+- [V6 Conservative-Root Bucket Replay - 2026-05-31](v6-optimal-latency-pass52-2026-05-31.md)
 - [V4 Deep Root Splitting Results - 2026-05-28](v4-deep-root-splitting-results-2026-05-28.md)
 - [V4 Local Baseline - 2026-05-27](v4-local-baseline-2026-05-27.md)
 - [Auto Optimal Hardening - 2026-05-27](optimal-auto-hardening-2026-05-27.md)
