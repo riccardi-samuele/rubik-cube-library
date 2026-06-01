@@ -7,12 +7,12 @@ The project uses semantic versioning for public releases:
 - `PATCH` changes for bug fixes, documentation fixes, and performance work that
   does not require user code changes.
 
-The `1.x` line keeps the high-level solver API source-compatible. Incompatible
-changes to stable APIs require a new major version.
+The current `6.x` line keeps the high-level solver API source-compatible.
+Incompatible changes to stable APIs require a new major version.
 
-## 1.x Stability Contract
+## 6.x Stability Contract
 
-Stable for `1.0.0`:
+Stable for `6.0.0`:
 
 - `rubik::Cube`
 - `rubik::CubieCube`
@@ -20,14 +20,19 @@ Stable for `1.0.0`:
 - `rubik::Solver`
 - `rubik::SolveOptions`
 - `rubik::SolveResult`
+- `rubik::SolvePlan`
+- `rubik::CacheSetupOptions`
+- `rubik::CacheSetupResult`
 - `rubik::SolveBoundDiagnostics`
 - `rubik::CubeError`
 - `rubik/version.hpp` version constants
 - CLI sticker input order: `U R F D L B`
+- CLI tools: `rubik-solve`, `rubik-bench`, and `rubik-cache-setup`
 - CMake imported target: `rubik::rubik`
 
-The exact `1.0.0` freeze is documented in
-[API Stability - 1.0.0](api-stability-1.0.0.md).
+The exact `6.0.0` freeze is documented in
+[API Stability - 6.0.0](api-stability-6.0.0.md). Historical freezes remain
+available in their versioned API stability documents.
 
 Experimental APIs:
 
@@ -45,9 +50,9 @@ Experimental APIs:
 proven minimal within the requested options. Optimizations may change search
 order, runtime, and diagnostics, but they must not weaken that guarantee.
 
-The 54-sticker input order is frozen for `1.0.0`. Additional input formats
-may be added later, but they should not change the meaning of the existing
-format.
+The 54-sticker input order is frozen for the stable public API. Additional
+input formats may be added later, but they should not change the meaning of the
+existing format.
 
 CMake package compatibility is generated from the project version with
 `SameMajorVersion`.

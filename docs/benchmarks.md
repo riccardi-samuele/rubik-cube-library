@@ -1109,6 +1109,25 @@ admissible pruning.
 
 These figures are local development numbers, not Raspberry Pi numbers.
 
+## V6 Release Benchmark Evidence
+
+The V6 release benchmark evidence is local-only and documented in the V6 pass
+files. The release keeps positive high-bound root ordering enabled for the
+measured exact-profile buckets where rollback replay was slower:
+
+- `adaptive_lb=9`, `strong_min_count=1..3`, `first_diff=0`: rollback was slower
+  across the pass81-pass82 aggregate in
+  [V6 Optimal Latency Pass 80-82](v6-optimal-latency-pass80-82-2026-06-01.md).
+- `adaptive_lb=8`, `strong_min_count=13..16`, `first_diff=1`: rollback was
+  slower across the pass84-pass85 aggregate in
+  [V6 Optimal Latency Pass 83-85](v6-optimal-latency-pass83-85-2026-06-01.md).
+- The broader independent rollback replay is recorded in
+  [V6 Optimal Latency Pass 75-78](v6-optimal-latency-pass75-78-2026-06-01.md)
+  and remains part of the release evidence.
+
+No Raspberry Pi, Jetson, Orin, GPU, or cloud benchmark claim is published for
+V6.
+
 Small warm-cache random smoke test:
 
 ```text

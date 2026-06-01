@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(rubik_cube_library VERSION 5.0.0 LANGUAGES CXX)
+project(rubik_cube_library VERSION 6.0.0 LANGUAGES CXX)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)

@@ -38,10 +38,10 @@ void expect(bool condition)
 
 void testVersionMetadata()
 {
-    assert(rubik::version_major == 5);
+    assert(rubik::version_major == 6);
     assert(rubik::version_minor == 0);
     assert(rubik::version_patch == 0);
-    assert(std::string(rubik::version_string) == "5.0.0");
+    assert(std::string(rubik::version_string) == "6.0.0");
 }
 
 void testV3AdaptiveApiDefaults()

@@ -6,6 +6,19 @@ This project uses semantic versioning for public releases. The main
 `rubik::Solver` API is treated as stable, while explicitly experimental APIs
 can still change between minor releases.
 
+## 6.0.0 - 2026-06-01
+
+- Promoted measured V6 conservative root-ordering policy for local optimal
+  solving.
+- Kept the certified optimality contract unchanged:
+  `SolveStatus::Optimal` means the returned HTM solution is proven minimal for
+  the requested options.
+- Added V6 transition-corpus extraction and replay aggregation tooling for
+  benchmark-driven policy validation.
+- Documented V6 local benchmark evidence and release notes.
+- Kept Raspberry Pi, Jetson, Orin, GPU, and cloud performance claims out of
+  public release notes until direct measurements are available.
+
 ## 5.0.0 - 2026-05-28
 
 - Modernized public examples around the recommended certified optimal path.

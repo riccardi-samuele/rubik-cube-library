@@ -12,9 +12,10 @@ CMake packaging, and release validation.
 validation. `3.0.0` made the adaptive Auto optimal path the recommended local
 profile and added cache setup workflows for applications that need predictable
 startup behavior. `4.0.0` promoted adaptive CPU root scheduling for measured
-local optimal tail-latency reduction. `5.0.0` adds public-usability
+local optimal tail-latency reduction. `5.0.0` added public-usability
 documentation, examples, and release gates that keep public integration
-guidance current.
+guidance current. `6.0.0` promotes measured local optimal-latency policy and
+benchmark replay tooling while keeping optimal solving exact.
 
 ## Current Status
 
@@ -44,7 +45,7 @@ Implemented:
 - install/export packaging for downstream CMake projects;
 - optimized CMake presets for release, native, LTO, and sanitizer builds;
 - public API stability documentation for `1.0.0`, `2.0.0`, `3.0.0`, `4.0.0`,
-  and `5.0.0`;
+  `5.0.0`, and `6.0.0`;
 - unit tests and release validation scripts.
 
 Experimental or hardware-dependent:
@@ -58,13 +59,38 @@ Experimental or hardware-dependent:
 Hardware-specific performance claims stay unpublished until they are measured
 on the real target devices.
 
-## Current 5.0 Release
+## Current 6.0 Release
 
-The `5.0.0` release is a public usability release. It should make the library
-easier to integrate correctly without changing the certified optimality
-contract.
+The `6.0.0` release is a local optimal-latency release. It keeps the certified
+minimum-move contract intact while promoting measured conservative root-ordering
+policy and replay tooling for future latency work.
 
 Primary goals:
+
+1. Preserve exact optimal solving: `SolveStatus::Optimal` still means a
+   proven-minimal HTM solution.
+2. Promote the measured V6 conservative root-ordering policy for the local
+   optimal path.
+3. Keep V6 transition-corpus extraction and replay aggregation tooling
+   available for benchmark-driven policy changes.
+4. Publish only local benchmark evidence measured in this repository.
+5. Keep public examples and versioned release documents current.
+
+Out of scope for `6.0.0`:
+
+- new hardware latency claims;
+- GPU acceleration;
+- cloud solving;
+- QTM;
+- camera recognition;
+- hardware control.
+
+## Historical 5.0 Release
+
+The `5.0.0` release is a public usability release. It made the library easier
+to integrate correctly without changing the certified optimality contract.
+
+Completed goals:
 
 1. Make examples the executable source of truth for recommended integration.
 2. Keep `SolveMode::Optimal`, `SolveProfile::Auto`, `CachePolicy::Auto`, and
@@ -74,15 +100,6 @@ Primary goals:
    solving.
 5. Add release gates that catch stale public examples and stale current-version
    references.
-
-Out of scope for `5.0.0`:
-
-- new hardware latency claims;
-- GPU acceleration;
-- cloud solving;
-- QTM;
-- camera recognition;
-- hardware control.
 
 ## Historical 4.0 Release
 
