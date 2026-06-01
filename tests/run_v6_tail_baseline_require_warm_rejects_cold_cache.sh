@@ -3,13 +3,14 @@ set -euo pipefail
 
 script="${1:-scripts/run_v6_tail_baseline.sh}"
 repo_root="$(cd "$(dirname "${script}")/.." && pwd)"
+build_dir="${2:-${repo_root}/out/release-native-lto}"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
 
 output_file="${tmp_dir}/run.out"
 set +e
 "${script}" \
-    --build-dir "${repo_root}/out/release-native-lto" \
+    --build-dir "${build_dir}" \
     --cache-dir "${tmp_dir}/cache" \
     --output-dir "${tmp_dir}/out" \
     --cache-mode require-warm \
