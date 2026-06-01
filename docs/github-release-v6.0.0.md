@@ -35,5 +35,7 @@ contract.
 
 ## Verification
 
-Final local release verification must be recorded in `docs/release-6.0.0.md`
-before publishing the tag.
+Final local release verification is recorded in `docs/release-6.0.0.md`.
+The release was validated with full CTest, standard release checks, source
+archive validation, public documentation guardrails, and benchmark release
+gates.
