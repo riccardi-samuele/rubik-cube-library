@@ -1172,6 +1172,12 @@ add_test(
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-transition-corpus
 )
 add_test(
+    NAME aggregate_v6_replay_comparisons_fixture
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/aggregate_v6_replay_comparisons_fixture.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/aggregate_v6_replay_comparisons.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark-results/v6-replay-aggregate
+)
+add_test(
     NAME summarize_v6_targeted_corpus_fixture
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/summarize_v6_targeted_corpus_fixture.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/summarize_v6_targeted_corpus.py
