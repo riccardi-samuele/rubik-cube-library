@@ -97,6 +97,29 @@ Pass78 repeated the same touched corpus:
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | Independent touched repeat | 12 | 19,874 | 19,841 | -33 | -0.17% | 3,784 | 3,657 | -127 | 90,888,461 | 90,485,323 | -403,138 | rollback |
 
+The repeated touched replays were aggregated with:
+
+```bash
+scripts/aggregate_v6_replay_comparisons.py \
+  --comparison out/release-native-lto/benchmark-results/v6-conservative-root-independent-rollback-touched-pass77/comparison.csv \
+  --comparison out/release-native-lto/benchmark-results/v6-conservative-root-independent-rollback-touched-repeat-pass78/comparison.csv \
+  --output out/release-native-lto/benchmark-results/v6-conservative-root-independent-rollback-touched-aggregate-pass77-78/comparison_aggregate.csv
+```
+
+Aggregate:
+
+| Replays | Auto ms | Rollback ms | Delta ms | Delta | Baseline wins | Rollback wins | Neutral | Min delta ms | Max delta ms | Spread ms | Auto nodes | Rollback nodes | Node delta | Winner | Stability |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| 2 | 41,183 | 39,774 | -1,409 | -3.42% | 15 | 6 | 3 | -1,062 | 129 | 1,191 | 182,004,340 | 180,750,583 | -1,253,757 | rollback | mixed |
+
+Stable case counts:
+
+| Stability | Rows |
+| --- | ---: |
+| `stable_baseline` | 5 |
+| `stable_candidate` | 2 |
+| `mixed` | 5 |
+
 The touched-case measurements are mixed: pass76 favored the current auto
 policy on the same transition set, while pass77 favored rollback and pass78 was
 near neutral. The large pass74 touched replay remains the strongest positive
