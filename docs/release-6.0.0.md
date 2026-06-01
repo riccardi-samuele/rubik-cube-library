@@ -11,8 +11,8 @@ the certified optimality contract.
 | Certified optimal solving | Unchanged | `SolveStatus::Optimal` remains a proven-minimal HTM result. |
 | V6 conservative root ordering | Verified locally | Rollback replays support keeping the measured policy enabled. |
 | Benchmark tooling | Verified locally | V6 transition-corpus extraction and replay aggregation are covered by CTest fixtures. |
-| Public docs | Pending final verification | README, API notes, roadmap, benchmark notes, and release docs reference V6. |
-| Release gates | Pending final verification | Full CTest, release check, archive check, and public-doc guardrails must pass after the version bump. |
+| Public docs | Verified locally | README, API notes, roadmap, benchmark notes, and release docs reference V6. |
+| Release gates | Verified locally | Full CTest, standard release check, archive check, public-doc guardrails, and benchmark release gates passed after the version bump. |
 | Hardware claims | Not release-claimed | Raspberry Pi, Jetson, Orin, GPU, and cloud claims require direct measurements before publication. |
 
 ## Required Verification
@@ -40,5 +40,18 @@ V6.
 
 ## Verification Evidence
 
-Final evidence is pending in this working tree. Record only commands actually
-run for this release candidate.
+Local release validation on 2026-06-01:
+
+- `ctest --test-dir out/release-native-lto --output-on-failure`: 107/107
+  tests passed.
+- `scripts/release_check.sh --profile standard`: passed.
+- `scripts/check_release_archive.sh`: passed and produced
+  `dist/rubik_cube_library-6.0.0.tar.gz` plus
+  `dist/rubik_cube_library-6.0.0.tar.gz.sha256`.
+- `ctest --test-dir out/release-native-lto -R "public_docs_current_version|public_docs_no_unverified_hardware_estimates|public_examples_current_api|check_release_archive_versioned_docs" --output-on-failure`:
+  4/4 tests passed.
+- `scripts/release_check.sh --profile full --with-benchmarks`: passed,
+  including sanitizer CTest, source archive rebuild validation, realistic
+  profile gates, embedded multi-seed gates, and optimal stress gates.
+- `scripts/release_check.sh --profile full --with-large-local`: not run because
+  V6 release notes do not publish new large-local benchmark claims.
