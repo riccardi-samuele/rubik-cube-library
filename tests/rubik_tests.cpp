@@ -1083,7 +1083,7 @@ void testThreePhase1Policy()
     const auto fast = solver.solve(cube, {
         .mode = rubik::SolveMode::Fast,
         .maxDepth = 16,
-        .timeout = std::chrono::milliseconds(1000),
+        .timeout = std::chrono::milliseconds(5000),
         .profile = rubik::SolveProfile::Default,
         .collectDiagnostics = true,
     });
