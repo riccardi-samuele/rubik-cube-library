@@ -72,6 +72,7 @@ void testV3AdaptiveApiDefaults()
     rubik::SolveOptions options;
     expect(options.profile == rubik::SolveProfile::Default);
     expect(options.cachePolicy == rubik::CachePolicy::Auto);
+    expect(options.blockedFaces.empty());
 
     rubik::SolvePlan plan;
     expect(plan.requestedProfile == rubik::SolveProfile::Default);
@@ -1910,12 +1911,25 @@ void testMoveRestrictions()
     assert(tooMany.moves.empty());
 }
 
+void testBlockedFaceOptionsDefaultEmpty()
+{
+    rubik::SolveOptions solveOptions;
+    assert(solveOptions.blockedFaces.empty());
+
+    rubik::Phase1Options phase1Options;
+    assert(phase1Options.blockedFaces.empty());
+
+    rubik::Phase2Options phase2Options;
+    assert(phase2Options.blockedFaces.empty());
+}
+
 } // namespace
 
 int main()
 {
     testVersionMetadata();
     testV3AdaptiveApiDefaults();
+    testBlockedFaceOptionsDefaultEmpty();
     testAutoPlannerRejectsFastMode();
     testAutoPlannerInternalDecisionMatchesPublicPlan();
     testAutoPlannerUsesPerformanceForShallowOptimal();

@@ -16,6 +16,7 @@ struct Phase1Options {
     std::chrono::milliseconds timeout{0};
     SolveProfile profile = SolveProfile::Default;
     std::size_t maxCandidates = 1;
+    std::vector<Face> blockedFaces;
 };
 
 struct Phase1Result {

@@ -14,6 +14,7 @@ struct Phase2Options {
     int maxDepth = 18;
     std::chrono::milliseconds timeout{0};
     SolveProfile profile = SolveProfile::Default;
+    std::vector<Face> blockedFaces;
 };
 
 struct Phase2Result {

@@ -80,6 +80,7 @@ struct SolveOptions {
     SolveProfile profile = SolveProfile::Default;
     CachePolicy cachePolicy = CachePolicy::Auto;
     bool collectDiagnostics = false;
+    std::vector<Face> blockedFaces;
 };
 
 struct SolveBoundDiagnostics {
