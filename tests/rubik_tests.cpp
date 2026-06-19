@@ -4,6 +4,7 @@
 #include "rubik/detail/symmetry.hpp"
 #include "rubik/detail/adaptive_scheduler.hpp"
 #include "rubik/detail/auto_plan.hpp"
+#include "rubik/detail/move_restrictions.hpp"
 #include "rubik/detail/optimal_plan.hpp"
 #include "rubik/detail/table_profiles.hpp"
 #include "rubik/experimental/phase1.hpp"
@@ -34,6 +35,28 @@ void expect(bool condition)
         std::cerr << "test expectation failed\n";
         std::abort();
     }
+}
+
+bool containsFace(const std::vector<rubik::Move>& moves, rubik::Face face)
+{
+    for (rubik::Move move : moves) {
+        if (rubik::faceOf(move) == face) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool hasBlockedFaceMove(const std::vector<rubik::Move>& moves, const std::vector<rubik::Face>& blockedFaces)
+{
+    for (rubik::Move move : moves) {
+        for (rubik::Face blockedFace : blockedFaces) {
+            if (rubik::faceOf(move) == blockedFace) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void testVersionMetadata()
@@ -1851,6 +1874,42 @@ void testExperimentalPhaseAliases()
     assert(cube.isSolved());
 }
 
+void testMoveRestrictions()
+{
+    const auto noBlocked = rubik::detail::allowedMovesForBlockedFaces({});
+    assert(noBlocked.status == rubik::SolveStatus::Found);
+    assert(noBlocked.moves.size() == rubik::allMoves().size());
+
+    const auto withoutU = rubik::detail::allowedMovesForBlockedFaces({rubik::Face::U});
+    assert(withoutU.status == rubik::SolveStatus::Found);
+    assert(withoutU.moves.size() == 15);
+    assert(!containsFace(withoutU.moves, rubik::Face::U));
+    assert(!hasBlockedFaceMove(withoutU.moves, {rubik::Face::U}));
+
+    const auto withoutUd = rubik::detail::allowedMovesForBlockedFaces({rubik::Face::U, rubik::Face::D});
+    assert(withoutUd.status == rubik::SolveStatus::Found);
+    assert(withoutUd.moves.size() == 12);
+    assert(!containsFace(withoutUd.moves, rubik::Face::U));
+    assert(!containsFace(withoutUd.moves, rubik::Face::D));
+    assert(!hasBlockedFaceMove(withoutUd.moves, {rubik::Face::U, rubik::Face::D}));
+
+    const auto duplicate = rubik::detail::allowedMovesForBlockedFaces({rubik::Face::U, rubik::Face::U});
+    assert(duplicate.status == rubik::SolveStatus::UnsupportedOptions);
+    assert(duplicate.moves.empty());
+
+    const auto nonOpposite = rubik::detail::allowedMovesForBlockedFaces({rubik::Face::U, rubik::Face::R});
+    assert(nonOpposite.status == rubik::SolveStatus::UnsupportedOptions);
+    assert(nonOpposite.moves.empty());
+
+    const auto tooMany = rubik::detail::allowedMovesForBlockedFaces({
+        rubik::Face::U,
+        rubik::Face::D,
+        rubik::Face::F,
+    });
+    assert(tooMany.status == rubik::SolveStatus::UnsupportedOptions);
+    assert(tooMany.moves.empty());
+}
+
 } // namespace
 
 int main()
@@ -1929,6 +1988,7 @@ int main()
     testPhase1Candidates();
     testPhase2TinyScramble();
     testExperimentalPhaseAliases();
+    testMoveRestrictions();
 
     std::cout << "rubik tests passed\n";
     return 0;

@@ -42,6 +42,7 @@ add_library(rubik
     src/cube.cpp
     src/move_tables.cpp
     src/move.cpp
+    src/move_restrictions.cpp
     src/optimal_plan.cpp
     src/phase1.cpp
     src/phase2.cpp
