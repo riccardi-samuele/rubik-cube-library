@@ -1797,6 +1797,76 @@ void testFastTinyScramble()
     assert(cube.isSolved());
 }
 
+void testFastBlockedFacesSolvesWithoutBlockedMoves()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R F D L B"));
+
+    const rubik::Solver solver;
+    const auto result = solver.solve(cube, {
+        .mode = rubik::SolveMode::Fast,
+        .maxDepth = 12,
+        .timeout = std::chrono::seconds(5),
+        .blockedFaces = {rubik::Face::U},
+    });
+
+    assert(result.status == rubik::SolveStatus::Found || result.status == rubik::SolveStatus::Solved);
+    assert(!hasBlockedFaceMove(result.moves, {rubik::Face::U}));
+    cube.apply(result.moves);
+    assert(cube.isSolved());
+}
+
+void testFastBlockedOppositeFacesAccepted()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R2 F2 L2 B2"));
+
+    const rubik::Solver solver;
+    const auto result = solver.solve(cube, {
+        .mode = rubik::SolveMode::Fast,
+        .maxDepth = 12,
+        .timeout = std::chrono::seconds(5),
+        .blockedFaces = {rubik::Face::U, rubik::Face::D},
+    });
+
+    assert(result.status == rubik::SolveStatus::Found || result.status == rubik::SolveStatus::Solved);
+    assert(!hasBlockedFaceMove(result.moves, {rubik::Face::U, rubik::Face::D}));
+    cube.apply(result.moves);
+    assert(cube.isSolved());
+}
+
+void testFastRejectsInvalidBlockedFaces()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R U F"));
+
+    const rubik::Solver solver;
+    const auto result = solver.solve(cube, {
+        .mode = rubik::SolveMode::Fast,
+        .maxDepth = 12,
+        .blockedFaces = {rubik::Face::U, rubik::Face::R},
+    });
+
+    assert(result.status == rubik::SolveStatus::UnsupportedOptions);
+    assert(result.moves.empty());
+}
+
+void testOptimalRejectsBlockedFaces()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R"));
+
+    const rubik::Solver solver;
+    const auto result = solver.solve(cube, {
+        .mode = rubik::SolveMode::Optimal,
+        .maxDepth = 4,
+        .blockedFaces = {rubik::Face::U},
+    });
+
+    assert(result.status == rubik::SolveStatus::UnsupportedOptions);
+    assert(result.moves.empty());
+}
+
 void testPhase1TinyScramble()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -2065,6 +2135,10 @@ int main()
     testPositiveHighBoundCandidateRejectsNegativeAndUnsupportedBuckets();
     testSolveMemoryLimit();
     testFastTinyScramble();
+    testFastBlockedFacesSolvesWithoutBlockedMoves();
+    testFastBlockedOppositeFacesAccepted();
+    testFastRejectsInvalidBlockedFaces();
+    testOptimalRejectsBlockedFaces();
     testPhase1TinyScramble();
     testPhase1Candidates();
     testPhase1BlockedFaces();

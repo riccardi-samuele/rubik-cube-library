@@ -4,6 +4,7 @@
 #include "rubik/cubie_cube.hpp"
 #include "rubik/detail/adaptive_scheduler.hpp"
 #include "rubik/detail/cache_status.hpp"
+#include "rubik/detail/move_restrictions.hpp"
 #include "rubik/detail/optimal_plan.hpp"
 #include "rubik/detail/symmetry_coordinates.hpp"
 #include "rubik/detail/symmetry_pruning.hpp"
@@ -1042,6 +1043,7 @@ FastSearchResult fastBeamSearch(
     const SearchNode& root,
     const Deadline& deadline,
     const SolveOptions& options,
+    const std::vector<Move>& allowedMoves,
     bool includeExperimentalSymmetryBounds,
     bool includeExperimentalCornerStateBounds,
     bool includeExperimentalCornerUpEdgeBounds,
@@ -1074,11 +1076,11 @@ FastSearchResult fastBeamSearch(
         }
 
         std::vector<BeamEntry> nextBeam;
-        nextBeam.reserve(std::min<std::size_t>(width * 6, width * move_count));
+        nextBeam.reserve(std::min<std::size_t>(width * 6, width * allowedMoves.size()));
         const std::uint64_t nodesBeforeDepth = result.nodesExpanded;
 
         for (const BeamEntry& entry : beam) {
-            for (Move move : allMoves()) {
+            for (Move move : allowedMoves) {
                 if (!entry.path.empty() && isRedundant(entry.path.back(), move)) {
                     continue;
                 }
@@ -1156,6 +1158,7 @@ TwoPhaseAttemptResult twoPhaseAttempt(
         .timeout = attemptOptions.phase1Timeout,
         .profile = options.profile,
         .maxCandidates = attemptOptions.phase1CandidateLimit,
+        .blockedFaces = options.blockedFaces,
     });
 
     TwoPhaseAttemptResult result{
@@ -1216,6 +1219,7 @@ TwoPhaseAttemptResult twoPhaseAttempt(
             .maxDepth = options.maxDepth - static_cast<int>(candidate.moves.size()),
             .timeout = attemptOptions.phase2Timeout,
             .profile = options.profile,
+            .blockedFaces = options.blockedFaces,
         });
 
         result.nodesExpanded += phase2.nodesExpanded;
@@ -2351,9 +2355,13 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
         });
     }
     const SolveOptions effectiveOptions = plan.effectiveOptions;
+    const detail::AllowedMovesResult allowedMoves =
+        detail::allowedMovesForBlockedFaces(effectiveOptions.blockedFaces);
 
     if ((effectiveOptions.mode != SolveMode::Optimal && effectiveOptions.mode != SolveMode::Fast) ||
-        effectiveOptions.metric != Metric::HTM) {
+        effectiveOptions.metric != Metric::HTM ||
+        allowedMoves.status != SolveStatus::Found ||
+        (!effectiveOptions.blockedFaces.empty() && effectiveOptions.mode != SolveMode::Fast)) {
         return withPlan({
             .status = SolveStatus::UnsupportedOptions,
             .moves = {},
@@ -2736,6 +2744,7 @@ SolveResult Solver::solve(const Cube& cube, const SolveOptions& options) const
             root,
             deadline,
             effectiveOptions,
+            allowedMoves.moves,
             includeExperimentalSymmetryBounds,
             includeExperimentalCornerStateBounds,
             includeExperimentalCornerUpEdgeBounds,
