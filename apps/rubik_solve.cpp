@@ -1,7 +1,9 @@
+#include "rubik/detail/move_restrictions.hpp"
 #include "rubik/pruning_tables.hpp"
 #include "rubik/solver.hpp"
 #include "rubik/version.hpp"
 
+#include <cctype>
 #include <cerrno>
 #include <chrono>
 #include <cstdlib>
@@ -44,7 +46,7 @@ void printUsage(const char* program)
     std::cerr
         << "Usage: " << program << " <54-stickers> [--mode optimal|fast] [--timeout-ms N] [--max-depth N]"
         << " [--max-memory-mb N] [--threads N] [--profile auto|default|embedded|performance|large-local]"
-        << " [--cache-policy auto|require-warm|allow-build|disabled]\n"
+        << " [--cache-policy auto|require-warm|allow-build|disabled] [--blocked-faces FACE[,FACE]]\n"
         << "Input order: U R F D L B, each face left-to-right top-to-bottom.\n";
 }
 
@@ -94,6 +96,75 @@ std::optional<rubik::SolveMode> parseMode(const std::string& value)
         return rubik::SolveMode::Fast;
     }
     return std::nullopt;
+}
+
+std::string_view trimAsciiWhitespace(std::string_view value)
+{
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
+        value.remove_prefix(1);
+    }
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.back())) != 0) {
+        value.remove_suffix(1);
+    }
+    return value;
+}
+
+std::optional<rubik::Face> parseFaceToken(std::string_view value)
+{
+    value = trimAsciiWhitespace(value);
+    if (value.size() != 1) {
+        return std::nullopt;
+    }
+
+    switch (std::toupper(static_cast<unsigned char>(value.front()))) {
+    case 'U':
+        return rubik::Face::U;
+    case 'R':
+        return rubik::Face::R;
+    case 'F':
+        return rubik::Face::F;
+    case 'D':
+        return rubik::Face::D;
+    case 'L':
+        return rubik::Face::L;
+    case 'B':
+        return rubik::Face::B;
+    default:
+        return std::nullopt;
+    }
+}
+
+struct BlockedFacesParseResult {
+    bool ok = false;
+    std::vector<rubik::Face> faces;
+    std::string invalidToken;
+};
+
+BlockedFacesParseResult parseBlockedFaces(const std::string& value)
+{
+    BlockedFacesParseResult result;
+    std::size_t start = 0;
+
+    while (start <= value.size()) {
+        const std::size_t comma = value.find(',', start);
+        const std::string_view token = comma == std::string::npos
+            ? std::string_view(value).substr(start)
+            : std::string_view(value).substr(start, comma - start);
+        const auto face = parseFaceToken(token);
+        if (!face) {
+            result.invalidToken = std::string(trimAsciiWhitespace(token));
+            return result;
+        }
+        result.faces.push_back(*face);
+
+        if (comma == std::string::npos) {
+            result.ok = true;
+            return result;
+        }
+        start = comma + 1;
+    }
+
+    return result;
 }
 
 std::optional<long long> parseInteger(const std::string& value, long long minValue, long long maxValue)
@@ -250,10 +321,34 @@ int main(int argc, char** argv)
                 return 2;
             }
             options.mode = *mode;
+        } else if (arg == "--blocked-faces") {
+            const auto value = requireValue(arg, i);
+            if (!value) {
+                return 2;
+            }
+            const BlockedFacesParseResult parsed = parseBlockedFaces(*value);
+            if (!parsed.ok) {
+                std::cerr << "Invalid blocked face: "
+                          << (parsed.invalidToken.empty() ? *value : parsed.invalidToken) << "\n";
+                printUsage(argv[0]);
+                return 2;
+            }
+            options.blockedFaces = parsed.faces;
         } else {
             printUsage(argv[0]);
             return 2;
         }
+    }
+
+    if (!options.blockedFaces.empty() && options.mode != rubik::SolveMode::Fast) {
+        std::cerr << "Blocked faces are supported only with --mode fast\n";
+        printUsage(argv[0]);
+        return 2;
+    }
+    if (rubik::detail::allowedMovesForBlockedFaces(options.blockedFaces).status != rubik::SolveStatus::Found) {
+        std::cerr << "Blocked faces must contain 1 face or 2 opposite faces\n";
+        printUsage(argv[0]);
+        return 2;
     }
 
     const auto cube = rubik::Cube::fromStickers(stickers);

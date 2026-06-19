@@ -124,6 +124,44 @@ set_tests_properties(cli_solve_accepts_cache_policy PROPERTIES
     PASS_REGULAR_EXPRESSION "status: Solved"
 )
 add_test(
+    NAME cli_solve_accepts_single_blocked_face_fast
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success.sh
+        "status: Solved"
+        $<TARGET_FILE:rubik-solve>
+        UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+        --mode fast
+        --blocked-faces U
+        --timeout-ms 1000
+)
+add_test(
+    NAME cli_solve_accepts_opposite_blocked_faces_fast
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success.sh
+        "status: Solved"
+        $<TARGET_FILE:rubik-solve>
+        UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+        --mode fast
+        --blocked-faces U,D
+        --timeout-ms 1000
+)
+add_test(
+    NAME cli_solve_rejects_blocked_faces_for_optimal
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh
+        "Blocked faces are supported only with --mode fast"
+        $<TARGET_FILE:rubik-solve>
+        UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+        --mode optimal
+        --blocked-faces U
+)
+add_test(
+    NAME cli_solve_rejects_non_parallel_blocked_faces
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh
+        "Blocked faces must contain 1 face or 2 opposite faces"
+        $<TARGET_FILE:rubik-solve>
+        UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+        --mode fast
+        --blocked-faces U,R
+)
+add_test(
     NAME cli_solve_require_warm_rejects_cold_cache
     COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error_empty_cache.sh
         "status: CacheNotReady"
@@ -857,6 +895,10 @@ add_test(
 add_test(
     NAME cli_solve_rejects_invalid_mode
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid mode" $<TARGET_FILE:rubik-solve> UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --mode typo
+)
+add_test(
+    NAME cli_solve_rejects_invalid_blocked_face
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh "Invalid blocked face" $<TARGET_FILE:rubik-solve> UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --mode fast --blocked-faces X
 )
 add_test(
     NAME cli_bench_rejects_invalid_case_set
