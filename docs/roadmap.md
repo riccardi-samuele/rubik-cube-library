@@ -280,6 +280,10 @@ Success criteria:
 Planned:
 
 - keep `SolveMode::Fast` experimental until quality and latency are stable;
+- support practical move restrictions without expanding the stable optimal
+  contract;
+- keep blocked-face solving limited to one face or one opposite pair until a
+  broader contract is justified by tests and documentation;
 - strengthen random-depth regression coverage;
 - expose quality/speed tradeoffs only when they are well defined;
 - ensure fast mode never gets confused with certified optimal mode.

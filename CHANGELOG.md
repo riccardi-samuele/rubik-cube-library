@@ -6,6 +6,17 @@ This project uses semantic versioning for public releases. The main
 `rubik::Solver` API is treated as stable, while explicitly experimental APIs
 can still change between minor releases.
 
+## Unreleased
+
+- Added experimental blocked-face support to fast solving. Library callers can
+  pass one blocked face or one opposite blocked pair through
+  `SolveOptions::blockedFaces`.
+- Added the same blocked-face restriction support to the experimental phase-1
+  and phase-2 APIs.
+- Extended `rubik-solve` with `--blocked-faces FACE[,FACE]` for fast mode and
+  tightened CLI coverage for accepted and rejected blocked-face combinations.
+- Updated README and API notes for fast blocked-face solving.
+
 ## 6.0.0 - 2026-06-01
 
 - Promoted measured V6 conservative root-ordering policy for local optimal

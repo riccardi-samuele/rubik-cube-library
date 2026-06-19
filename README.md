@@ -228,6 +228,17 @@ Run the experimental fast mode:
 ./build/rubik-solve UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB --mode fast
 ```
 
+Fast mode can optionally forbid turns on one face or one opposite face pair:
+
+```sh
+./build/rubik-solve <54-stickers> --mode fast --blocked-faces U
+./build/rubik-solve <54-stickers> --mode fast --blocked-faces U,D
+```
+
+`--blocked-faces` accepts `U,R,F,D,L,B` and is currently supported only with
+`--mode fast`. Invalid combinations such as `U,R`, `U,U`, or `U,D,F` are
+rejected by the CLI.
+
 CLI options are parsed strictly. Unknown enum values, missing option values,
 and invalid numeric values return a non-zero exit code with a specific error
 message.

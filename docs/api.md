@@ -98,6 +98,12 @@ fallback. It returns `Found` for valid non-optimal solutions.
 
 `SolveMode::Balanced` is reserved and currently unsupported.
 
+For experimental fast solves, `SolveOptions::blockedFaces` may contain one face
+or two opposite faces (`U,D`, `R,L`, or `F,B`). When present, the returned move
+sequence will not turn those faces. Using `blockedFaces` with any non-fast mode
+returns `UnsupportedOptions`. Invalid blocked-face sets such as duplicates,
+non-opposite pairs, or more than two faces also return `UnsupportedOptions`.
+
 ## Profiles
 
 Profiles tune memory use, table selection, and latency. They do not change the
@@ -217,6 +223,7 @@ rubik::experimental::Phase1Result phase1 = rubik::experimental::solvePhase1(cube
     .maxDepth = 12,
     .timeout = std::chrono::seconds(2),
     .profile = rubik::SolveProfile::Default,
+    .blockedFaces = {rubik::Face::U},
 });
 ```
 
@@ -229,6 +236,7 @@ rubik::experimental::Phase1CandidatesResult candidates =
     .timeout = std::chrono::seconds(2),
     .profile = rubik::SolveProfile::Default,
     .maxCandidates = 16,
+    .blockedFaces = {rubik::Face::U, rubik::Face::D},
 });
 ```
 
@@ -236,12 +244,15 @@ Phase 2:
 
 ```cpp
 if (rubik::experimental::isPhase1Solved(cube)) {
-    rubik::experimental::Phase2Result phase2 = rubik::experimental::solvePhase2(cube);
+    rubik::experimental::Phase2Result phase2 = rubik::experimental::solvePhase2(cube, {
+        .blockedFaces = {rubik::Face::U},
+    });
 }
 ```
 
 The phase APIs are exposed for experimentation. They may change faster than the
-main `Solver` API.
+main `Solver` API. They accept the same blocked-face rule as fast solves: one
+face or one opposite pair.
 
 ## Stability Policy
 
@@ -291,7 +302,8 @@ The examples are also registered as CTest smoke tests. The CLI applications have
 CTest coverage for solved input, invalid input, `--help`, `--version`, strict
 option parsing, solver thread and memory options, deterministic benchmark
 output, random benchmark generation, symmetry reports, lower-bound benchmark
-reports, cache/memory reports, and optimal-mode bound diagnostics.
+reports, cache/memory reports, blocked-face fast-mode validation, and
+optimal-mode bound diagnostics.
 
 ## CMake Package
 
