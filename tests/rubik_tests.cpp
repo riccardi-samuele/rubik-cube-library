@@ -1887,6 +1887,38 @@ void testPhase2TinyScramble()
     assert(cube.isSolved());
 }
 
+void testPhase2BlockedFaces()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R2 F2 L2 B2"));
+
+    assert(rubik::isPhase1Solved(cube));
+
+    const auto result = rubik::solvePhase2(cube, {
+        .maxDepth = 8,
+        .blockedFaces = {rubik::Face::U, rubik::Face::D},
+    });
+
+    assert(result.status == rubik::SolveStatus::Found);
+    assert(!hasBlockedFaceMove(result.moves, {rubik::Face::U, rubik::Face::D}));
+    cube.apply(result.moves);
+    assert(cube.isSolved());
+}
+
+void testPhase2RejectsInvalidBlockedFaces()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("R2 F2"));
+
+    const auto result = rubik::solvePhase2(cube, {
+        .maxDepth = 8,
+        .blockedFaces = {rubik::Face::F, rubik::Face::R},
+    });
+
+    assert(result.status == rubik::SolveStatus::UnsupportedOptions);
+    assert(result.moves.empty());
+}
+
 void testExperimentalPhaseAliases()
 {
     rubik::Cube cube = rubik::Cube::solved();
@@ -2038,6 +2070,8 @@ int main()
     testPhase1BlockedFaces();
     testPhase1RejectsInvalidBlockedFaces();
     testPhase2TinyScramble();
+    testPhase2BlockedFaces();
+    testPhase2RejectsInvalidBlockedFaces();
     testExperimentalPhaseAliases();
     testMoveRestrictions();
 

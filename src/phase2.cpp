@@ -2,6 +2,7 @@
 
 #include "rubik/coordinates.hpp"
 #include "rubik/cubie_cube.hpp"
+#include "rubik/detail/move_restrictions.hpp"
 #include "rubik/move_tables.hpp"
 #include "rubik/phase1.hpp"
 #include "rubik/pruning_tables.hpp"
@@ -63,6 +64,18 @@ constexpr std::array<Move, 10> phase2Moves = {{
     Move::L2,
     Move::B2,
 }};
+
+std::vector<Move> allowedPhase2Moves(const std::vector<Move>& allowedMoves)
+{
+    std::vector<Move> moves;
+    moves.reserve(phase2Moves.size());
+    for (Move phase2Move : phase2Moves) {
+        if (std::find(allowedMoves.begin(), allowedMoves.end(), phase2Move) != allowedMoves.end()) {
+            moves.push_back(phase2Move);
+        }
+    }
+    return moves;
+}
 
 Phase2Node makePhase2Node(const CubieCube& cube)
 {
@@ -199,6 +212,7 @@ SearchState phase2Dfs(
     int limit,
     const Deadline& deadline,
     SolveProfile profile,
+    const std::vector<Move>& allowedMoves,
     std::vector<Move>& path,
     std::vector<Move>& solution,
     std::uint64_t& nodesExpanded)
@@ -215,10 +229,10 @@ SearchState phase2Dfs(
         return SearchState::NotFound;
     }
 
-    std::array<CandidateMove, phase2Moves.size()> candidates{};
-    int candidateCount = 0;
+    std::vector<CandidateMove> candidates;
+    candidates.reserve(allowedMoves.size());
 
-    for (Move move : phase2Moves) {
+    for (Move move : allowedMoves) {
         if (!path.empty() && isRedundant(path.back(), move)) {
             continue;
         }
@@ -229,27 +243,35 @@ SearchState phase2Dfs(
             continue;
         }
 
-        candidates[candidateCount] = {
+        candidates.push_back({
             .move = move,
             .lowerBound = candidateLowerBound,
             .order = static_cast<int>(move),
-        };
-        ++candidateCount;
+        });
     }
 
-    std::sort(candidates.begin(), candidates.begin() + candidateCount, [](const CandidateMove& lhs, const CandidateMove& rhs) {
+    std::sort(candidates.begin(), candidates.end(), [](const CandidateMove& lhs, const CandidateMove& rhs) {
         if (lhs.lowerBound != rhs.lowerBound) {
             return lhs.lowerBound < rhs.lowerBound;
         }
         return lhs.order < rhs.order;
     });
 
-    for (int i = 0; i < candidateCount; ++i) {
-        const Move move = candidates[i].move;
+    for (const CandidateMove& candidate : candidates) {
+        const Move move = candidate.move;
         Phase2Node next = moved(node, move);
         path.push_back(move);
 
-        const SearchState result = phase2Dfs(next, depth + 1, limit, deadline, profile, path, solution, nodesExpanded);
+        const SearchState result = phase2Dfs(
+            next,
+            depth + 1,
+            limit,
+            deadline,
+            profile,
+            allowedMoves,
+            path,
+            solution,
+            nodesExpanded);
         if (result != SearchState::NotFound) {
             return result;
         }
@@ -283,6 +305,30 @@ Phase2Result solvePhase2(const Cube& cube, const Phase2Options& options)
     if (!isPhase1Solved(cube)) {
         return {
             .status = SolveStatus::UnsupportedOptions,
+            .moves = {},
+            .moveCount = -1,
+            .elapsed = elapsed(),
+            .nodesExpanded = 0,
+            .nodesByDepth = {},
+        };
+    }
+
+    const detail::AllowedMovesResult unrestrictedAllowedMoves =
+        detail::allowedMovesForBlockedFaces(options.blockedFaces);
+    if (unrestrictedAllowedMoves.status != SolveStatus::Found) {
+        return {
+            .status = unrestrictedAllowedMoves.status,
+            .moves = {},
+            .moveCount = -1,
+            .elapsed = elapsed(),
+            .nodesExpanded = 0,
+            .nodesByDepth = {},
+        };
+    }
+    const std::vector<Move> phase2AllowedMoves = allowedPhase2Moves(unrestrictedAllowedMoves.moves);
+    if (phase2AllowedMoves.empty()) {
+        return {
+            .status = SolveStatus::DepthLimitExceeded,
             .moves = {},
             .moveCount = -1,
             .elapsed = elapsed(),
@@ -330,6 +376,7 @@ Phase2Result solvePhase2(const Cube& cube, const Phase2Options& options)
             limit,
             deadline,
             options.profile,
+            phase2AllowedMoves,
             path,
             solution,
             nodesExpanded);
