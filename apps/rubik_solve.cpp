@@ -340,11 +340,6 @@ int main(int argc, char** argv)
         }
     }
 
-    if (!options.blockedFaces.empty() && options.mode != rubik::SolveMode::Fast) {
-        std::cerr << "Blocked faces are supported only with --mode fast\n";
-        printUsage(argv[0]);
-        return 2;
-    }
     if (rubik::detail::allowedMovesForBlockedFaces(options.blockedFaces).status != rubik::SolveStatus::Found) {
         std::cerr << "Blocked faces must contain 1 face or 2 opposite faces\n";
         printUsage(argv[0]);

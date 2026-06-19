@@ -125,28 +125,30 @@ set_tests_properties(cli_solve_accepts_cache_policy PROPERTIES
 )
 add_test(
     NAME cli_solve_accepts_single_blocked_face_fast
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success.sh
-        "status: Solved"
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success_without_faces.sh
+        "status: Found"
+        F
         $<TARGET_FILE:rubik-solve>
-        UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+        FUDBUULLRBRLURLURRFFDFFFFFFRRRDDDBDBLRDLLDLLDBBUBBUUBU
         --mode fast
-        --blocked-faces U
-        --timeout-ms 1000
+        --blocked-faces F
+        --timeout-ms 5000
 )
 add_test(
     NAME cli_solve_accepts_opposite_blocked_faces_fast
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success.sh
-        "status: Solved"
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_success_without_faces.sh
+        "status: Found"
+        U,D
         $<TARGET_FILE:rubik-solve>
-        UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+        UDUDUDDDDLRRLRRLRRBFFBFFBFFUUUUDUDUDRLLRLLRLLBBFBBFBBF
         --mode fast
         --blocked-faces U,D
-        --timeout-ms 1000
+        --timeout-ms 5000
 )
 add_test(
     NAME cli_solve_rejects_blocked_faces_for_optimal
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh
-        "Blocked faces are supported only with --mode fast"
+        "status: UnsupportedOptions"
         $<TARGET_FILE:rubik-solve>
         UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
         --mode optimal
@@ -160,6 +162,33 @@ add_test(
         UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
         --mode fast
         --blocked-faces U,R
+)
+add_test(
+    NAME cli_solve_rejects_duplicate_blocked_faces
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh
+        "Blocked faces must contain 1 face or 2 opposite faces"
+        $<TARGET_FILE:rubik-solve>
+        UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+        --mode fast
+        --blocked-faces U,U
+)
+add_test(
+    NAME cli_solve_rejects_empty_blocked_faces
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh
+        "Invalid blocked face"
+        $<TARGET_FILE:rubik-solve>
+        UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+        --mode fast
+        --blocked-faces ""
+)
+add_test(
+    NAME cli_solve_rejects_too_many_blocked_faces
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/expect_cli_error.sh
+        "Blocked faces must contain 1 face or 2 opposite faces"
+        $<TARGET_FILE:rubik-solve>
+        UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+        --mode fast
+        --blocked-faces U,D,F
 )
 add_test(
     NAME cli_solve_require_warm_rejects_cold_cache
