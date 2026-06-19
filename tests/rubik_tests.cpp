@@ -17,7 +17,9 @@
 #include "rubik/solver.hpp"
 #include "rubik/version.hpp"
 
+#include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -56,6 +58,55 @@ bool hasBlockedFaceMove(const std::vector<rubik::Move>& moves, const std::vector
             }
         }
     }
+    return false;
+}
+
+bool fastDefaultTwoPhaseCanSolve(
+    const rubik::Cube& cube,
+    int maxDepth,
+    const std::vector<rubik::Face>& blockedFaces)
+{
+    struct AttemptOptions {
+        std::size_t phase1CandidateLimit;
+        std::chrono::milliseconds phase1Timeout;
+        std::chrono::milliseconds phase2Timeout;
+    };
+
+    // Mirror the default-profile fast attempts so this test can prove beam fallback coverage.
+    for (const AttemptOptions attempt : {
+             AttemptOptions{4, std::chrono::milliseconds{250}, std::chrono::milliseconds{75}},
+             AttemptOptions{16, std::chrono::milliseconds{2000}, std::chrono::milliseconds{150}},
+         }) {
+        const auto phase1 = rubik::findPhase1Candidates(cube, {
+            .maxDepth = std::min(maxDepth, 12),
+            .timeout = attempt.phase1Timeout,
+            .profile = rubik::SolveProfile::Default,
+            .maxCandidates = attempt.phase1CandidateLimit,
+            .blockedFaces = blockedFaces,
+        });
+        if (phase1.status != rubik::SolveStatus::Found && phase1.status != rubik::SolveStatus::Solved) {
+            continue;
+        }
+
+        for (const std::vector<rubik::Move>& phase1Moves : phase1.candidates) {
+            if (static_cast<int>(phase1Moves.size()) > maxDepth) {
+                continue;
+            }
+
+            rubik::Cube phase2Cube = cube;
+            phase2Cube.apply(phase1Moves);
+            const auto phase2 = rubik::solvePhase2(phase2Cube, {
+                .maxDepth = maxDepth - static_cast<int>(phase1Moves.size()),
+                .timeout = attempt.phase2Timeout,
+                .profile = rubik::SolveProfile::Default,
+                .blockedFaces = blockedFaces,
+            });
+            if (phase2.status == rubik::SolveStatus::Found || phase2.status == rubik::SolveStatus::Solved) {
+                return true;
+            }
+        }
+    }
+
     return false;
 }
 
@@ -1810,7 +1861,7 @@ void testFastBlockedFacesSolvesWithoutBlockedMoves()
         .blockedFaces = {rubik::Face::U},
     });
 
-    assert(result.status == rubik::SolveStatus::Found || result.status == rubik::SolveStatus::Solved);
+    assert(result.status == rubik::SolveStatus::Found);
     assert(!hasBlockedFaceMove(result.moves, {rubik::Face::U}));
     cube.apply(result.moves);
     assert(cube.isSolved());
@@ -1829,8 +1880,30 @@ void testFastBlockedOppositeFacesAccepted()
         .blockedFaces = {rubik::Face::U, rubik::Face::D},
     });
 
-    assert(result.status == rubik::SolveStatus::Found || result.status == rubik::SolveStatus::Solved);
+    assert(result.status == rubik::SolveStatus::Found);
     assert(!hasBlockedFaceMove(result.moves, {rubik::Face::U, rubik::Face::D}));
+    cube.apply(result.moves);
+    assert(cube.isSolved());
+}
+
+void testFastBlockedFacesBeamFallback()
+{
+    rubik::Cube cube = rubik::Cube::solved();
+    cube.apply(rubik::parseMoves("L B2 L' F B2"));
+
+    const std::vector<rubik::Face> blockedFaces{rubik::Face::F};
+    assert(!fastDefaultTwoPhaseCanSolve(cube, 16, blockedFaces));
+
+    const rubik::Solver solver;
+    const auto result = solver.solve(cube, {
+        .mode = rubik::SolveMode::Fast,
+        .maxDepth = 16,
+        .timeout = std::chrono::seconds(5),
+        .blockedFaces = blockedFaces,
+    });
+
+    assert(result.status == rubik::SolveStatus::Found);
+    assert(!hasBlockedFaceMove(result.moves, blockedFaces));
     cube.apply(result.moves);
     assert(cube.isSolved());
 }
@@ -2137,6 +2210,7 @@ int main()
     testFastTinyScramble();
     testFastBlockedFacesSolvesWithoutBlockedMoves();
     testFastBlockedOppositeFacesAccepted();
+    testFastBlockedFacesBeamFallback();
     testFastRejectsInvalidBlockedFaces();
     testOptimalRejectsBlockedFaces();
     testPhase1TinyScramble();
