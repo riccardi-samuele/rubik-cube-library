@@ -2,6 +2,7 @@
 
 #include "rubik/coordinates.hpp"
 #include "rubik/cubie_cube.hpp"
+#include "rubik/detail/move_restrictions.hpp"
 #include "rubik/move_tables.hpp"
 #include "rubik/pruning_tables.hpp"
 
@@ -155,6 +156,7 @@ SearchState phase1CandidatesDfs(
     const Deadline& deadline,
     SolveProfile profile,
     std::size_t maxCandidates,
+    const std::vector<Move>& allowedMoves,
     std::vector<Move>& path,
     std::vector<std::vector<Move>>& candidates,
     std::uint64_t& nodesExpanded)
@@ -176,7 +178,7 @@ SearchState phase1CandidatesDfs(
     std::array<CandidateMove, move_count> candidateMoves{};
     int candidateMoveCount = 0;
 
-    for (Move move : allMoves()) {
+    for (Move move : allowedMoves) {
         if (!path.empty() && isRedundant(path.back(), move)) {
             continue;
         }
@@ -214,6 +216,7 @@ SearchState phase1CandidatesDfs(
             deadline,
             profile,
             maxCandidates,
+            allowedMoves,
             path,
             candidates,
             nodesExpanded);
@@ -268,6 +271,18 @@ Phase1CandidatesResult findPhase1Candidates(const Cube& cube, const Phase1Option
         };
     }
 
+    const detail::AllowedMovesResult allowedMoves =
+        detail::allowedMovesForBlockedFaces(options.blockedFaces);
+    if (allowedMoves.status != SolveStatus::Found) {
+        return {
+            .status = allowedMoves.status,
+            .candidates = {},
+            .elapsed = elapsed(),
+            .nodesExpanded = 0,
+            .nodesByDepth = {},
+        };
+    }
+
     const Phase1Node root = makePhase1Node(parsed.cube);
     if (isPhase1Solved(root)) {
         return {
@@ -296,6 +311,7 @@ Phase1CandidatesResult findPhase1Candidates(const Cube& cube, const Phase1Option
             deadline,
             options.profile,
             maxCandidates,
+            allowedMoves.moves,
             path,
             candidates,
             nodesExpanded);
